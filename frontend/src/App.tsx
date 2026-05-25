@@ -32,7 +32,10 @@ import {
   CalendarCheck,
   Star,
   Activity,
-  History
+  History,
+  User,
+  Save,
+  Key,
 } from 'lucide-react';
 
 export default function App() {
@@ -49,7 +52,7 @@ export default function App() {
     role: 'CITIZEN'
   });
 
-  const [currentView, setCurrentView] = useState<'home' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log' | 'profile'>('home');
   
   // Forms & Service application states
   const [selectedService, setSelectedService] = useState<ServiceType>('NATIONAL_ID');
@@ -183,6 +186,15 @@ export default function App() {
   const [activityPage, setActivityPage] = useState(1);
   const [activityTotalPages, setActivityTotalPages] = useState(1);
   const [activityActionFilter, setActivityActionFilter] = useState('');
+
+  // Profile states
+  const [profileForm, setProfileForm] = useState({ name: user?.name || '', phone: user?.phone || '' });
+  const [profileSuccess, setProfileSuccess] = useState('');
+  const [profileError, setProfileError] = useState('');
+  const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [profileSaving, setProfileSaving] = useState(false);
 
   // Modal active state
   const [activeApplicationDetails, setActiveApplicationDetails] = useState<Application | null>(null);
@@ -407,6 +419,60 @@ export default function App() {
       goToAdmin();
     } else {
       goToDashboard();
+    }
+  };
+
+  // Profile handlers
+  const handleProfileUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setProfileSuccess('');
+    setProfileError('');
+    setProfileSaving(true);
+    try {
+      const token = localStorage.getItem('misrgate_token');
+      const res = await fetch('http://localhost:5000/api/auth/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : '' },
+        body: JSON.stringify(profileForm),
+      });
+      const data = await res.json();
+      if (data.user) {
+        setUser(prev => prev ? { ...prev, name: data.user.name, phone: data.user.phone } : prev);
+        setProfileSuccess(t('Profile updated successfully!', 'تم تحديث الملف الشخصي بنجاح!'));
+      } else {
+        setProfileError(data.error || 'Update failed.');
+      }
+    } catch {
+      setProfileError(t('An error occurred.', 'حدث خطأ.'));
+    } finally {
+      setProfileSaving(false);
+    }
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordSuccess('');
+    setPasswordError('');
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError(t('Passwords do not match.', 'كلمات المرور غير متطابقة.'));
+      return;
+    }
+    try {
+      const token = localStorage.getItem('misrgate_token');
+      const res = await fetch('http://localhost:5000/api/auth/password', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : '' },
+        body: JSON.stringify({ currentPassword: passwordForm.currentPassword, newPassword: passwordForm.newPassword }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setPasswordSuccess(t('Password changed successfully!', 'تم تغيير كلمة المرور بنجاح!'));
+        setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      } else {
+        setPasswordError(data.error || 'Failed to change password.');
+      }
+    } catch {
+      setPasswordError(t('An error occurred.', 'حدث خطأ.'));
     }
   };
 
@@ -659,6 +725,14 @@ export default function App() {
                   </div>
                 )}
               </div>
+            )}
+
+            {/* Profile Link */}
+            {user && (
+              <span className={`nav-link ${currentView === 'profile' ? 'active' : ''}`} onClick={() => { setCurrentView('profile'); setProfileForm({ name: user.name, phone: user.phone }); setProfileSuccess(''); setPasswordSuccess(''); }}>
+                <User size={15} />
+                {t('Profile', 'الملف الشخصي')}
+              </span>
             )}
 
             {/* Language Switcher Pill */}
@@ -1038,6 +1112,65 @@ export default function App() {
                 })}
               </div>
 
+            </div>
+          </div>
+        )}
+
+        {/* VIEW: PROFILE */}
+        {currentView === 'profile' && user && (
+          <div style={{ maxWidth: '700px', margin: '0 auto', textAlign: isRtl ? 'right' : 'left' }}>
+            <div className="glass-card">
+              <h3 style={{ color: 'var(--accent-red)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <User size={20} /> {t('My Profile', 'الملف الشخصي')}
+              </h3>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '2rem', padding: '1rem', background: '#f8fafc', borderRadius: 'var(--border-radius-md)' }}>
+                <div><strong>{t('Email:', 'البريد الإلكتروني:')}</strong> <span style={{ color: 'var(--text-secondary)' }}>{user.email}</span></div>
+                <div><strong>{t('National ID:', 'الرقم القومي:')}</strong> <span style={{ color: 'var(--text-secondary)' }}>{user.nationalId}</span></div>
+                <div><strong>{t('Role:', 'الدور:')}</strong> <span className={`status-badge status-${user.role === 'ADMIN' ? 'APPROVED' : 'PENDING'}`}>{user.role}</span></div>
+              </div>
+
+              {/* Edit Profile Form */}
+              <form onSubmit={handleProfileUpdate}>
+                <h4 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Save size={16} /> {t('Edit Profile', 'تعديل الملف الشخصي')}</h4>
+                <div className="form-group">
+                  <label>{t('Full Name', 'الاسم الكامل')}</label>
+                  <input type="text" value={profileForm.name} onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })} required />
+                </div>
+                <div className="form-group">
+                  <label>{t('Phone Number', 'رقم الهاتف')}</label>
+                  <input type="tel" value={profileForm.phone} onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })} required />
+                </div>
+                {profileSuccess && <div className="success-banner" style={{ marginBottom: '0.75rem' }}><CheckCircle size={16} /> {profileSuccess}</div>}
+                {profileError && <div className="error-banner" style={{ marginBottom: '0.75rem' }}><AlertCircle size={16} /> {profileError}</div>}
+                <button type="submit" className="btn btn-primary" disabled={profileSaving}>
+                  {profileSaving ? <Loader2 className="spinner" size={16} /> : (t('Save Changes', 'حفظ التغييرات'))}
+                </button>
+              </form>
+
+              <hr style={{ margin: '2rem 0', border: 'none', borderTop: '1px solid var(--border-color)' }} />
+
+              {/* Change Password Form */}
+              <form onSubmit={handlePasswordChange}>
+                <h4 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Key size={16} /> {t('Change Password', 'تغيير كلمة المرور')}</h4>
+                <div className="form-group">
+                  <label>{t('Current Password', 'كلمة المرور الحالية')}</label>
+                  <input type="password" value={passwordForm.currentPassword} onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })} required />
+                </div>
+                <div className="form-group">
+                  <label>{t('New Password', 'كلمة المرور الجديدة')}</label>
+                  <input type="password" value={passwordForm.newPassword} onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })} required placeholder={t('Min 8 chars, uppercase + number', '8 أحرف على الأقل، حرف كبير + رقم')} />
+                </div>
+                <div className="form-group">
+                  <label>{t('Confirm New Password', 'تأكيد كلمة المرور الجديدة')}</label>
+                  <input type="password" value={passwordForm.confirmPassword} onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })} required />
+                </div>
+                {passwordSuccess && <div className="success-banner" style={{ marginBottom: '0.75rem' }}><CheckCircle size={16} /> {passwordSuccess}</div>}
+                {passwordError && <div className="error-banner" style={{ marginBottom: '0.75rem' }}><AlertCircle size={16} /> {passwordError}</div>}
+                <button type="submit" className="btn btn-primary">
+                  {t('Change Password', 'تغيير كلمة المرور')}
+                </button>
+              </form>
             </div>
           </div>
         )}
