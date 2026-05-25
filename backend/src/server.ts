@@ -58,6 +58,7 @@ import { adminGetAnalytics } from './controllers/analytics';
 import { chat } from './controllers/chatbot';
 import { exportApplications, exportComplaints, exportAppointments } from './controllers/export';
 import { getMyFavorites, toggleFavorite } from './controllers/favorites';
+import { getActiveAnnouncements, adminGetAnnouncements, adminCreateAnnouncement, adminUpdateAnnouncement, adminDeleteAnnouncement } from './controllers/announcements';
 
 // Initialize dotenv configuration
 dotenv.config();
@@ -202,6 +203,13 @@ app.post('/api/upload', authenticateJWT, upload.single('file'), uploadFile);
 // --- Favorite Services Routes ---
 app.get('/api/favorites', authenticateJWT, getMyFavorites);
 app.post('/api/favorites/toggle', authenticateJWT, toggleFavorite);
+
+// --- Announcement Routes ---
+app.get('/api/announcements', getActiveAnnouncements);
+app.get('/api/admin/announcements', authenticateJWT, requireAdmin, adminGetAnnouncements);
+app.post('/api/admin/announcements', authenticateJWT, requireAdmin, adminCreateAnnouncement);
+app.put('/api/admin/announcements/:id', authenticateJWT, requireAdmin, adminUpdateAnnouncement);
+app.delete('/api/admin/announcements/:id', authenticateJWT, requireAdmin, adminDeleteAnnouncement);
 
 // --- 404 Route ---
 app.use((req, res) => {

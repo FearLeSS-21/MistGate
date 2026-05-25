@@ -103,6 +103,15 @@ export interface ServiceRating {
   user?: { name: string };
 }
 
+export interface Announcement {
+  id: string;
+  title: string;
+  message: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ActivityEntry {
   id: string;
   userId?: string | null;
@@ -376,6 +385,35 @@ class ApiService {
         byService: { [key: string]: number };
       };
     }>('/admin/stats');
+  }
+
+  // --- Announcements ---
+  async getActiveAnnouncements(): Promise<{ announcements: Announcement[] }> {
+    return this.request<{ announcements: Announcement[] }>('/announcements');
+  }
+
+  async adminGetAnnouncements(): Promise<{ announcements: Announcement[] }> {
+    return this.request<{ announcements: Announcement[] }>('/admin/announcements');
+  }
+
+  async adminCreateAnnouncement(body: { title: string; message: string }): Promise<{ message: string; announcement: Announcement }> {
+    return this.request<{ message: string; announcement: Announcement }>('/admin/announcements', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  async adminUpdateAnnouncement(id: string, body: { title?: string; message?: string; active?: boolean }): Promise<{ message: string; announcement: Announcement }> {
+    return this.request<{ message: string; announcement: Announcement }>(`/admin/announcements/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+  }
+
+  async adminDeleteAnnouncement(id: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/admin/announcements/${id}`, {
+      method: 'DELETE',
+    });
   }
 
   // --- Favorite Services ---

@@ -22,6 +22,7 @@ const analytics_1 = require("./controllers/analytics");
 const chatbot_1 = require("./controllers/chatbot");
 const export_1 = require("./controllers/export");
 const favorites_1 = require("./controllers/favorites");
+const announcements_1 = require("./controllers/announcements");
 // Initialize dotenv configuration
 dotenv_1.default.config();
 const app = (0, express_1.default)();
@@ -138,6 +139,12 @@ app.post('/api/upload', auth_1.authenticateJWT, upload.single('file'), upload_1.
 // --- Favorite Services Routes ---
 app.get('/api/favorites', auth_1.authenticateJWT, favorites_1.getMyFavorites);
 app.post('/api/favorites/toggle', auth_1.authenticateJWT, favorites_1.toggleFavorite);
+// --- Announcement Routes ---
+app.get('/api/announcements', announcements_1.getActiveAnnouncements);
+app.get('/api/admin/announcements', auth_1.authenticateJWT, auth_1.requireAdmin, announcements_1.adminGetAnnouncements);
+app.post('/api/admin/announcements', auth_1.authenticateJWT, auth_1.requireAdmin, announcements_1.adminCreateAnnouncement);
+app.put('/api/admin/announcements/:id', auth_1.authenticateJWT, auth_1.requireAdmin, announcements_1.adminUpdateAnnouncement);
+app.delete('/api/admin/announcements/:id', auth_1.authenticateJWT, auth_1.requireAdmin, announcements_1.adminDeleteAnnouncement);
 // --- 404 Route ---
 app.use((req, res) => {
     res.status(404).json({ error: 'Endpoint not found.' });

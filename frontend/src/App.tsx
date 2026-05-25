@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from './services/api';
-import type { User as ApiUser, Application, ServiceType, Notification, Complaint, Appointment, ActivityEntry } from './services/api';
+import type { User as ApiUser, Application, ServiceType, Notification, Complaint, Appointment, ActivityEntry, Announcement } from './services/api';
 import './App.css';
 import {
   Home,
@@ -41,6 +41,7 @@ import {
   Sun,
   Download,
   Printer,
+  Megaphone,
 } from 'lucide-react';
 
 export default function App() {
@@ -62,7 +63,7 @@ export default function App() {
     role: 'CITIZEN'
   });
 
-  const [currentView, setCurrentView] = useState<'home' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log' | 'profile' | 'analytics'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log' | 'profile' | 'analytics' | 'admin_announcements'>('home');
   
   // Forms & Service application states
   const [selectedService, setSelectedService] = useState<ServiceType>('NATIONAL_ID');
@@ -219,6 +220,13 @@ export default function App() {
   const [activityTotalPages, setActivityTotalPages] = useState(1);
   const [activityActionFilter, setActivityActionFilter] = useState('');
 
+  // Announcements states
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [adminAnnouncements, setAdminAnnouncements] = useState<Announcement[]>([]);
+  const [announcementForm, setAnnouncementForm] = useState({ title: '', message: '' });
+  const [announcementFormError, setAnnouncementFormError] = useState('');
+  const [announcementFormSuccess, setAnnouncementFormSuccess] = useState('');
+
   // Favorite services states
   const [favorites, setFavorites] = useState<string[]>([]);
 
@@ -292,6 +300,60 @@ export default function App() {
       console.error(err);
     } finally {
       setNotificationsLoading(false);
+    }
+  };
+
+  const fetchAnnouncements = async () => {
+    try {
+      const res = await api.getActiveAnnouncements();
+      setAnnouncements(res.announcements);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchAdminAnnouncements = async () => {
+    try {
+      const res = await api.adminGetAnnouncements();
+      setAdminAnnouncements(res.announcements);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleCreateAnnouncement = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAnnouncementFormError('');
+    setAnnouncementFormSuccess('');
+    if (!announcementForm.title || !announcementForm.message) {
+      setAnnouncementFormError('Title and message are required.');
+      return;
+    }
+    try {
+      await api.adminCreateAnnouncement(announcementForm);
+      setAnnouncementForm({ title: '', message: '' });
+      setAnnouncementFormSuccess('Announcement created successfully.');
+      void fetchAdminAnnouncements();
+    } catch (err) {
+      setAnnouncementFormError(err instanceof Error ? err.message : 'Failed to create announcement.');
+    }
+  };
+
+  const handleToggleAnnouncement = async (id: string, active: boolean) => {
+    try {
+      await api.adminUpdateAnnouncement(id, { active: !active });
+      void fetchAdminAnnouncements();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteAnnouncement = async (id: string) => {
+    try {
+      await api.adminDeleteAnnouncement(id);
+      void fetchAdminAnnouncements();
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -486,6 +548,7 @@ export default function App() {
 
   useEffect(() => {
     void fetchFavorites();
+    void fetchAnnouncements();
   }, []);
 
   // Listen for system theme changes
@@ -861,6 +924,12 @@ export default function App() {
                 {t('Activity', 'النشاط')}
               </span>
             )}
+            {user?.role === 'ADMIN' && (
+              <span className={`nav-link ${currentView === 'admin_announcements' ? 'active' : ''}`} onClick={() => { setCurrentView('admin_announcements'); fetchAdminAnnouncements(); }}>
+                <Megaphone size={15} />
+                {t('Announcements', 'الإعلانات')}
+              </span>
+            )}
 
             {/* Notification Bell */}
             {user && (
@@ -967,6 +1036,21 @@ export default function App() {
                 </div>
               )}
             </section>
+
+            {/* Announcements Banner */}
+            {announcements.length > 0 && (
+              <div className="announcements-banner" style={{ direction: isRtl ? 'rtl' : 'ltr' }}>
+                {announcements.map(a => (
+                  <div key={a.id} className="announcement-item">
+                    <Megaphone size={18} />
+                    <div>
+                      <strong>{a.title}</strong>
+                      <p>{a.message}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Favorites Section */}
             {favorites.length > 0 && (
@@ -2556,6 +2640,75 @@ export default function App() {
                 {t('No analytics data available yet.', 'لا توجد بيانات تحليلات متاحة بعد.')}
               </div>
             )}
+          </div>
+        )}
+
+        {/* VIEW: ADMIN ANNOUNCEMENTS MANAGEMENT */}
+        {currentView === 'admin_announcements' && user?.role === 'ADMIN' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Megaphone size={22} /> {t('Announcements', 'الإعلانات')}</h2>
+              <button className="btn btn-secondary" onClick={goToAdmin}>{t('← Admin Desk', '← غرفة الإدارة')}</button>
+            </div>
+
+            {/* Create Announcement Form */}
+            <div className="glass-card" style={{ padding: '1.25rem', marginBottom: '1.5rem' }}>
+              <h3 style={{ marginBottom: '1rem' }}>{t('New Announcement', 'إعلان جديد')}</h3>
+              {announcementFormSuccess && <div className="success-banner" style={{ marginBottom: '1rem' }}>{announcementFormSuccess}</div>}
+              {announcementFormError && <div className="error-banner" style={{ marginBottom: '1rem' }}>{announcementFormError}</div>}
+              <form onSubmit={handleCreateAnnouncement} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <input
+                  type="text"
+                  placeholder={t('Announcement title...', 'عنوان الإعلان...')}
+                  value={announcementForm.title}
+                  onChange={(e) => setAnnouncementForm(prev => ({ ...prev, title: e.target.value }))}
+                  style={{ padding: '0.5rem', fontSize: '0.9rem' }}
+                />
+                <textarea
+                  placeholder={t('Announcement message...', 'نص الإعلان...')}
+                  value={announcementForm.message}
+                  onChange={(e) => setAnnouncementForm(prev => ({ ...prev, message: e.target.value }))}
+                  rows={3}
+                  style={{ padding: '0.5rem', fontSize: '0.9rem', resize: 'vertical' }}
+                />
+                <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>
+                  {t('Publish Announcement', 'نشر الإعلان')}
+                </button>
+              </form>
+            </div>
+
+            {/* Announcements List */}
+            <div className="glass-card" style={{ padding: '1.25rem' }}>
+              <h3 style={{ marginBottom: '1rem' }}>{t('Manage Announcements', 'إدارة الإعلانات')}</h3>
+              {adminAnnouncements.length === 0 ? (
+                <p style={{ color: 'var(--text-muted)' }}>{t('No announcements yet.', 'لا توجد إعلانات بعد.')}</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {adminAnnouncements.map(a => (
+                    <div key={a.id} className="glass-card" style={{ padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexDirection: isRtl ? 'row-reverse' : 'row', gap: '1rem' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <strong>{a.title}</strong>
+                          <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', background: a.active ? 'var(--accent-green)' : 'var(--text-muted)', color: 'white' }}>
+                            {a.active ? t('Active', 'نشط') : t('Inactive', 'غير نشط')}
+                          </span>
+                        </div>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>{a.message}</p>
+                        <small style={{ color: 'var(--text-muted)' }}>{new Date(a.createdAt).toLocaleDateString()}</small>
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+                        <button className={`btn ${a.active ? 'btn-secondary' : 'btn-primary'}`} style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={() => handleToggleAnnouncement(a.id, a.active)}>
+                          {a.active ? t('Deactivate', 'إيقاف') : t('Activate', 'تفعيل')}
+                        </button>
+                        <button className="btn btn-danger" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={() => handleDeleteAnnouncement(a.id)}>
+                          <X size={12} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
