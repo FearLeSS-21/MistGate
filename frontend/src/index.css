@@ -1222,6 +1222,13 @@ input:focus, select:focus, textarea:focus {
   cursor: not-allowed;
 }
 
+/* Print Receipt Styles */
+@media print {
+  .navbar, .footer, .chatbot-wrapper, .dev-banner, .nav-links, .form-actions, .hero-search, .export-btns { display: none !important; }
+  .app-container { background: white !important; }
+  .glass-card { box-shadow: none !important; border: 1px solid #ddd !important; }
+}
+
 /* Footer */
 .footer {
   text-align: center;
