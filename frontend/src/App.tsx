@@ -45,6 +45,8 @@ import {
   HelpCircle,
   History,
   Clock,
+  MapPin,
+  Phone,
 } from 'lucide-react';
 
 export default function App() {
@@ -66,7 +68,7 @@ export default function App() {
     role: 'CITIZEN'
   });
 
-  const [currentView, setCurrentView] = useState<'home' | 'faq' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log' | 'profile' | 'analytics' | 'admin_announcements' | 'admin_reports' | 'timeline'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'faq' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log' | 'profile' | 'analytics' | 'admin_announcements' | 'admin_reports' | 'timeline' | 'service_directory'>('home');
   
   // Forms & Service application states
   const [selectedService, setSelectedService] = useState<ServiceType>('NATIONAL_ID');
@@ -971,6 +973,10 @@ export default function App() {
                 {t('Activity', 'النشاط')}
               </span>
             )}
+            <span className={`nav-link ${currentView === 'service_directory' ? 'active' : ''}`} onClick={() => setCurrentView('service_directory')}>
+              <MapPin size={15} />
+              {t('Directory', 'الدليل')}
+            </span>
             <span className={`nav-link ${currentView === 'faq' ? 'active' : ''}`} onClick={() => setCurrentView('faq')}>
               <HelpCircle size={15} />
               {t('FAQ', 'الأسئلة')}
@@ -2322,6 +2328,47 @@ export default function App() {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* VIEW: SERVICE DIRECTORY */}
+        {currentView === 'service_directory' && (
+          <div>
+            <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+              <h2 style={{ textAlign: 'center', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <MapPin size={22} /> {t('Government Service Directory', 'دليل الخدمات الحكومية')}
+              </h2>
+
+              {([
+                { name: t('National ID & Civil Registry', 'الأحوال المدنية وبطاقات الرقم القومي'), phone: '15999', hours: t('Sun-Thu 8:00 AM - 3:00 PM', 'الأحد-الخميس 8 ص - 3 م'), address: t('Abdel Aziz Riad St., Mohandessin, Giza', 'شارع عبد العزيز رياض، المهندسين، الجيزة'), desc: t('Issuance and renewal of national ID cards, birth and death certificates.', 'إصدار وتجديد بطاقات الرقم القومي، وثائق الميلاد والوفاة.') },
+                { name: t('Passport Office', 'مكتب الجوازات'), phone: '15999', hours: t('Sun-Thu 8:00 AM - 6:00 PM', 'الأحد-الخميس 8 ص - 6 م'), address: t('Nasr Rd., Nasr City, Cairo', 'شارع نصر، مدينة نصر، القاهرة'), desc: t('Passport applications, renewals, and emergency travel documents.', 'إصدار وتجديد جوازات السفر ووثائق السفر الطارئة.') },
+                { name: t('Traffic Department', 'إدارة المرور'), phone: '136', hours: t('Sun-Thu 7:30 AM - 2:30 PM', 'الأحد-الخميس 7:30 ص - 2:30 م'), address: t('Tharwat St., Mohandessin, Giza', 'شارع ثروت، المهندسين، الجيزة'), desc: t('Vehicle registration, traffic fine payments, and driving licenses.', 'تسجيل المركبات، سداد مخالفات المرور، ورخص القيادة.') },
+                { name: t('Tax Authority', 'مصلحة الضرائب'), phone: '16395', hours: t('Sun-Thu 8:00 AM - 3:00 PM', 'الأحد-الخميس 8 ص - 3 م'), address: t('Al-Maleya St., Nasr City, Cairo', 'شارع المالية، مدينة نصر، القاهرة'), desc: t('Income tax, VAT, stamp duty, and tax certificate services.', 'ضريبة الدخل، القيمة المضافة، الدمغة، وشهادات الضرائب.') },
+                { name: t('Health Insurance Authority', 'هيئة التأمين الصحي'), phone: '16775', hours: t('Sun-Thu 8:00 AM - 2:00 PM', 'الأحد-الخميس 8 ص - 2 م'), address: t('Al-Shaheed Abdel Aziz St., Giza', 'شارع الشهيد عبد العزيز، الجيزة'), desc: t('Health insurance registration, eligibility checks, and dependent management.', 'التسجيل في التأمين الصحي، التحقق من الأهلية، وإدارة المعالين.') },
+                { name: t('Social Insurance Authority', 'هيئة التأمينات الاجتماعية'), phone: '16777', hours: t('Sun-Thu 8:00 AM - 2:00 PM', 'الأحد-الخميس 8 ص - 2 م'), address: t('Al-Sabtiya St., Cairo', 'شارع السبتية، القاهرة'), desc: t('Social insurance subscriptions, pension requests, and contribution management.', 'اشتراكات التأمينات الاجتماعية، طلبات المعاش، وإدارة المساهمات.') },
+                { name: t('Military Recruitment Office', 'مكتب التجنيد والتعبئة'), phone: '146', hours: t('Sun-Thu 8:00 AM - 2:00 PM', 'الأحد-الخميس 8 ص - 2 م'), address: t('Al-Abassiya, Cairo', 'العباسية، القاهرة'), desc: t('Military exemption, postponement, travel permits, and service certificates.', 'الإعفاء العسكري، التأجيل، تصاريح السفر، وشهادات الخدمة.') },
+                { name: t('Citizen Service Center', 'مركز خدمة المواطن'), phone: '15377', hours: t('Sun-Thu 8:00 AM - 8:00 PM', 'الأحد-الخميس 8 ص - 8 م'), address: t('Multiple locations across all governorates', 'فروع متعددة بجميع المحافظات'), desc: t('One-stop center for government document services and citizen inquiries.', 'مركز متكامل لخدمات المستندات الحكومية واستفسارات المواطنين.') },
+              ] as const).map((dept, i) => (
+                <div key={i} className="glass-card" style={{ padding: '1.25rem', marginBottom: '1rem', textAlign: isRtl ? 'right' : 'left', direction: isRtl ? 'rtl' : 'ltr' }}>
+                  <h3 style={{ marginBottom: '0.5rem', color: 'var(--accent-red)' }}>{dept.name}</h3>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>{dept.desc}</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.85rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Phone size={14} style={{ color: 'var(--accent-red)' }} />
+                      <span>{dept.phone}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                      <MapPin size={14} style={{ color: 'var(--accent-red)', marginTop: '0.15rem' }} />
+                      <span>{dept.address}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Clock size={14} style={{ color: 'var(--accent-red)' }} />
+                      <span>{dept.hours}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
