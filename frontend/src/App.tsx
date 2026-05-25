@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from './services/api';
-import type { User as ApiUser, Application, ServiceType, Notification, Complaint, Appointment, ActivityEntry, Announcement } from './services/api';
+import type { User as ApiUser, Application, ServiceType, Notification, Complaint, Appointment, ActivityEntry, Announcement, Report } from './services/api';
 import './App.css';
 import {
   Home,
@@ -64,7 +64,7 @@ export default function App() {
     role: 'CITIZEN'
   });
 
-  const [currentView, setCurrentView] = useState<'home' | 'faq' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log' | 'profile' | 'analytics' | 'admin_announcements'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'faq' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log' | 'profile' | 'analytics' | 'admin_announcements' | 'admin_reports'>('home');
   
   // Forms & Service application states
   const [selectedService, setSelectedService] = useState<ServiceType>('NATIONAL_ID');
@@ -207,6 +207,11 @@ export default function App() {
   const [analyticsDays, setAnalyticsDays] = useState(30);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
 
+  // Reports state
+  const [reportData, setReportData] = useState<Report | null>(null);
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportPeriod, setReportPeriod] = useState('7');
+
   // Chatbot states
   const [chatOpen, setChatOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'bot'; text: string }[]>([
@@ -301,6 +306,19 @@ export default function App() {
       console.error(err);
     } finally {
       setNotificationsLoading(false);
+    }
+  };
+
+  const fetchReport = async (period?: string) => {
+    setReportLoading(true);
+    try {
+      const p = period || reportPeriod;
+      const res = await api.adminGetReport(p);
+      setReportData(res.report);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setReportLoading(false);
     }
   };
 
@@ -911,6 +929,12 @@ export default function App() {
               <span className={`nav-link ${currentView === 'admin_appointments' ? 'active' : ''}`} onClick={() => { setCurrentView('admin_appointments'); fetchAdminAppointments(); }}>
                 <CalendarCheck size={15} />
                 {t('Appointments', 'المواعيد')}
+              </span>
+            )}
+            {user?.role === 'ADMIN' && (
+              <span className={`nav-link ${currentView === 'admin_reports' ? 'active' : ''}`} onClick={() => { setCurrentView('admin_reports'); fetchReport('7'); }}>
+                <FileText size={15} />
+                {t('Reports', 'التقارير')}
               </span>
             )}
             {user?.role === 'ADMIN' && (
@@ -2732,6 +2756,94 @@ export default function App() {
             ) : (
               <div className="glass-card" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
                 {t('No analytics data available yet.', 'لا توجد بيانات تحليلات متاحة بعد.')}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* VIEW: ADMIN REPORTS */}
+        {currentView === 'admin_reports' && user?.role === 'ADMIN' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FileText size={22} /> {t('System Reports', 'تقارير النظام')}</h2>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <select value={reportPeriod} onChange={(e) => { setReportPeriod(e.target.value); fetchReport(e.target.value); }} style={{ padding: '0.4rem', fontSize: '0.8rem' }}>
+                  <option value="7">{t('Last 7 Days', 'آخر 7 أيام')}</option>
+                  <option value="30">{t('Last 30 Days', 'آخر 30 يوم')}</option>
+                  <option value="90">{t('Last 90 Days', 'آخر 90 يوم')}</option>
+                </select>
+                <button className="btn btn-secondary" onClick={() => window.print()} style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }}>
+                  <Printer size={12} /> {t('Print / PDF', 'طباعة / PDF')}
+                </button>
+                <button className="btn btn-secondary" onClick={goToAdmin}>{t('← Admin Desk', '← غرفة الإدارة')}</button>
+              </div>
+            </div>
+
+            {reportLoading ? (
+              <div style={{ textAlign: 'center', padding: '3rem' }}><Loader2 className="spinner" size={24} /></div>
+            ) : reportData ? (
+              <div className="report-container">
+                {/* Summary section */}
+                <div className="glass-card" style={{ padding: '1.25rem', marginBottom: '1.5rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', color: 'var(--text-muted)', fontSize: '0.85rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                    <span>{t('Period:', 'الفترة:')} {reportData.period}</span>
+                    <span>{t('Generated:', 'تم التوليد:')} {new Date(reportData.generatedAt).toLocaleString()}</span>
+                  </div>
+                  <div className="stats-section" style={{ direction: isRtl ? 'rtl' : 'ltr' }}>
+                    <div className="stat-card"><div className="stat-number">{reportData.totalUsers}</div><div className="stat-label">{t('Users', 'المستخدمون')}</div></div>
+                    <div className="stat-card"><div className="stat-number">{reportData.totalApplications}</div><div className="stat-label">{t('Applications', 'الطلبات')}</div></div>
+                    <div className="stat-card"><div className="stat-number">{reportData.totalComplaints}</div><div className="stat-label">{t('Complaints', 'الشكاوى')}</div></div>
+                    <div className="stat-card"><div className="stat-number">{reportData.totalAppointments}</div><div className="stat-label">{t('Appointments', 'المواعيد')}</div></div>
+                    <div className="stat-card"><div className="stat-number">{reportData.totalNotifications}</div><div className="stat-label">{t('Notifications', 'الإشعارات')}</div></div>
+                    <div className="stat-card"><div className="stat-number">{reportData.totalRatings}</div><div className="stat-label">{t('Ratings', 'التقييمات')}</div></div>
+                    <div className="stat-card"><div className="stat-number">{reportData.averageRating.toFixed(1)} ★</div><div className="stat-label">{t('Avg Rating', 'متوسط التقييم')}</div></div>
+                  </div>
+                </div>
+
+                {/* By Service */}
+                <div className="glass-card" style={{ padding: '1.25rem', marginBottom: '1rem' }}>
+                  <h3 style={{ marginBottom: '0.75rem' }}>{t('Applications by Service', 'الطلبات حسب الخدمة')}</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.5rem' }}>
+                    {Object.entries(reportData.byService).map(([key, val]) => (
+                      <div key={key} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0.5rem', background: 'var(--bg-subtle)', borderRadius: 'var(--border-radius-sm)', fontSize: '0.85rem' }}>
+                        <span>{getServiceLabel(key)}</span>
+                        <span style={{ fontWeight: 600 }}>{val}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* By Status */}
+                <div className="glass-card" style={{ padding: '1.25rem', marginBottom: '1rem' }}>
+                  <h3 style={{ marginBottom: '0.75rem' }}>{t('Applications by Status', 'الطلبات حسب الحالة')}</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '0.5rem' }}>
+                    {Object.entries(reportData.byStatus).map(([key, val]) => (
+                      <div key={key} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0.5rem', background: 'var(--bg-subtle)', borderRadius: 'var(--border-radius-sm)', fontSize: '0.85rem' }}>
+                        <span>{key}</span>
+                        <span style={{ fontWeight: 600 }}>{val}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Recent Activity */}
+                {reportData.activities.length > 0 && (
+                  <div className="glass-card" style={{ padding: '1.25rem', marginBottom: '1rem' }}>
+                    <h3 style={{ marginBottom: '0.75rem' }}>{t('Recent Activity', 'النشاط الأخير')}</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                      {reportData.activities.slice(0, 10).map(a => (
+                        <div key={a.id} style={{ fontSize: '0.82rem', display: 'flex', justifyContent: 'space-between', padding: '0.3rem 0', borderBottom: '1px solid var(--border-color)', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                          <span><strong>{a.userName}</strong> — {a.action}</span>
+                          <span style={{ color: 'var(--text-muted)' }}>{new Date(a.createdAt).toLocaleDateString()}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="glass-card" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+                {t('Select a period and generate a report.', 'اختر فترة وقم بتوليد تقرير.')}
               </div>
             )}
           </div>

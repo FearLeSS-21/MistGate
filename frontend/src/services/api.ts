@@ -103,6 +103,25 @@ export interface ServiceRating {
   user?: { name: string };
 }
 
+export interface Report {
+  generatedAt: string;
+  period: string;
+  totalUsers: number;
+  totalApplications: number;
+  totalComplaints: number;
+  totalAppointments: number;
+  totalNotifications: number;
+  totalRatings: number;
+  averageRating: number;
+  byService: Record<string, number>;
+  byStatus: Record<string, number>;
+  applications: Application[];
+  complaints: Complaint[];
+  appointments: Appointment[];
+  activities: ActivityEntry[];
+  ratings: ServiceRating[];
+}
+
 export interface Announcement {
   id: string;
   title: string;
@@ -385,6 +404,12 @@ class ApiService {
         byService: { [key: string]: number };
       };
     }>('/admin/stats');
+  }
+
+  // --- Reports ---
+  async adminGetReport(period?: string): Promise<{ report: Report }> {
+    const qs = period ? `?period=${period}` : '';
+    return this.request<{ report: Report }>(`/admin/report${qs}`);
   }
 
   // --- Announcements ---

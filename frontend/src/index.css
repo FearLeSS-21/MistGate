@@ -612,6 +612,30 @@ details[open] summary::before {
   margin-left: 0.5rem;
 }
 
+/* Print/Report styles */
+@media print {
+  header, nav, .chatbot-container, .notification-dropdown, .favorites-section, .announcements-banner {
+    display: none !important;
+  }
+  .content-wrapper {
+    padding-top: 0 !important;
+  }
+  .report-container {
+    max-width: 100%;
+  }
+  .report-container .glass-card {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+    break-inside: avoid;
+  }
+  .stats-section .stat-card {
+    border: 1px solid #ddd !important;
+  }
+  select, .btn {
+    display: none !important;
+  }
+}
+
 .service-card p {
   color: var(--text-secondary);
   font-size: 0.85rem;

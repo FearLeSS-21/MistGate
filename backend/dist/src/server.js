@@ -23,6 +23,7 @@ const chatbot_1 = require("./controllers/chatbot");
 const export_1 = require("./controllers/export");
 const favorites_1 = require("./controllers/favorites");
 const announcements_1 = require("./controllers/announcements");
+const reports_1 = require("./controllers/reports");
 // Initialize dotenv configuration
 dotenv_1.default.config();
 const app = (0, express_1.default)();
@@ -126,6 +127,8 @@ app.get('/api/admin/activities/recent', auth_1.authenticateJWT, auth_1.requireAd
 app.post('/api/chatbot', chatbot_1.chat);
 // --- Admin Analytics Routes ---
 app.get('/api/admin/analytics', auth_1.authenticateJWT, auth_1.requireAdmin, analytics_1.adminGetAnalytics);
+// --- Report Routes ---
+app.get('/api/admin/report', auth_1.authenticateJWT, auth_1.requireAdmin, reports_1.adminGetReport);
 // --- Data Export Routes (Admin) ---
 app.get('/api/admin/export/applications', auth_1.authenticateJWT, auth_1.requireAdmin, export_1.exportApplications);
 app.get('/api/admin/export/complaints', auth_1.authenticateJWT, auth_1.requireAdmin, export_1.exportComplaints);
