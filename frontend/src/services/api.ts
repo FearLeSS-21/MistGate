@@ -377,6 +377,18 @@ class ApiService {
       };
     }>('/admin/stats');
   }
+
+  // --- Favorite Services ---
+  async getFavorites(): Promise<{ favorites: string[] }> {
+    return this.request<{ favorites: string[] }>('/favorites');
+  }
+
+  async toggleFavorite(serviceType: string): Promise<{ message: string; favorited: boolean }> {
+    return this.request<{ message: string; favorited: boolean }>('/favorites/toggle', {
+      method: 'POST',
+      body: JSON.stringify({ serviceType }),
+    });
+  }
 }
 
 export const api = new ApiService();

@@ -57,6 +57,7 @@ import { uploadFile } from './controllers/upload';
 import { adminGetAnalytics } from './controllers/analytics';
 import { chat } from './controllers/chatbot';
 import { exportApplications, exportComplaints, exportAppointments } from './controllers/export';
+import { getMyFavorites, toggleFavorite } from './controllers/favorites';
 
 // Initialize dotenv configuration
 dotenv.config();
@@ -197,6 +198,10 @@ app.get('/api/admin/stats', authenticateJWT, requireAdmin, adminGetStats);
 
 // --- File Upload Route ---
 app.post('/api/upload', authenticateJWT, upload.single('file'), uploadFile);
+
+// --- Favorite Services Routes ---
+app.get('/api/favorites', authenticateJWT, getMyFavorites);
+app.post('/api/favorites/toggle', authenticateJWT, toggleFavorite);
 
 // --- 404 Route ---
 app.use((req, res) => {

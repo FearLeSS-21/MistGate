@@ -6,6 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.adminGetStats = exports.adminUpdateStatus = exports.adminGetApplications = exports.trackApplication = exports.getMyApplications = exports.createApplication = void 0;
 const zod_1 = require("zod");
 const db_1 = __importDefault(require("../utils/db"));
+const notifications_1 = require("../utils/notifications");
+const activity_1 = require("../utils/activity");
 // Zod validations for form data structure based on service types
 const nationalIdDataSchema = zod_1.z.object({
     fullNameAr: zod_1.z.string().min(10, 'Full Arabic Name must be at least 10 characters'),
@@ -151,6 +153,12 @@ const createApplication = async (req, res) => {
                 changedBy: 'System',
             },
         });
+        await (0, activity_1.logActivity)({
+            userId: req.user.id,
+            userName: req.user.name,
+            action: 'SUBMIT_APPLICATION',
+            details: `Submitted ${serviceType} application with tracking code ${trackingCode}`,
+        });
         return res.status(201).json({
             message: 'Application submitted successfully',
             trackingCode,
@@ -224,30 +232,66 @@ const trackApplication = async (req, res) => {
     }
 };
 exports.trackApplication = trackApplication;
-// 4. Admin: List All Applications
+// 4. Admin: List All Applications (with pagination and search)
 const adminGetApplications = async (req, res) => {
     try {
-        const applications = await db_1.default.application.findMany({
-            include: {
-                user: {
-                    select: {
-                        name: true,
-                        email: true,
-                        nationalId: true,
-                        phone: true,
+        const page = Math.max(1, parseInt(req.query.page) || 1);
+        const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+        const search = (req.query.search || '').slice(0, 100);
+        const statusFilter = req.query.status || '';
+        const serviceFilter = req.query.serviceType || '';
+        const skip = (page - 1) * limit;
+        const where = {};
+        if (statusFilter && statusFilter !== 'ALL') {
+            where.status = statusFilter;
+        }
+        if (serviceFilter && serviceFilter !== 'ALL') {
+            where.serviceType = serviceFilter;
+        }
+        if (search) {
+            where.OR = [
+                { trackingCode: { contains: search } },
+                { user: { name: { contains: search } } },
+                { user: { nationalId: { contains: search } } },
+                { user: { email: { contains: search } } },
+            ];
+        }
+        const [applications, total] = await Promise.all([
+            db_1.default.application.findMany({
+                where,
+                include: {
+                    user: {
+                        select: {
+                            name: true,
+                            email: true,
+                            nationalId: true,
+                            phone: true,
+                        },
+                    },
+                    statusHistory: {
+                        orderBy: { createdAt: 'desc' },
+                        take: 5,
                     },
                 },
-                statusHistory: {
-                    orderBy: { createdAt: 'desc' },
-                },
-            },
-            orderBy: { createdAt: 'desc' },
-        });
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit,
+            }),
+            db_1.default.application.count({ where }),
+        ]);
         const formatted = applications.map(app => ({
             ...app,
             data: JSON.parse(app.data),
         }));
-        return res.json({ applications: formatted });
+        return res.json({
+            applications: formatted,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit),
+            },
+        });
     }
     catch (error) {
         console.error('Admin get applications error:', error);
@@ -288,6 +332,21 @@ const adminUpdateStatus = async (req, res) => {
                 notes: notes || `Status changed to ${status}.`,
                 changedBy: req.user.name,
             },
+        });
+        // Log the activity
+        await (0, activity_1.logActivity)({
+            userId: req.user.id,
+            userName: req.user.name,
+            action: 'UPDATE_APPLICATION_STATUS',
+            details: `Status changed to ${status} for application ${application.trackingCode} (${application.serviceType})`,
+        });
+        // Notify the citizen about the status change
+        await (0, notifications_1.createNotification)({
+            userId: application.userId,
+            title: 'Application Status Updated',
+            message: `Your ${application.serviceType} application (${application.trackingCode}) status changed to ${status}.`,
+            type: status === 'APPROVED' || status === 'COMPLETED' ? 'success' : status === 'REJECTED' ? 'error' : 'info',
+            link: '/dashboard',
         });
         return res.json({
             message: 'Application status updated successfully',

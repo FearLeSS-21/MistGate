@@ -9,14 +9,19 @@ const prisma = new client_1.PrismaClient();
 async function main() {
     console.log('[Seed] Starting database seeding...');
     // Clean the database
+    await prisma.activityLog.deleteMany({});
+    await prisma.serviceRating.deleteMany({});
+    await prisma.appointment.deleteMany({});
+    await prisma.complaint.deleteMany({});
+    await prisma.notification.deleteMany({});
     await prisma.statusHistory.deleteMany({});
     await prisma.application.deleteMany({});
     await prisma.user.deleteMany({});
     console.log('[Seed] Cleaned database tables.');
     // Hash passwords
-    const adminPasswordHash = await bcryptjs_1.default.hash('adminpassword', 10);
-    const citizen1PasswordHash = await bcryptjs_1.default.hash('citizenpassword', 10);
-    const citizen2PasswordHash = await bcryptjs_1.default.hash('citizenpassword', 10);
+    const adminPasswordHash = await bcryptjs_1.default.hash('Admin@2026!', 10);
+    const citizen1PasswordHash = await bcryptjs_1.default.hash('Citizen@2026!', 10);
+    const citizen2PasswordHash = await bcryptjs_1.default.hash('Citizen@2026!', 10);
     // 1. Create Admin
     const admin = await prisma.user.create({
         data: {
@@ -28,7 +33,7 @@ async function main() {
             role: 'ADMIN',
         },
     });
-    console.log('[Seed] Created Admin User: admin@misrgate.gov.eg');
+    console.log('[Seed] Created Admin User: admin@misrgate.gov.eg (password: Admin@2026!)');
     // 2. Create Citizen 1 (Zeyad)
     const citizen1 = await prisma.user.create({
         data: {
@@ -51,7 +56,7 @@ async function main() {
             role: 'CITIZEN',
         },
     });
-    console.log('[Seed] Created Citizen Users: zeyad@gmail.com, nour.hassan@gmail.com');
+    console.log('[Seed] Created Citizen Users: zeyad@gmail.com, nour.hassan@gmail.com (password: Citizen@2026!)');
     // 4. Create Applications for Citizen 1 (Zeyad)
     const nationalIdData = {
         fullNameAr: 'زياد أحمد علي محمد',
@@ -174,6 +179,103 @@ async function main() {
                 notes: 'Printed. Delivered to courier with tracking reference EG-POST-82910.',
                 changedBy: admin.name,
                 createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+            },
+        ],
+    });
+    // 6. Create sample notifications for Citizen 1
+    await prisma.notification.createMany({
+        data: [
+            {
+                userId: citizen1.id,
+                title: 'Application Under Review',
+                message: 'Your National ID application (MG-1024-5896) is now under review.',
+                type: 'info',
+                link: '/dashboard',
+                createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+            },
+            {
+                userId: citizen1.id,
+                title: 'Application Approved',
+                message: 'Your Military Exemption application (MG-3054-9981) has been approved.',
+                type: 'success',
+                link: '/dashboard',
+                createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+            },
+        ],
+    });
+    // 7. Create sample complaint from Citizen 2
+    await prisma.complaint.create({
+        data: {
+            userId: citizen2.id,
+            category: 'SERVICE_QUALITY',
+            subject: 'Long processing time for birth certificate',
+            message: 'My birth certificate application took 10 days to process. This seems too long for a digital service. Can you improve the processing time?',
+            status: 'RESOLVED',
+            response: 'Thank you for your feedback. We are working on reducing processing times through automation.',
+            respondedBy: admin.name,
+        },
+    });
+    // 8. Create sample appointments
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    await prisma.appointment.createMany({
+        data: [
+            {
+                userId: citizen1.id,
+                department: 'PASSPORT_OFFICE',
+                date: tomorrow,
+                timeSlot: '10:00-10:30',
+                status: 'SCHEDULED',
+                notes: 'Passport renewal application supporting documents.',
+            },
+            {
+                userId: citizen2.id,
+                department: 'CIVIL_REGISTRY',
+                date: new Date(tomorrow.getTime() + 2 * 24 * 60 * 60 * 1000),
+                timeSlot: '11:30-12:00',
+                status: 'CONFIRMED',
+            },
+        ],
+    });
+    // 9. Create sample rating for completed application
+    await prisma.serviceRating.create({
+        data: {
+            applicationId: app3.id,
+            userId: citizen2.id,
+            score: 4,
+            review: 'The birth certificate was processed quickly and delivered on time. Very satisfied with the digital service.',
+        },
+    });
+    // 10. Create sample activity logs
+    await prisma.activityLog.createMany({
+        data: [
+            {
+                userId: citizen1.id,
+                userName: 'Zeyad Ahmed Ali',
+                action: 'SUBMIT_APPLICATION',
+                details: 'Submitted NATIONAL_ID application with tracking code MG-1024-5896',
+                createdAt: new Date(Date.now() - 48 * 60 * 60 * 1000),
+            },
+            {
+                userId: admin.id,
+                userName: 'General Khaled Mahmoud',
+                action: 'UPDATE_APPLICATION_STATUS',
+                details: 'Status changed to UNDER_REVIEW for application MG-1024-5896',
+                createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+            },
+            {
+                userId: admin.id,
+                userName: 'General Khaled Mahmoud',
+                action: 'UPDATE_APPLICATION_STATUS',
+                details: 'Status changed to APPROVED for application MG-3054-9981',
+                createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+            },
+            {
+                userName: 'System',
+                action: 'SYSTEM_STARTUP',
+                details: 'MisrGate API server started and database seeded.',
+                createdAt: new Date(),
             },
         ],
     });

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from './services/api';
-import type { User as ApiUser, Application, ServiceType, Notification, Complaint } from './services/api';
+import type { User as ApiUser, Application, ServiceType, Notification, Complaint, Appointment, ActivityEntry } from './services/api';
 import './App.css';
 import {
   Home,
@@ -25,14 +25,10 @@ import {
   Sparkles,
   Bell,
   MessageSquare,
-  ThumbsUp,
-  Clock,
-  ChevronDown,
   Calendar,
   CalendarCheck,
   Star,
   Activity,
-  History,
   User,
   Save,
   Key,
@@ -223,6 +219,9 @@ export default function App() {
   const [activityTotalPages, setActivityTotalPages] = useState(1);
   const [activityActionFilter, setActivityActionFilter] = useState('');
 
+  // Favorite services states
+  const [favorites, setFavorites] = useState<string[]>([]);
+
   // Profile states
   const [profileForm, setProfileForm] = useState({ name: user?.name || '', phone: user?.phone || '' });
   const [profileSuccess, setProfileSuccess] = useState('');
@@ -293,6 +292,28 @@ export default function App() {
       console.error(err);
     } finally {
       setNotificationsLoading(false);
+    }
+  };
+
+  const fetchFavorites = async () => {
+    try {
+      const res = await api.getFavorites();
+      setFavorites(res.favorites);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleToggleFavorite = async (serviceType: string) => {
+    try {
+      const res = await api.toggleFavorite(serviceType);
+      if (res.favorited) {
+        setFavorites(prev => [...prev, serviceType]);
+      } else {
+        setFavorites(prev => prev.filter(f => f !== serviceType));
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -462,6 +483,10 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('misrgate_theme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
+
+  useEffect(() => {
+    void fetchFavorites();
+  }, []);
 
   // Listen for system theme changes
   useEffect(() => {
@@ -943,6 +968,24 @@ export default function App() {
               )}
             </section>
 
+            {/* Favorites Section */}
+            {favorites.length > 0 && (
+              <div className="favorites-section" style={{ textAlign: 'center' }}>
+                <h3 style={{ justifyContent: 'center' }}>
+                  <Star size={16} fill="#f59e0b" color="#f59e0b" />
+                  {t('Your Favorite Services', 'خدماتك المفضلة')}
+                </h3>
+                <div className="favorites-list" style={{ justifyContent: 'center' }}>
+                  {favorites.map(fav => (
+                    <button key={fav} className="favorites-chip" onClick={() => handleApplyClick(fav as ServiceType)}>
+                      <Star size={12} fill="#f59e0b" color="#f59e0b" />
+                      {getServiceLabel(fav)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Service Grid Section */}
             <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem', textAlign: 'center' }}>
               {t('Official Portal Services', 'خدمات البوابة الإلكترونية المتاحة')}
@@ -953,7 +996,17 @@ export default function App() {
               {/* Card 1: National ID */}
               <div className="glass-card service-card" style={{ textAlign: isRtl ? 'right' : 'left' }}>
                 <div className="service-icon" style={{ alignSelf: isRtl ? 'flex-end' : 'flex-start' }}><FileText size={20} /></div>
-                <h3>{t('National ID Cards', 'بطاقات الرقم القومي')}</h3>
+                <h3>
+                  {t('National ID Cards', 'بطاقات الرقم القومي')}
+                  <button
+                    className="favorite-star"
+                    onClick={(e) => { e.stopPropagation(); handleToggleFavorite('NATIONAL_ID'); }}
+                    title={favorites.includes('NATIONAL_ID') ? 'Remove from favorites' : 'Add to favorites'}
+                    style={{ color: favorites.includes('NATIONAL_ID') ? '#f59e0b' : 'var(--text-secondary)', marginLeft: '0.5rem' }}
+                  >
+                    <Star size={16} fill={favorites.includes('NATIONAL_ID') ? '#f59e0b' : 'transparent'} />
+                  </button>
+                </h3>
                 <p>
                   {t('Submit card renewal, replace lost or damaged cards, or change details like address, occupation, or marital status.',
                      'تجديد بطاقة الرقم القومي، واستخراج بدل فاقد أو تالف، وتحديث البيانات الوظيفية والزوجية والعنوان.')}
@@ -966,7 +1019,12 @@ export default function App() {
               {/* Card 2: Military & Recruitment */}
               <div className="glass-card service-card" style={{ textAlign: isRtl ? 'right' : 'left' }}>
                 <div className="service-icon" style={{ alignSelf: isRtl ? 'flex-end' : 'flex-start' }}><Shield size={20} /></div>
-                <h3>{t('Military & Recruitment', 'التجنيد والتعبئة')}</h3>
+                <h3>
+                  {t('Military & Recruitment', 'التجنيد والتعبئة')}
+                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('MILITARY_EXEMPTION'); }} title={favorites.includes('MILITARY_EXEMPTION') ? 'Remove from favorites' : 'Add to favorites'} style={{ color: favorites.includes('MILITARY_EXEMPTION') ? '#f59e0b' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
+                    <Star size={16} fill={favorites.includes('MILITARY_EXEMPTION') ? '#f59e0b' : 'transparent'} />
+                  </button>
+                </h3>
                 <p>
                   {t('Apply for military exemption certificates, travel permits, student postponement documents, or completion details.',
                      'استخراج شهادة الإعفاء العسكري، تصاريح السفر للتجنيد، شهادات التأجيل الدراسي، وشهادات أداء الخدمة.')}
@@ -979,7 +1037,12 @@ export default function App() {
               {/* Card 3: Civil Registry */}
               <div className="glass-card service-card" style={{ textAlign: isRtl ? 'right' : 'left' }}>
                 <div className="service-icon" style={{ alignSelf: isRtl ? 'flex-end' : 'flex-start' }}><Bookmark size={20} /></div>
-                <h3>{t('Civil Registry Records', 'وثائق الأحوال المدنية')}</h3>
+                <h3>
+                  {t('Civil Registry Records', 'وثائق الأحوال المدنية')}
+                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('BIRTH_CERTIFICATE'); }} title={favorites.includes('BIRTH_CERTIFICATE') ? 'Remove from favorites' : 'Add to favorites'} style={{ color: favorites.includes('BIRTH_CERTIFICATE') ? '#f59e0b' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
+                    <Star size={16} fill={favorites.includes('BIRTH_CERTIFICATE') ? '#f59e0b' : 'transparent'} />
+                  </button>
+                </h3>
                 <p>
                   {t('Order certified legal copies of birth certificates, marriage certificates, divorce records, or death documents.',
                      'استخراج وثائق الميلاد المعتمدة، قسائم الزواج والطلاق، وشهادات الوفاة بشكل رقمي معتمد.')}
@@ -992,7 +1055,12 @@ export default function App() {
               {/* Card 4: Passport Services */}
               <div className="glass-card service-card" style={{ textAlign: isRtl ? 'right' : 'left' }}>
                 <div className="service-icon" style={{ alignSelf: isRtl ? 'flex-end' : 'flex-start' }}><BookOpen size={20} /></div>
-                <h3>{t('Egyptian Passport', 'جواز السفر المصري')}</h3>
+                <h3>
+                  {t('Egyptian Passport', 'جواز السفر المصري')}
+                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('PASSPORT'); }} title={favorites.includes('PASSPORT') ? 'Remove from favorites' : 'Add to favorites'} style={{ color: favorites.includes('PASSPORT') ? '#f59e0b' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
+                    <Star size={16} fill={favorites.includes('PASSPORT') ? '#f59e0b' : 'transparent'} />
+                  </button>
+                </h3>
                 <p>
                   {t('Initiate first-time Egyptian passport requests or renew expired booklets. Arrange branch collection or courier shipping.',
                      'تقديم طلب إصدار جواز سفر لأول مرة أو التجديد. اختيار التوصيل للمنزل أو الاستلام من مقر الجوازات.')}
@@ -1005,7 +1073,12 @@ export default function App() {
               {/* Card 5: Tax Payment */}
               <div className="glass-card service-card" style={{ textAlign: isRtl ? 'right' : 'left' }}>
                 <div className="service-icon" style={{ alignSelf: isRtl ? 'flex-end' : 'flex-start' }}><Receipt size={20} /></div>
-                <h3>{t('Tax Payment', 'سداد الضرائب')}</h3>
+                <h3>
+                  {t('Tax Payment', 'سداد الضرائب')}
+                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('TAX_PAYMENT'); }} title={favorites.includes('TAX_PAYMENT') ? 'Remove from favorites' : 'Add to favorites'} style={{ color: favorites.includes('TAX_PAYMENT') ? '#f59e0b' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
+                    <Star size={16} fill={favorites.includes('TAX_PAYMENT') ? '#f59e0b' : 'transparent'} />
+                  </button>
+                </h3>
                 <p>
                   {t('Pay income tax, VAT, withholding, stamp duties, or penalties through the Egyptian Tax Authority channel.',
                      'سداد ضريبة الدخل، وضريبة القيمة المضافة، والخصم والتحصيل، والدمغة، أو الغرامات عبر قناة مصلحة الضرائب.')}
@@ -1018,7 +1091,12 @@ export default function App() {
               {/* Card 6: Traffic Fines */}
               <div className="glass-card service-card" style={{ textAlign: isRtl ? 'right' : 'left' }}>
                 <div className="service-icon" style={{ alignSelf: isRtl ? 'flex-end' : 'flex-start' }}><Car size={20} /></div>
-                <h3>{t('Traffic Violations', 'مخالفات المرور')}</h3>
+                <h3>
+                  {t('Traffic Violations', 'مخالفات المرور')}
+                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('TRAFFIC_FINE'); }} title={favorites.includes('TRAFFIC_FINE') ? 'Remove from favorites' : 'Add to favorites'} style={{ color: favorites.includes('TRAFFIC_FINE') ? '#f59e0b' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
+                    <Star size={16} fill={favorites.includes('TRAFFIC_FINE') ? '#f59e0b' : 'transparent'} />
+                  </button>
+                </h3>
                 <p>
                   {t('Look up and pay traffic fines by plate number, violation reference, and governorate.',
                      'الاستعلام عن مخالفات المرور وسدادها برقم اللوحة ومرجع المخالفة والمحافظة.')}
@@ -1031,7 +1109,12 @@ export default function App() {
               {/* Card 7: Health Insurance */}
               <div className="glass-card service-card" style={{ textAlign: isRtl ? 'right' : 'left' }}>
                 <div className="service-icon" style={{ alignSelf: isRtl ? 'flex-end' : 'flex-start' }}><HeartPulse size={20} /></div>
-                <h3>{t('Health Insurance', 'التأمين الصحي')}</h3>
+                <h3>
+                  {t('Health Insurance', 'التأمين الصحي')}
+                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('HEALTH_INSURANCE'); }} title={favorites.includes('HEALTH_INSURANCE') ? 'Remove from favorites' : 'Add to favorites'} style={{ color: favorites.includes('HEALTH_INSURANCE') ? '#f59e0b' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
+                    <Star size={16} fill={favorites.includes('HEALTH_INSURANCE') ? '#f59e0b' : 'transparent'} />
+                  </button>
+                </h3>
                 <p>
                   {t('Register for universal health coverage, add dependents, and verify beneficiary eligibility.',
                      'التسجيل في التأمين الصحي الشامل، وإضافة المعالين، والتحقق من الأهلية.')}
@@ -1044,7 +1127,12 @@ export default function App() {
               {/* Card 8: Social Insurance */}
               <div className="glass-card service-card" style={{ textAlign: isRtl ? 'right' : 'left' }}>
                 <div className="service-icon" style={{ alignSelf: isRtl ? 'flex-end' : 'flex-start' }}><Briefcase size={20} /></div>
-                <h3>{t('Social Insurance', 'التأمينات الاجتماعية')}</h3>
+                <h3>
+                  {t('Social Insurance', 'التأمينات الاجتماعية')}
+                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('SOCIAL_INSURANCE'); }} title={favorites.includes('SOCIAL_INSURANCE') ? 'Remove from favorites' : 'Add to favorites'} style={{ color: favorites.includes('SOCIAL_INSURANCE') ? '#f59e0b' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
+                    <Star size={16} fill={favorites.includes('SOCIAL_INSURANCE') ? '#f59e0b' : 'transparent'} />
+                  </button>
+                </h3>
                 <p>
                   {t('Submit employee or voluntary social insurance contributions and pension-related requests.',
                      'تقديم اشتراكات التأمينات الاجتماعية للعاملين أو التطوعية وطلبات المعاش.')}
@@ -2488,7 +2576,7 @@ export default function App() {
                     <Download size={12} /> {t('APT', 'المواعيد')}
                   </button>
                 </div>
-                <button className="btn btn-secondary" onClick={fetchAdminData}>
+                <button className="btn btn-secondary" onClick={() => fetchAdminData()}>
                   {t('Refresh', 'تحديث')}
                 </button>
               </div>

@@ -32,20 +32,31 @@ enum ApplicationStatus {
 }
 
 model User {
-  id            String         @id @default(uuid())
-  email         String         @unique
+  id            String            @id @default(uuid())
+  email         String            @unique
   password      String
   name          String
-  nationalId    String         @unique
+  nationalId    String            @unique
   phone         String
-  role          Role           @default(CITIZEN)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  role          Role              @default(CITIZEN)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
   applications  Application[]
   notifications Notification[]
   complaints    Complaint[]
   appointments  Appointment[]
   ratings       ServiceRating[]
+  favorites     FavoriteService[]
+}
+
+model FavoriteService {
+  id          String      @id @default(uuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  serviceType ServiceType
+  createdAt   DateTime    @default(now())
+
+  @@unique([userId, serviceType])
 }
 
 model Complaint {
