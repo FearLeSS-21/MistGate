@@ -43,6 +43,7 @@ import {
   Bot,
   Moon,
   Sun,
+  Download,
 } from 'lucide-react';
 
 export default function App() {
@@ -521,6 +522,22 @@ export default function App() {
     } catch {
       setPasswordError(t('An error occurred.', 'حدث خطأ.'));
     }
+  };
+
+  // CSV Download Handler
+  const downloadCSV = async (endpoint: string, filename: string) => {
+    try {
+      const token = localStorage.getItem('misrgate_token');
+      const res = await fetch(`http://localhost:5000/api/admin/export/${endpoint}`, {
+        headers: { Authorization: token ? `Bearer ${token}` : '' },
+      });
+      if (!res.ok) { alert('Export failed.'); return; }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      a.click(); URL.revokeObjectURL(url);
+    } catch { alert('Export failed.'); }
   };
 
   // Chatbot Handler
@@ -2432,9 +2449,22 @@ export default function App() {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
               <h2>{t('Officer Audit Room', 'غرفة مراجعة وتوقيع المعاملات')}</h2>
-              <button className="btn btn-secondary" onClick={fetchAdminData}>
-                {t('Refresh Records', 'تحديث القائمة')}
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <div className="export-btns" style={{ display: 'flex', gap: '0.35rem' }}>
+                  <button className="btn btn-secondary" onClick={() => downloadCSV('applications', 'applications.csv')} style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }}>
+                    <Download size={12} /> {t('CSV', 'CSV')}
+                  </button>
+                  <button className="btn btn-secondary" onClick={() => downloadCSV('complaints', 'complaints.csv')} style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }}>
+                    <Download size={12} /> {t('CMP', 'الشكاوى')}
+                  </button>
+                  <button className="btn btn-secondary" onClick={() => downloadCSV('appointments', 'appointments.csv')} style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }}>
+                    <Download size={12} /> {t('APT', 'المواعيد')}
+                  </button>
+                </div>
+                <button className="btn btn-secondary" onClick={fetchAdminData}>
+                  {t('Refresh', 'تحديث')}
+                </button>
+              </div>
             </div>
 
             {/* Dashboard metrics cards */}
