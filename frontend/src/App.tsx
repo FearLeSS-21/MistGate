@@ -41,11 +41,14 @@ import {
   MessageCircle,
   Send,
   Bot,
+  Moon,
+  Sun,
 } from 'lucide-react';
 
 export default function App() {
   // Navigation & User session states
   const [lang, setLang] = useState<'en' | 'ar'>('en'); // Default language is English
+  const [darkMode, setDarkMode] = useState(false);
   
   // Default mock user to bypass login/signup barrier completely
   const [user, setUser] = useState<ApiUser | null>({
@@ -711,7 +714,7 @@ export default function App() {
   const isRtl = lang === 'ar';
 
   return (
-    <div className={`app-container ${isRtl ? 'arabic-layout' : ''}`}>
+    <div className={`app-container ${isRtl ? 'arabic-layout' : ''} ${darkMode ? 'dark-mode' : ''}`}>
       
       {/* Developer Role Switcher (Simulated Login Bypass) */}
       <div className="dev-banner">
@@ -848,6 +851,11 @@ export default function App() {
                 {t('Profile', 'الملف الشخصي')}
               </span>
             )}
+
+            {/* Dark Mode Toggle */}
+            <button onClick={() => setDarkMode(!darkMode)} className="lang-btn" style={{ fontSize: '0.75rem' }}>
+              {darkMode ? <Sun size={14} /> : <Moon size={14} />}
+            </button>
 
             {/* Language Switcher Pill */}
             <button onClick={toggleLanguage} className="lang-btn">
