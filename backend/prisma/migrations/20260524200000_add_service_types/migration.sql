@@ -1,0 +1,11 @@
+-- AlterEnum: add new service types
+ALTER TABLE `Application` MODIFY `serviceType` ENUM(
+  'NATIONAL_ID',
+  'MILITARY_EXEMPTION',
+  'BIRTH_CERTIFICATE',
+  'PASSPORT',
+  'TAX_PAYMENT',
+  'TRAFFIC_FINE',
+  'HEALTH_INSURANCE',
+  'SOCIAL_INSURANCE'
+) NOT NULL;

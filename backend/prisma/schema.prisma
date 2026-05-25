@@ -1,0 +1,70 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  CITIZEN
+  ADMIN
+}
+
+enum ServiceType {
+  NATIONAL_ID
+  MILITARY_EXEMPTION
+  BIRTH_CERTIFICATE
+  PASSPORT
+  TAX_PAYMENT
+  TRAFFIC_FINE
+  HEALTH_INSURANCE
+  SOCIAL_INSURANCE
+}
+
+enum ApplicationStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  password     String
+  name         String
+  nationalId   String        @unique
+  phone        String
+  role         Role          @default(CITIZEN)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  applications Application[]
+}
+
+model Application {
+  id            String            @id @default(uuid())
+  trackingCode  String            @unique
+  serviceType   ServiceType
+  status        ApplicationStatus @default(PENDING)
+  data          String            @db.Text
+  attachmentUrl String?
+  notes         String?           @db.Text
+  userId        String
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  statusHistory StatusHistory[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+}
+
+model StatusHistory {
+  id            String            @id @default(uuid())
+  applicationId String
+  application   Application       @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  status        ApplicationStatus
+  notes         String?           @db.Text
+  changedBy     String
+  createdAt     DateTime          @default(now())
+}
