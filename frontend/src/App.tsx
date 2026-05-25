@@ -141,6 +141,8 @@ export default function App() {
   const [adminDecision, setAdminDecision] = useState({ status: 'UNDER_REVIEW', notes: '' });
   const [adminFilterStatus, setAdminFilterStatus] = useState<string>('ALL');
   const [adminFilterService, setAdminFilterService] = useState<string>('ALL');
+  const [adminSearch, setAdminSearch] = useState('');
+  const [adminPagination, setAdminPagination] = useState({ page: 1, totalPages: 1, total: 0 });
 
   // Notification states
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -181,14 +183,26 @@ export default function App() {
     }
   };
 
-  const fetchAdminData = async () => {
+  const fetchAdminData = async (pageNum?: number) => {
     setAdminLoading(true);
     try {
+      const p = pageNum ?? adminPagination.page;
       const [appsRes, statsRes] = await Promise.all([
-        api.adminGetApplications(),
+        api.adminGetApplications({
+          page: p,
+          limit: 20,
+          search: adminSearch || undefined,
+          status: adminFilterStatus !== 'ALL' ? adminFilterStatus : undefined,
+          serviceType: adminFilterService !== 'ALL' ? adminFilterService : undefined,
+        }),
         api.adminGetStats()
       ]);
       setAdminApps(appsRes.applications);
+      setAdminPagination({
+        page: appsRes.pagination.page,
+        totalPages: appsRes.pagination.totalPages,
+        total: appsRes.pagination.total,
+      });
       setAdminStats(statsRes.stats);
     } catch (err) {
       console.error(err);
@@ -1743,9 +1757,22 @@ export default function App() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
                 <h3>{t('Submissions Queue', 'قائمة معاملات المواطنين المجدولة للتدقيق')}</h3>
                 
-                {/* Filter section */}
-                <div style={{ display: 'flex', gap: '0.75rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
-                  <select value={adminFilterService} onChange={(e) => setAdminFilterService(e.target.value)} style={{ padding: '0.4rem', fontSize: '0.8rem' }}>
+                {/* Filter & Search section */}
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                  <div className="hero-search" style={{ margin: 0, flex: '1 1 200px', maxWidth: '300px' }}>
+                    <input
+                      type="text"
+                      placeholder={t('Search by name, code, or national ID...', 'بحث بالاسم أو الكود أو الرقم القومي...')}
+                      value={adminSearch}
+                      onChange={(e) => setAdminSearch(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') fetchAdminData(1); }}
+                      style={{ border: 'none', background: 'transparent', flex: 1, padding: '0.4rem', fontSize: '0.8rem' }}
+                    />
+                    <button className="btn btn-primary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={() => fetchAdminData(1)}>
+                      <Search size={13} />
+                    </button>
+                  </div>
+                  <select value={adminFilterService} onChange={(e) => { setAdminFilterService(e.target.value); }} style={{ padding: '0.4rem', fontSize: '0.8rem' }}>
                     <option value="ALL">{t('All Services', 'كل الخدمات')}</option>
                     <option value="NATIONAL_ID">{t('National ID Cards', 'بطاقات الرقم القومي')}</option>
                     <option value="MILITARY_EXEMPTION">{t('Military / Recruitment', 'المعاملات العسكرية')}</option>
@@ -1756,7 +1783,7 @@ export default function App() {
                     <option value="HEALTH_INSURANCE">{t('Health Insurance', 'التأمين الصحي')}</option>
                     <option value="SOCIAL_INSURANCE">{t('Social Insurance', 'التأمينات الاجتماعية')}</option>
                   </select>
-                  <select value={adminFilterStatus} onChange={(e) => setAdminFilterStatus(e.target.value)} style={{ padding: '0.4rem', fontSize: '0.8rem' }}>
+                  <select value={adminFilterStatus} onChange={(e) => { setAdminFilterStatus(e.target.value); }} style={{ padding: '0.4rem', fontSize: '0.8rem' }}>
                     <option value="ALL">{t('All Statuses', 'كل الحالات')}</option>
                     <option value="PENDING">{t('Pending', 'قيد الانتظار')}</option>
                     <option value="UNDER_REVIEW">{t('Under Review', 'تحت التدقيق')}</option>
@@ -1764,6 +1791,9 @@ export default function App() {
                     <option value="REJECTED">{t('Rejected', 'مرفوضة')}</option>
                     <option value="COMPLETED">{t('Completed', 'مكتملة ومطبعة')}</option>
                   </select>
+                  <button className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }} onClick={() => fetchAdminData(1)}>
+                    {t('Filter', 'تصفية')}
+                  </button>
                 </div>
               </div>
 
@@ -1787,10 +1817,7 @@ export default function App() {
                       </tr>
                     </thead>
                     <tbody>
-                      {adminApps
-                        .filter(app => adminFilterService === 'ALL' || app.serviceType === adminFilterService)
-                        .filter(app => adminFilterStatus === 'ALL' || app.status === adminFilterStatus)
-                        .map((app) => (
+                      {adminApps.map((app) => (
                           <tr key={app.id}>
                             <td style={{ fontWeight: '700', color: 'var(--accent-red)' }}>{app.trackingCode}</td>
                             <td>
@@ -1811,6 +1838,34 @@ export default function App() {
                         ))}
                     </tbody>
                   </table>
+                </div>
+              )}
+
+              {/* Pagination Controls */}
+              {adminPagination.totalPages > 1 && (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginTop: '1.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                  <button
+                    className="btn btn-secondary"
+                    style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }}
+                    disabled={adminPagination.page <= 1}
+                    onClick={() => fetchAdminData(adminPagination.page - 1)}
+                  >
+                    {t('‹ Prev', '‹ السابق')}
+                  </button>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                    {t('Page', 'صفحة')} {adminPagination.page} / {adminPagination.totalPages}
+                    <span style={{ marginLeft: '0.5rem', color: 'var(--text-muted)' }}>
+                      ({adminPagination.total} {t('total', 'إجمالي')})
+                    </span>
+                  </span>
+                  <button
+                    className="btn btn-secondary"
+                    style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }}
+                    disabled={adminPagination.page >= adminPagination.totalPages}
+                    onClick={() => fetchAdminData(adminPagination.page + 1)}
+                  >
+                    {t('Next ›', 'التالي ›')}
+                  </button>
                 </div>
               )}
             </div>

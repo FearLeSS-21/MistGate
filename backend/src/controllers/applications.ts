@@ -245,32 +245,71 @@ export const trackApplication = async (req: Request, res: Response) => {
   }
 };
 
-// 4. Admin: List All Applications
+// 4. Admin: List All Applications (with pagination and search)
 export const adminGetApplications = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const applications = await prisma.application.findMany({
-      include: {
-        user: {
-          select: {
-            name: true,
-            email: true,
-            nationalId: true,
-            phone: true,
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const search = (req.query.search as string) || '';
+    const statusFilter = (req.query.status as string) || '';
+    const serviceFilter = (req.query.serviceType as string) || '';
+    const skip = (page - 1) * limit;
+
+    const where: Record<string, unknown> = {};
+
+    if (statusFilter && statusFilter !== 'ALL') {
+      where.status = statusFilter;
+    }
+    if (serviceFilter && serviceFilter !== 'ALL') {
+      where.serviceType = serviceFilter;
+    }
+    if (search) {
+      where.OR = [
+        { trackingCode: { contains: search } },
+        { user: { name: { contains: search } } },
+        { user: { nationalId: { contains: search } } },
+        { user: { email: { contains: search } } },
+      ];
+    }
+
+    const [applications, total] = await Promise.all([
+      prisma.application.findMany({
+        where,
+        include: {
+          user: {
+            select: {
+              name: true,
+              email: true,
+              nationalId: true,
+              phone: true,
+            },
+          },
+          statusHistory: {
+            orderBy: { createdAt: 'desc' },
+            take: 5,
           },
         },
-        statusHistory: {
-          orderBy: { createdAt: 'desc' },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      prisma.application.count({ where }),
+    ]);
 
     const formatted = applications.map(app => ({
       ...app,
       data: JSON.parse(app.data),
     }));
 
-    return res.json({ applications: formatted });
+    return res.json({
+      applications: formatted,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
     console.error('Admin get applications error:', error);
     return res.status(500).json({ error: 'An error occurred while fetching applications.' });

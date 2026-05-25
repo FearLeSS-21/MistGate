@@ -217,8 +217,27 @@ class ApiService {
   }
 
   // --- Admin Endpoints ---
-  async adminGetApplications(): Promise<{ applications: Application[] }> {
-    return this.request<{ applications: Application[] }>('/admin/applications');
+  async adminGetApplications(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+    serviceType?: string;
+  }): Promise<{
+    applications: Application[];
+    pagination: { page: number; limit: number; total: number; totalPages: number };
+  }> {
+    const query = new URLSearchParams();
+    if (params?.page) query.set('page', params.page.toString());
+    if (params?.limit) query.set('limit', params.limit.toString());
+    if (params?.search) query.set('search', params.search);
+    if (params?.status) query.set('status', params.status);
+    if (params?.serviceType) query.set('serviceType', params.serviceType);
+    const qs = query.toString();
+    return this.request<{
+      applications: Application[];
+      pagination: { page: number; limit: number; total: number; totalPages: number };
+    }>(`/admin/applications${qs ? `?${qs}` : ''}`);
   }
 
   async adminUpdateStatus(id: string, body: { status: string; notes?: string }): Promise<{ message: string; application: Application }> {
