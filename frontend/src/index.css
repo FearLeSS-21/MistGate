@@ -974,6 +974,65 @@ input:focus, select:focus, textarea:focus {
 .status-REJECTED { background: #fef2f2; color: #991b1b; }
 .status-COMPLETED, .status-RESOLVED, .status-CLOSED { background: #f0fdf4; color: #166534; }
 
+/* Appointment Time Slot Selector */
+.appointment-slots {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.appointment-slot {
+  padding: 0.5rem;
+  text-align: center;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: var(--transition-smooth);
+  background: #f8fafc;
+}
+
+.appointment-slot:hover {
+  border-color: var(--accent-red);
+  background: var(--accent-red-glow);
+}
+
+.appointment-slot.selected {
+  border-color: var(--accent-red);
+  background: var(--accent-red);
+  color: #fff;
+}
+
+.appointment-slot.booked {
+  opacity: 0.4;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+/* Rating Stars */
+.rating-stars {
+  display: flex;
+  gap: 0.25rem;
+  direction: ltr;
+}
+
+.rating-star {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.5rem;
+  color: #e2e8f0;
+  transition: var(--transition-smooth);
+}
+
+.rating-star.active {
+  color: var(--accent-gold);
+}
+
+.rating-star:hover {
+  transform: scale(1.2);
+}
+
 /* Footer */
 .footer {
   text-align: center;

@@ -27,7 +27,12 @@ import {
   MessageSquare,
   ThumbsUp,
   Clock,
-  ChevronDown
+  ChevronDown,
+  Calendar,
+  CalendarCheck,
+  Star,
+  Activity,
+  History
 } from 'lucide-react';
 
 export default function App() {
@@ -44,7 +49,7 @@ export default function App() {
     role: 'CITIZEN'
   });
 
-  const [currentView, setCurrentView] = useState<'home' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log'>('home');
   
   // Forms & Service application states
   const [selectedService, setSelectedService] = useState<ServiceType>('NATIONAL_ID');
@@ -159,6 +164,25 @@ export default function App() {
   const [adminComplaintFilter, setAdminComplaintFilter] = useState({ category: 'ALL', status: 'ALL' });
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
   const [complaintResponse, setComplaintResponse] = useState('');
+
+  // Appointment states
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [appointmentForm, setAppointmentForm] = useState({ department: 'GENERAL_INQUIRY', date: '', timeSlot: '' });
+  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const [appointmentSuccess, setAppointmentSuccess] = useState(false);
+  const [appointmentLoading, setAppointmentLoading] = useState(false);
+  const [adminAppointments, setAdminAppointments] = useState<Appointment[]>([]);
+
+  // Rating states
+  const [ratingModalApp, setRatingModalApp] = useState<Application | null>(null);
+  const [ratingForm, setRatingForm] = useState({ score: 5, review: '' });
+  const [ratingSubmitted, setRatingSubmitted] = useState(false);
+
+  // Activity log states
+  const [activityEntries, setActivityEntries] = useState<ActivityEntry[]>([]);
+  const [activityPage, setActivityPage] = useState(1);
+  const [activityTotalPages, setActivityTotalPages] = useState(1);
+  const [activityActionFilter, setActivityActionFilter] = useState('');
 
   // Modal active state
   const [activeApplicationDetails, setActiveApplicationDetails] = useState<Application | null>(null);
@@ -290,6 +314,83 @@ export default function App() {
   const goToAdmin = () => {
     setCurrentView('admin');
     void fetchAdminData();
+  };
+
+  const fetchAvailableSlots = async (date: string, department: string) => {
+    if (!date || !department) return;
+    try {
+      const res = await api.getAvailableSlots(date, department);
+      setAvailableSlots(res.available);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchMyAppointments = async () => {
+    try {
+      const res = await api.getMyAppointments();
+      setAppointments(res.appointments);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchAdminAppointments = async () => {
+    try {
+      const res = await api.adminGetAppointments();
+      setAdminAppointments(res.appointments);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleBookAppointment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAppointmentLoading(true);
+    setAppointmentSuccess(false);
+    try {
+      await api.bookAppointment(appointmentForm);
+      setAppointmentSuccess(true);
+      setAppointmentForm({ department: 'GENERAL_INQUIRY', date: '', timeSlot: '' });
+      fetchMyAppointments();
+    } catch (err: unknown) {
+      console.error(err);
+    } finally {
+      setAppointmentLoading(false);
+    }
+  };
+
+  const handleCancelAppointment = async (id: string) => {
+    try {
+      await api.cancelAppointment(id);
+      fetchMyAppointments();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleSubmitRating = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ratingModalApp) return;
+    try {
+      await api.submitRating(ratingModalApp.id, ratingForm);
+      setRatingSubmitted(true);
+      setTimeout(() => { setRatingModalApp(null); setRatingSubmitted(false); }, 2000);
+    } catch (err: unknown) {
+      console.error(err);
+    }
+  };
+
+  const fetchActivities = async (pageNum?: number) => {
+    try {
+      const p = pageNum ?? activityPage;
+      const res = await api.adminGetActivities({ page: p, action: activityActionFilter || undefined });
+      setActivityEntries(res.activities);
+      setActivityPage(res.pagination.page);
+      setActivityTotalPages(res.pagination.totalPages);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   // Toggle Language Handler
@@ -482,6 +583,12 @@ export default function App() {
                 {t('Feedback', 'الشكاوى')}
               </span>
             )}
+            {user?.role === 'CITIZEN' && (
+              <span className={`nav-link ${currentView === 'appointments' ? 'active' : ''}`} onClick={() => { setCurrentView('appointments'); setAppointmentSuccess(false); fetchMyAppointments(); }}>
+                <Calendar size={15} />
+                {t('Appointments', 'المواعيد')}
+              </span>
+            )}
 
             {user?.role === 'ADMIN' && (
               <span className={`nav-link ${currentView === 'admin' ? 'active' : ''}`} onClick={goToAdmin}>
@@ -493,6 +600,18 @@ export default function App() {
               <span className={`nav-link ${currentView === 'admin_complaints' ? 'active' : ''}`} onClick={() => { setCurrentView('admin_complaints'); fetchAdminComplaints(); }}>
                 <MessageSquare size={15} />
                 {t('Complaints', 'الشكاوى')}
+              </span>
+            )}
+            {user?.role === 'ADMIN' && (
+              <span className={`nav-link ${currentView === 'admin_appointments' ? 'active' : ''}`} onClick={() => { setCurrentView('admin_appointments'); fetchAdminAppointments(); }}>
+                <CalendarCheck size={15} />
+                {t('Appointments', 'المواعيد')}
+              </span>
+            )}
+            {user?.role === 'ADMIN' && (
+              <span className={`nav-link ${currentView === 'activity_log' ? 'active' : ''}`} onClick={() => { setCurrentView('activity_log'); fetchActivities(1); }}>
+                <Activity size={15} />
+                {t('Activity', 'النشاط')}
               </span>
             )}
 
@@ -849,9 +968,16 @@ export default function App() {
                               <span className={`status-badge status-${app.status}`}>{app.status}</span>
                             </td>
                             <td>
-                              <button className="btn btn-secondary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }} onClick={() => setActiveApplicationDetails(app)}>
-                                {t('Timeline', 'تتبع المعاملة')}
-                              </button>
+                              <div style={{ display: 'flex', gap: '0.35rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                                <button className="btn btn-secondary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }} onClick={() => setActiveApplicationDetails(app)}>
+                                  {t('Timeline', 'تتبع المعاملة')}
+                                </button>
+                                {app.status === 'COMPLETED' && (
+                                  <button className="btn btn-outline" style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }} onClick={() => { setRatingModalApp(app); setRatingForm({ score: 5, review: '' }); setRatingSubmitted(false); }}>
+                                    <Star size={12} /> {t('Rate', 'تقييم')}
+                                  </button>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -1720,6 +1846,195 @@ export default function App() {
           </div>
         )}
 
+        {/* VIEW: CITIZEN APPOINTMENTS */}
+        {currentView === 'appointments' && user && (
+          <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: isRtl ? 'right' : 'left' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+              <h2>{t('My Appointments', 'مواعيدي')}</h2>
+              <button className="btn btn-secondary" onClick={goToDashboard}>
+                {t('← Dashboard', '← لوحة التحكم')}
+              </button>
+            </div>
+
+            {/* Booking Form */}
+            <div className="glass-card" style={{ marginBottom: '2rem' }}>
+              <h3 style={{ marginBottom: '1rem', color: 'var(--accent-red)' }}>{t('Book New Appointment', 'حجز موعد جديد')}</h3>
+              {appointmentSuccess && (
+                <div className="success-banner"><CheckCircle size={18} /> {t('Appointment booked successfully!', 'تم حجز الموعد بنجاح!')}</div>
+              )}
+              <form onSubmit={handleBookAppointment}>
+                <div className="form-group">
+                  <label>{t('Department', 'الإدارة')}</label>
+                  <select
+                    value={appointmentForm.department}
+                    onChange={(e) => { setAppointmentForm({ ...appointmentForm, department: e.target.value }); fetchAvailableSlots(appointmentForm.date, e.target.value); }}
+                  >
+                    <option value="CIVIL_REGISTRY">{t('Civil Registry', 'الأحوال المدنية')}</option>
+                    <option value="PASSPORT_OFFICE">{t('Passport Office', 'مكتب الجوازات')}</option>
+                    <option value="TRAFFIC_DEPARTMENT">{t('Traffic Department', 'إدارة المرور')}</option>
+                    <option value="SOCIAL_INSURANCE">{t('Social Insurance', 'التأمينات الاجتماعية')}</option>
+                    <option value="HEALTH_INSURANCE">{t('Health Insurance', 'التأمين الصحي')}</option>
+                    <option value="TAX_AUTHORITY">{t('Tax Authority', 'مصلحة الضرائب')}</option>
+                    <option value="MILITARY_RECRUITMENT">{t('Military Recruitment', 'التجنيد والتعبئة')}</option>
+                    <option value="GENERAL_INQUIRY">{t('General Inquiry', 'استعلامات عامة')}</option>
+                  </select>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>{t('Date', 'التاريخ')}</label>
+                    <input
+                      type="date"
+                      required
+                      value={appointmentForm.date}
+                      onChange={(e) => { setAppointmentForm({ ...appointmentForm, date: e.target.value }); fetchAvailableSlots(e.target.value, appointmentForm.department); }}
+                      min={new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>{t('Time Slot', 'الفترة الزمنية')}</label>
+                    <select
+                      required
+                      value={appointmentForm.timeSlot}
+                      onChange={(e) => setAppointmentForm({ ...appointmentForm, timeSlot: e.target.value })}
+                    >
+                      <option value="">{t('Select a time slot...', 'اختر موعداً...')}</option>
+                      {availableSlots.map(slot => (
+                        <option key={slot} value={slot}>{slot}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <button type="submit" className="btn btn-primary" disabled={appointmentLoading}>
+                  {appointmentLoading ? <Loader2 className="spinner" size={16} /> : t('Book Appointment', 'حجز الموعد')}
+                </button>
+              </form>
+            </div>
+
+            {/* My Existing Appointments */}
+            <div className="glass-card">
+              <h3 style={{ marginBottom: '1rem', color: 'var(--accent-red)' }}>{t('My Appointments', 'مواعيدي')}</h3>
+              {appointments.length === 0 ? (
+                <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem' }}>{t('No appointments booked.', 'لا توجد مواعيد محجوزة.')}</p>
+              ) : (
+                <div>
+                  {appointments.map(a => (
+                    <div key={a.id} style={{ borderBottom: '1px solid var(--border-color)', padding: '1rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                      <div>
+                        <strong>{a.department.replace(/_/g, ' ')}</strong>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{new Date(a.date).toLocaleDateString()} — {a.timeSlot}</div>
+                        <span className={`status-badge status-${a.status === 'SCHEDULED' ? 'PENDING' : a.status === 'CONFIRMED' ? 'UNDER_REVIEW' : a.status === 'COMPLETED' || a.status === 'CANCELLED' ? 'COMPLETED' : 'REJECTED'}`}>{a.status}</span>
+                      </div>
+                      {a.status === 'SCHEDULED' && (
+                        <button className="btn btn-danger" style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }} onClick={() => handleCancelAppointment(a.id)}>
+                          {t('Cancel', 'إلغاء')}
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* VIEW: ADMIN APPOINTMENTS MANAGEMENT */}
+        {currentView === 'admin_appointments' && user?.role === 'ADMIN' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+              <h2>{t('Appointments Management', 'إدارة المواعيد')}</h2>
+              <button className="btn btn-secondary" onClick={goToAdmin}>{t('← Admin Desk', '← غرفة الإدارة')}</button>
+            </div>
+            <div className="glass-card" style={{ textAlign: isRtl ? 'right' : 'left' }}>
+              <div className="admin-table-container">
+                <table className="admin-table" style={{ textAlign: isRtl ? 'right' : 'left' }}>
+                  <thead>
+                    <tr>
+                      <th>{t('Citizen', 'المواطن')}</th>
+                      <th>{t('Department', 'الإدارة')}</th>
+                      <th>{t('Date', 'التاريخ')}</th>
+                      <th>{t('Time', 'الموعد')}</th>
+                      <th>{t('Status', 'الحالة')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {adminAppointments.map(a => (
+                      <tr key={a.id}>
+                        <td><div style={{ fontWeight: 700 }}>{a.user?.name}</div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{a.user?.nationalId}</div></td>
+                        <td>{a.department.replace(/_/g, ' ')}</td>
+                        <td>{new Date(a.date).toLocaleDateString()}</td>
+                        <td>{a.timeSlot}</td>
+                        <td><span className={`status-badge status-${a.status === 'SCHEDULED' ? 'PENDING' : a.status === 'CONFIRMED' ? 'UNDER_REVIEW' : a.status === 'COMPLETED' ? 'COMPLETED' : 'REJECTED'}`}>{a.status}</span></td>
+                      </tr>
+                    ))}
+                    {adminAppointments.length === 0 && (
+                      <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem' }}>{t('No appointments found.', 'لا توجد مواعيد.')}</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* VIEW: ACTIVITY LOG (ADMIN) */}
+        {currentView === 'activity_log' && user?.role === 'ADMIN' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+              <h2>{t('System Activity Log', 'سجل نشاط النظام')}</h2>
+              <button className="btn btn-secondary" onClick={goToAdmin}>{t('← Admin Desk', '← غرفة الإدارة')}</button>
+            </div>
+            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+              <select value={activityActionFilter} onChange={(e) => { setActivityActionFilter(e.target.value); }} style={{ padding: '0.4rem', fontSize: '0.8rem' }}>
+                <option value="">{t('All Actions', 'كل الإجراءات')}</option>
+                <option value="SUBMIT_APPLICATION">{t('Submit Application', 'تقديم طلب')}</option>
+                <option value="UPDATE_APPLICATION_STATUS">{t('Update Status', 'تحديث الحالة')}</option>
+                <option value="SYSTEM_STARTUP">{t('System', 'النظام')}</option>
+              </select>
+              <button className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }} onClick={() => fetchActivities(1)}>
+                {t('Filter', 'تصفية')}
+              </button>
+            </div>
+            <div className="glass-card" style={{ textAlign: isRtl ? 'right' : 'left' }}>
+              <div className="admin-table-container">
+                <table className="admin-table" style={{ textAlign: isRtl ? 'right' : 'left' }}>
+                  <thead>
+                    <tr>
+                      <th>{t('Time', 'الوقت')}</th>
+                      <th>{t('User', 'المستخدم')}</th>
+                      <th>{t('Action', 'الإجراء')}</th>
+                      <th>{t('Details', 'التفاصيل')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {activityEntries.map(a => (
+                      <tr key={a.id}>
+                        <td style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>{new Date(a.createdAt).toLocaleString()}</td>
+                        <td><span style={{ fontWeight: 600 }}>{a.userName}</span></td>
+                        <td><span className={`status-badge status-${a.action === 'SUBMIT_APPLICATION' ? 'PENDING' : a.action === 'UPDATE_APPLICATION_STATUS' ? 'UNDER_REVIEW' : 'COMPLETED'}`}>{a.action.replace(/_/g, ' ')}</span></td>
+                        <td style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', maxWidth: '300px' }}>{a.details}</td>
+                      </tr>
+                    ))}
+                    {activityEntries.length === 0 && (
+                      <tr><td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem' }}>{t('No activities found.', 'لا توجد أنشطة.')}</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              {activityTotalPages > 1 && (
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '1.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                  <button className="btn btn-secondary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }} disabled={activityPage <= 1} onClick={() => fetchActivities(activityPage - 1)}>
+                    {t('‹ Prev', '‹ السابق')}
+                  </button>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{t('Page', 'صفحة')} {activityPage} / {activityTotalPages}</span>
+                  <button className="btn btn-secondary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }} disabled={activityPage >= activityTotalPages} onClick={() => fetchActivities(activityPage + 1)}>
+                    {t('Next ›', 'التالي ›')}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* VIEW: ADMIN MODERATION PANEL */}
         {currentView === 'admin' && user?.role === 'ADMIN' && (
           <div>
@@ -2002,7 +2317,40 @@ export default function App() {
         </div>
       )}
 
-      {/* 4. Footer */}
+      {/* 4. Rating Modal for Completed Applications */}
+      {ratingModalApp && (
+        <div className="modal-overlay">
+          <div className="glass-card modal-content" style={{ maxWidth: '500px', textAlign: isRtl ? 'right' : 'left' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem', marginBottom: '1.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+              <h3 style={{ color: 'var(--accent-red)' }}>{t('Rate Your Experience', 'تقييم الخدمة')}</h3>
+              <button className="btn btn-secondary" onClick={() => setRatingModalApp(null)} style={{ padding: '0.35rem 0.6rem' }}><X size={16} /></button>
+            </div>
+            {ratingSubmitted ? (
+              <div className="success-banner"><CheckCircle size={18} /> {t('Thank you for your rating!', 'شكراً على تقييمك!')}</div>
+            ) : (
+              <form onSubmit={handleSubmitRating}>
+                <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+                  <p style={{ marginBottom: '0.75rem', color: 'var(--text-secondary)' }}>{t('How was your experience with', 'كيف كانت تجربتك مع')} {getServiceLabel(ratingModalApp.serviceType)}?</p>
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', direction: 'ltr' }}>
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <button key={star} type="button" onClick={() => setRatingForm({ ...ratingForm, score: star })} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '2rem', color: star <= ratingForm.score ? 'var(--accent-gold)' : '#e2e8f0', transition: 'var(--transition-smooth)' }}>
+                        {star <= ratingForm.score ? '★' : '☆'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>{t('Review (optional)', 'مراجعة (اختياري)')}</label>
+                  <textarea rows={3} value={ratingForm.review} onChange={(e) => setRatingForm({ ...ratingForm, review: e.target.value })} placeholder={t('Share your experience...', 'شارك تجربتك...')} />
+                </div>
+                <button type="submit" className="btn btn-primary">{t('Submit Rating', 'إرسال التقييم')}</button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 5. Footer */}
       <footer className="footer">
         <div className="content-wrapper" style={{ padding: 0 }}>
           <p>© 2026 Arab Republic of Egypt | Digital Government Services Portal (MisrGate)</p>

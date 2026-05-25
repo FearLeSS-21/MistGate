@@ -3,6 +3,7 @@ import { z } from 'zod';
 import prisma from '../utils/db';
 import { AuthenticatedRequest } from './auth';
 import { createNotification } from '../utils/notifications';
+import { logActivity } from '../utils/activity';
 
 // Enums from Prisma Schema
 type ServiceType =
@@ -167,6 +168,13 @@ export const createApplication = async (req: AuthenticatedRequest, res: Response
         notes: 'Application submitted successfully and is awaiting review.',
         changedBy: 'System',
       },
+    });
+
+    await logActivity({
+      userId: req.user.id,
+      userName: req.user.name,
+      action: 'SUBMIT_APPLICATION',
+      details: `Submitted ${serviceType} application with tracking code ${trackingCode}`,
     });
 
     return res.status(201).json({
@@ -354,6 +362,14 @@ export const adminUpdateStatus = async (req: AuthenticatedRequest, res: Response
         notes: notes || `Status changed to ${status}.`,
         changedBy: req.user.name,
       },
+    });
+
+    // Log the activity
+    await logActivity({
+      userId: req.user.id,
+      userName: req.user.name,
+      action: 'UPDATE_APPLICATION_STATUS',
+      details: `Status changed to ${status} for application ${application.trackingCode} (${application.serviceType})`,
     });
 
     // Notify the citizen about the status change

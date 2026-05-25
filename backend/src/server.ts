@@ -29,6 +29,24 @@ import {
   adminRespondToComplaint,
   adminGetComplaintStats,
 } from './controllers/complaints';
+import {
+  bookAppointment,
+  getMyAppointments,
+  cancelAppointment,
+  getAvailableSlots,
+  adminGetAppointments,
+  adminUpdateAppointment,
+  adminGetAppointmentStats,
+} from './controllers/appointments';
+import {
+  submitRating,
+  getApplicationRating,
+  adminGetRatingStats,
+} from './controllers/ratings';
+import {
+  adminGetActivities,
+  adminGetRecentActivities,
+} from './controllers/activities';
 
 // Initialize dotenv configuration
 dotenv.config();
@@ -79,6 +97,26 @@ app.get('/api/complaints', authenticateJWT, getMyComplaints);
 app.get('/api/admin/complaints', authenticateJWT, requireAdmin, adminGetComplaints);
 app.put('/api/admin/complaints/:id/respond', authenticateJWT, requireAdmin, adminRespondToComplaint);
 app.get('/api/admin/complaints/stats', authenticateJWT, requireAdmin, adminGetComplaintStats);
+
+// --- Appointment Routes (Citizens) ---
+app.get('/api/appointments/slots', authenticateJWT, getAvailableSlots);
+app.post('/api/appointments', authenticateJWT, bookAppointment);
+app.get('/api/appointments', authenticateJWT, getMyAppointments);
+app.put('/api/appointments/:id/cancel', authenticateJWT, cancelAppointment);
+
+// --- Appointment Routes (Admin) ---
+app.get('/api/admin/appointments', authenticateJWT, requireAdmin, adminGetAppointments);
+app.put('/api/admin/appointments/:id', authenticateJWT, requireAdmin, adminUpdateAppointment);
+app.get('/api/admin/appointments/stats', authenticateJWT, requireAdmin, adminGetAppointmentStats);
+
+// --- Rating Routes ---
+app.post('/api/ratings/:applicationId', authenticateJWT, submitRating);
+app.get('/api/ratings/:applicationId', authenticateJWT, getApplicationRating);
+app.get('/api/admin/ratings', authenticateJWT, requireAdmin, adminGetRatingStats);
+
+// --- Activity Log Routes (Admin) ---
+app.get('/api/admin/activities', authenticateJWT, requireAdmin, adminGetActivities);
+app.get('/api/admin/activities/recent', authenticateJWT, requireAdmin, adminGetRecentActivities);
 
 // --- Admin Control Routes ---
 app.get('/api/admin/applications', authenticateJWT, requireAdmin, adminGetApplications);

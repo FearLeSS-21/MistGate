@@ -74,6 +74,44 @@ export interface Complaint {
   };
 }
 
+export interface Appointment {
+  id: string;
+  userId: string;
+  department: string;
+  date: string;
+  timeSlot: string;
+  status: 'SCHEDULED' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW';
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  user?: {
+    name: string;
+    email: string;
+    nationalId: string;
+    phone: string;
+  };
+}
+
+export interface ServiceRating {
+  id: string;
+  applicationId: string;
+  userId: string;
+  score: number;
+  review?: string | null;
+  createdAt: string;
+  application?: { serviceType: string; trackingCode: string };
+  user?: { name: string };
+}
+
+export interface ActivityEntry {
+  id: string;
+  userId?: string | null;
+  userName: string;
+  action: string;
+  details?: string | null;
+  createdAt: string;
+}
+
 class ApiService {
   private getHeaders(): HeadersInit {
     const token = localStorage.getItem('misrgate_token');
@@ -214,6 +252,76 @@ class ApiService {
         byCategory: Record<string, number>;
       };
     }>('/admin/complaints/stats');
+  }
+
+  // --- Appointment Endpoints (Citizen) ---
+  async getAvailableSlots(date: string, department: string): Promise<{ available: string[]; allSlots: string[]; bookedSlots: string[] }> {
+    return this.request<{ available: string[]; allSlots: string[]; bookedSlots: string[] }>(`/appointments/slots?date=${encodeURIComponent(date)}&department=${encodeURIComponent(department)}`);
+  }
+
+  async bookAppointment(body: { department: string; date: string; timeSlot: string; notes?: string }): Promise<{ message: string; appointment: Appointment }> {
+    return this.request<{ message: string; appointment: Appointment }>('/appointments', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  async getMyAppointments(): Promise<{ appointments: Appointment[] }> {
+    return this.request<{ appointments: Appointment[] }>('/appointments');
+  }
+
+  async cancelAppointment(id: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/appointments/${id}/cancel`, { method: 'PUT' });
+  }
+
+  // --- Appointment Endpoints (Admin) ---
+  async adminGetAppointments(params?: { department?: string; status?: string; date?: string }): Promise<{ appointments: Appointment[] }> {
+    const query = new URLSearchParams();
+    if (params?.department) query.set('department', params.department);
+    if (params?.status) query.set('status', params.status);
+    if (params?.date) query.set('date', params.date);
+    const qs = query.toString();
+    return this.request<{ appointments: Appointment[] }>(`/admin/appointments${qs ? `?${qs}` : ''}`);
+  }
+
+  async adminUpdateAppointment(id: string, body: { status?: string; notes?: string }): Promise<{ message: string; appointment: Appointment }> {
+    return this.request<{ message: string; appointment: Appointment }>(`/admin/appointments/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+  }
+
+  async adminGetAppointmentStats(): Promise<{ stats: { total: number; byStatus: Record<string, number>; byDepartment: { department: string; _count: { _all: number } }[] } }> {
+    return this.request<{ stats: { total: number; byStatus: Record<string, number>; byDepartment: { department: string; _count: { _all: number } }[] } }>('/admin/appointments/stats');
+  }
+
+  // --- Rating Endpoints ---
+  async submitRating(applicationId: string, body: { score: number; review?: string }): Promise<{ message: string; rating: ServiceRating }> {
+    return this.request<{ message: string; rating: ServiceRating }>(`/ratings/${applicationId}`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  async getApplicationRating(applicationId: string): Promise<{ rating: ServiceRating | null }> {
+    return this.request<{ rating: ServiceRating | null }>(`/ratings/${applicationId}`);
+  }
+
+  async adminGetRatingStats(): Promise<{ ratings: ServiceRating[]; stats: { total: number; averageScore: number } }> {
+    return this.request<{ ratings: ServiceRating[]; stats: { total: number; averageScore: number } }>('/admin/ratings');
+  }
+
+  // --- Activity Endpoints (Admin) ---
+  async adminGetActivities(params?: { page?: number; action?: string }): Promise<{ activities: ActivityEntry[]; pagination: { page: number; totalPages: number; total: number } }> {
+    const query = new URLSearchParams();
+    if (params?.page) query.set('page', params.page.toString());
+    if (params?.action) query.set('action', params.action);
+    const qs = query.toString();
+    return this.request<{ activities: ActivityEntry[]; pagination: { page: number; totalPages: number; total: number } }>(`/admin/activities${qs ? `?${qs}` : ''}`);
+  }
+
+  async adminGetRecentActivities(): Promise<{ activities: ActivityEntry[] }> {
+    return this.request<{ activities: ActivityEntry[] }>('/admin/activities/recent');
   }
 
   // --- Admin Endpoints ---

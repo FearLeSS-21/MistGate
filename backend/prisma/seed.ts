@@ -7,6 +7,11 @@ async function main() {
   console.log('[Seed] Starting database seeding...');
 
   // Clean the database
+  await prisma.activityLog.deleteMany({});
+  await prisma.serviceRating.deleteMany({});
+  await prisma.appointment.deleteMany({});
+  await prisma.complaint.deleteMany({});
+  await prisma.notification.deleteMany({});
   await prisma.statusHistory.deleteMany({});
   await prisma.application.deleteMany({});
   await prisma.user.deleteMany({});
@@ -222,6 +227,74 @@ async function main() {
       response: 'Thank you for your feedback. We are working on reducing processing times through automation.',
       respondedBy: admin.name,
     },
+  });
+
+  // 8. Create sample appointments
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0, 0, 0, 0);
+
+  await prisma.appointment.createMany({
+    data: [
+      {
+        userId: citizen1.id,
+        department: 'PASSPORT_OFFICE',
+        date: tomorrow,
+        timeSlot: '10:00-10:30',
+        status: 'SCHEDULED',
+        notes: 'Passport renewal application supporting documents.',
+      },
+      {
+        userId: citizen2.id,
+        department: 'CIVIL_REGISTRY',
+        date: new Date(tomorrow.getTime() + 2 * 24 * 60 * 60 * 1000),
+        timeSlot: '11:30-12:00',
+        status: 'CONFIRMED',
+      },
+    ],
+  });
+
+  // 9. Create sample rating for completed application
+  await prisma.serviceRating.create({
+    data: {
+      applicationId: app3.id,
+      userId: citizen2.id,
+      score: 4,
+      review: 'The birth certificate was processed quickly and delivered on time. Very satisfied with the digital service.',
+    },
+  });
+
+  // 10. Create sample activity logs
+  await prisma.activityLog.createMany({
+    data: [
+      {
+        userId: citizen1.id,
+        userName: 'Zeyad Ahmed Ali',
+        action: 'SUBMIT_APPLICATION',
+        details: 'Submitted NATIONAL_ID application with tracking code MG-1024-5896',
+        createdAt: new Date(Date.now() - 48 * 60 * 60 * 1000),
+      },
+      {
+        userId: admin.id,
+        userName: 'General Khaled Mahmoud',
+        action: 'UPDATE_APPLICATION_STATUS',
+        details: 'Status changed to UNDER_REVIEW for application MG-1024-5896',
+        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+      },
+      {
+        userId: admin.id,
+        userName: 'General Khaled Mahmoud',
+        action: 'UPDATE_APPLICATION_STATUS',
+        details: 'Status changed to APPROVED for application MG-3054-9981',
+        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+      },
+      {
+        userName: 'System',
+        action: 'SYSTEM_STARTUP',
+        details: 'MisrGate API server started and database seeded.',
+        createdAt: new Date(),
+      },
+    ],
   });
 
   console.log('[Seed] Seeding completed successfully!');

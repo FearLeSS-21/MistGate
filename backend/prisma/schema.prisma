@@ -44,6 +44,8 @@ model User {
   applications  Application[]
   notifications Notification[]
   complaints    Complaint[]
+  appointments  Appointment[]
+  ratings       ServiceRating[]
 }
 
 model Complaint {
@@ -58,6 +60,58 @@ model Complaint {
   respondedBy String?
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
+}
+
+model Appointment {
+  id         String             @id @default(uuid())
+  userId     String
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department AppointmentDepartment
+  date       DateTime
+  timeSlot   String
+  status     AppointmentStatus  @default(SCHEDULED)
+  notes      String?            @db.Text
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+}
+
+enum AppointmentDepartment {
+  CIVIL_REGISTRY
+  PASSPORT_OFFICE
+  TRAFFIC_DEPARTMENT
+  SOCIAL_INSURANCE
+  HEALTH_INSURANCE
+  TAX_AUTHORITY
+  MILITARY_RECRUITMENT
+  GENERAL_INQUIRY
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+model ServiceRating {
+  id            String   @id @default(uuid())
+  applicationId String   @unique
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score         Int
+  review        String?  @db.Text
+  createdAt     DateTime @default(now())
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  userName  String
+  action    String
+  details   String?  @db.Text
+  createdAt DateTime @default(now())
 }
 
 enum ComplaintCategory {
@@ -99,6 +153,7 @@ model Application {
   userId        String
   user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   statusHistory StatusHistory[]
+  rating        ServiceRating?
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 }

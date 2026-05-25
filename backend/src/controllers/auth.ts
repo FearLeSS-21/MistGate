@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import prisma from '../utils/db';
+import { logActivity } from '../utils/activity';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
 
@@ -78,6 +79,13 @@ export const register = async (req: Request, res: Response) => {
       { expiresIn: '24h' }
     );
 
+    await logActivity({
+      userId: user.id,
+      userName: user.name,
+      action: 'USER_REGISTER',
+      details: `New user registered: ${user.email} (${user.role})`,
+    });
+
     return res.status(201).json({
       message: 'User registered successfully',
       token,
@@ -122,6 +130,13 @@ export const login = async (req: Request, res: Response) => {
       JWT_SECRET,
       { expiresIn: '24h' }
     );
+
+    await logActivity({
+      userId: user.id,
+      userName: user.name,
+      action: 'USER_LOGIN',
+      details: `User logged in: ${user.email}`,
+    });
 
     return res.json({
       message: 'Login successful',
