@@ -131,6 +131,15 @@ export interface Announcement {
   updatedAt: string;
 }
 
+export interface TimelineEvent {
+  id: string;
+  type: 'application' | 'appointment' | 'complaint' | 'rating' | 'status_change';
+  title: string;
+  description: string;
+  status: string;
+  date: string;
+}
+
 export interface ActivityEntry {
   id: string;
   userId?: string | null;
@@ -404,6 +413,11 @@ class ApiService {
         byService: { [key: string]: number };
       };
     }>('/admin/stats');
+  }
+
+  // --- Timeline ---
+  async getMyTimeline(): Promise<{ events: TimelineEvent[]; total: number }> {
+    return this.request<{ events: TimelineEvent[]; total: number }>('/timeline');
   }
 
   // --- Reports ---

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from './services/api';
-import type { User as ApiUser, Application, ServiceType, Notification, Complaint, Appointment, ActivityEntry, Announcement, Report } from './services/api';
+import type { User as ApiUser, Application, ServiceType, Notification, Complaint, Appointment, ActivityEntry, Announcement, Report, TimelineEvent } from './services/api';
 import './App.css';
 import {
   Home,
@@ -43,6 +43,8 @@ import {
   Printer,
   Megaphone,
   HelpCircle,
+  History,
+  Clock,
 } from 'lucide-react';
 
 export default function App() {
@@ -64,7 +66,7 @@ export default function App() {
     role: 'CITIZEN'
   });
 
-  const [currentView, setCurrentView] = useState<'home' | 'faq' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log' | 'profile' | 'analytics' | 'admin_announcements' | 'admin_reports'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'faq' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log' | 'profile' | 'analytics' | 'admin_announcements' | 'admin_reports' | 'timeline'>('home');
   
   // Forms & Service application states
   const [selectedService, setSelectedService] = useState<ServiceType>('NATIONAL_ID');
@@ -226,6 +228,10 @@ export default function App() {
   const [activityTotalPages, setActivityTotalPages] = useState(1);
   const [activityActionFilter, setActivityActionFilter] = useState('');
 
+  // Timeline state
+  const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
+  const [timelineLoading, setTimelineLoading] = useState(false);
+
   // Announcements states
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [adminAnnouncements, setAdminAnnouncements] = useState<Announcement[]>([]);
@@ -306,6 +312,18 @@ export default function App() {
       console.error(err);
     } finally {
       setNotificationsLoading(false);
+    }
+  };
+
+  const fetchTimeline = async () => {
+    setTimelineLoading(true);
+    try {
+      const res = await api.getMyTimeline();
+      setTimelineEvents(res.events);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setTimelineLoading(false);
     }
   };
 
@@ -906,12 +924,16 @@ export default function App() {
                 {t('Feedback', 'الشكاوى')}
               </span>
             )}
-            {user?.role === 'CITIZEN' && (
+            {user?.role === 'CITIZEN' && (<>
+              <span className={`nav-link ${currentView === 'timeline' ? 'active' : ''}`} onClick={() => { setCurrentView('timeline'); fetchTimeline(); }}>
+                <History size={15} />
+                {t('Timeline', 'النشاطات')}
+              </span>
               <span className={`nav-link ${currentView === 'appointments' ? 'active' : ''}`} onClick={() => { setCurrentView('appointments'); setAppointmentSuccess(false); fetchMyAppointments(); }}>
                 <Calendar size={15} />
                 {t('Appointments', 'المواعيد')}
               </span>
-            )}
+            </>)}
 
             {user?.role === 'ADMIN' && (
               <span className={`nav-link ${currentView === 'admin' ? 'active' : ''}`} onClick={goToAdmin}>
@@ -2228,6 +2250,49 @@ export default function App() {
                       )}
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
                         {new Date(c.createdAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* VIEW: TIMELINE */}
+        {currentView === 'timeline' && user && (
+          <div>
+            <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+              <h2 style={{ textAlign: 'center', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <History size={22} /> {t('My Activity Timeline', 'النشاطات الحديثة')}
+              </h2>
+
+              {timelineLoading ? (
+                <div style={{ textAlign: 'center', padding: '3rem' }}><Loader2 className="spinner" size={24} /></div>
+              ) : timelineEvents.length === 0 ? (
+                <div className="glass-card" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+                  {t('No activity yet. Start by applying for a service!', 'لا توجد نشاطات بعد. ابدأ بتقديم طلب خدمة!')}
+                </div>
+              ) : (
+                <div className="timeline-container">
+                  {timelineEvents.map((event) => (
+                    <div key={event.id} className={`timeline-item timeline-${event.type}`}>
+                      <div className="timeline-dot">
+                        {event.type === 'application' && <FileText size={14} />}
+                        {event.type === 'status_change' && <Clock size={14} />}
+                        {event.type === 'appointment' && <Calendar size={14} />}
+                        {event.type === 'complaint' && <MessageSquare size={14} />}
+                        {event.type === 'rating' && <Star size={14} />}
+                      </div>
+                      <div className="timeline-content glass-card" style={{ textAlign: isRtl ? 'right' : 'left', direction: isRtl ? 'rtl' : 'ltr' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.25rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                          <strong style={{ fontSize: '0.9rem' }}>{event.title}</strong>
+                          <span className={`status-badge status-${event.status === 'COMPLETED' || event.status === 'APPROVED' || event.status === 'RESOLVED' || event.status === 'CLOSED' || event.status === 'CONFIRMED' ? 'COMPLETED' : event.status === 'PENDING' || event.status === 'SCHEDULED' ? 'PENDING' : 'UNDER_REVIEW'}`} style={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>
+                            {event.status}
+                          </span>
+                        </div>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: '0 0 0.25rem 0' }}>{event.description}</p>
+                        <small style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{new Date(event.date).toLocaleDateString()} {new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
                       </div>
                     </div>
                   ))}

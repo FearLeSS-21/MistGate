@@ -22,6 +22,7 @@ const analytics_1 = require("./controllers/analytics");
 const chatbot_1 = require("./controllers/chatbot");
 const export_1 = require("./controllers/export");
 const favorites_1 = require("./controllers/favorites");
+const timeline_1 = require("./controllers/timeline");
 const announcements_1 = require("./controllers/announcements");
 const reports_1 = require("./controllers/reports");
 // Initialize dotenv configuration
@@ -139,6 +140,8 @@ app.put('/api/admin/applications/:id/status', auth_1.authenticateJWT, auth_1.req
 app.get('/api/admin/stats', auth_1.authenticateJWT, auth_1.requireAdmin, applications_1.adminGetStats);
 // --- File Upload Route ---
 app.post('/api/upload', auth_1.authenticateJWT, upload.single('file'), upload_1.uploadFile);
+// --- Timeline Route ---
+app.get('/api/timeline', auth_1.authenticateJWT, timeline_1.getMyTimeline);
 // --- Favorite Services Routes ---
 app.get('/api/favorites', auth_1.authenticateJWT, favorites_1.getMyFavorites);
 app.post('/api/favorites/toggle', auth_1.authenticateJWT, favorites_1.toggleFavorite);

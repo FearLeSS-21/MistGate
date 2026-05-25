@@ -612,6 +612,68 @@ details[open] summary::before {
   margin-left: 0.5rem;
 }
 
+/* Timeline */
+.timeline-container {
+  position: relative;
+  padding-left: 2rem;
+}
+
+[dir="rtl"] .timeline-container {
+  padding-left: 0;
+  padding-right: 2rem;
+}
+
+.timeline-container::before {
+  content: '';
+  position: absolute;
+  left: 0.85rem;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--border-color);
+}
+
+[dir="rtl"] .timeline-container::before {
+  left: auto;
+  right: 0.85rem;
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 1.25rem;
+}
+
+.timeline-dot {
+  position: absolute;
+  left: -1.6rem;
+  top: 0.75rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.8rem;
+  z-index: 1;
+}
+
+[dir="rtl"] .timeline-dot {
+  left: auto;
+  right: -1.6rem;
+}
+
+.timeline-application .timeline-dot { background: var(--accent-blue); }
+.timeline-status_change .timeline-dot { background: var(--accent-gold); }
+.timeline-appointment .timeline-dot { background: var(--accent-green); }
+.timeline-complaint .timeline-dot { background: var(--accent-red); }
+.timeline-rating .timeline-dot { background: #f59e0b; }
+
+.timeline-content {
+  padding: 0.85rem 1rem !important;
+  margin-left: 0;
+}
+
 /* Print/Report styles */
 @media print {
   header, nav, .chatbot-container, .notification-dropdown, .favorites-section, .announcements-banner {

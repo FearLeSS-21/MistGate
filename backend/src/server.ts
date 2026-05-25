@@ -58,6 +58,7 @@ import { adminGetAnalytics } from './controllers/analytics';
 import { chat } from './controllers/chatbot';
 import { exportApplications, exportComplaints, exportAppointments } from './controllers/export';
 import { getMyFavorites, toggleFavorite } from './controllers/favorites';
+import { getMyTimeline } from './controllers/timeline';
 import { getActiveAnnouncements, adminGetAnnouncements, adminCreateAnnouncement, adminUpdateAnnouncement, adminDeleteAnnouncement } from './controllers/announcements';
 import { adminGetReport } from './controllers/reports';
 
@@ -203,6 +204,9 @@ app.get('/api/admin/stats', authenticateJWT, requireAdmin, adminGetStats);
 
 // --- File Upload Route ---
 app.post('/api/upload', authenticateJWT, upload.single('file'), uploadFile);
+
+// --- Timeline Route ---
+app.get('/api/timeline', authenticateJWT, getMyTimeline);
 
 // --- Favorite Services Routes ---
 app.get('/api/favorites', authenticateJWT, getMyFavorites);
