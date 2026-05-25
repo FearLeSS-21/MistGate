@@ -38,6 +38,9 @@ import {
   Key,
   TrendingUp,
   BarChart3,
+  MessageCircle,
+  Send,
+  Bot,
 } from 'lucide-react';
 
 export default function App() {
@@ -196,6 +199,14 @@ export default function App() {
   } | null>(null);
   const [analyticsDays, setAnalyticsDays] = useState(30);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
+
+  // Chatbot states
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'bot'; text: string }[]>([
+    { role: 'bot', text: 'Hello! I am the MisrGate AI Assistant. Ask me about services, applications, appointments, users, or anything about the portal!' },
+  ]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
 
   // Activity log states
   const [activityEntries, setActivityEntries] = useState<ActivityEntry[]>([]);
@@ -506,6 +517,30 @@ export default function App() {
       }
     } catch {
       setPasswordError(t('An error occurred.', 'حدث خطأ.'));
+    }
+  };
+
+  // Chatbot Handler
+  const handleChatSend = async () => {
+    const msg = chatInput.trim();
+    if (!msg || chatLoading) return;
+    setChatInput('');
+    setChatMessages(prev => [...prev, { role: 'user', text: msg }]);
+    setChatLoading(true);
+    try {
+      const res = await fetch('http://localhost:5000/api/chatbot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg }),
+      });
+      const data = await res.json();
+      if (data.reply) {
+        setChatMessages(prev => [...prev, { role: 'bot', text: data.reply }]);
+      }
+    } catch {
+      setChatMessages(prev => [...prev, { role: 'bot', text: 'Sorry, I am having trouble connecting. Please try again later.' }]);
+    } finally {
+      setChatLoading(false);
     }
   };
 
@@ -2720,7 +2755,50 @@ export default function App() {
         </div>
       )}
 
-      {/* 5. Footer */}
+      {/* 5. AI Chatbot Floating Widget */}
+      <div className={`chatbot-wrapper ${chatOpen ? 'open' : ''}`} style={{ left: '1.5rem', right: 'auto' }}>
+        {chatOpen && (
+          <div className="chatbot-panel">
+            <div className="chatbot-header">
+              <Bot size={18} />
+              <span>{t('MisrGate AI Assistant', 'المساعد الذكي لمصر')}</span>
+              <button className="chatbot-close" onClick={() => setChatOpen(false)}><X size={16} /></button>
+            </div>
+            <div className="chatbot-messages">
+              {chatMessages.map((m, i) => (
+                <div key={i} className={`chat-msg ${m.role}`}>
+                  <div className="chat-bubble">{m.text}</div>
+                </div>
+              ))}
+              {chatLoading && (
+                <div className="chat-msg bot">
+                  <div className="chat-bubble typing">
+                    <Loader2 className="spinner" size={14} /> {t('Thinking...', 'يجري التفكير...')}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="chatbot-input-row">
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleChatSend(); } }}
+                placeholder={t('Ask me anything...', 'اسألني أي شيء...')}
+                style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}
+              />
+              <button className="chatbot-send-btn" onClick={handleChatSend} disabled={chatLoading || !chatInput.trim()}>
+                <Send size={16} />
+              </button>
+            </div>
+          </div>
+        )}
+        <button className="chatbot-toggle" onClick={() => setChatOpen(!chatOpen)}>
+          {chatOpen ? <X size={22} /> : <MessageCircle size={22} />}
+        </button>
+      </div>
+
+      {/* 6. Footer */}
       <footer className="footer">
         <div className="content-wrapper" style={{ padding: 0 }}>
           <p>© 2026 Arab Republic of Egypt | Digital Government Services Portal (MisrGate)</p>

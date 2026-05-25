@@ -55,6 +55,7 @@ import {
 } from './controllers/activities';
 import { uploadFile } from './controllers/upload';
 import { adminGetAnalytics } from './controllers/analytics';
+import { chat } from './controllers/chatbot';
 
 // Initialize dotenv configuration
 dotenv.config();
@@ -176,6 +177,9 @@ app.get('/api/admin/ratings', authenticateJWT, requireAdmin, adminGetRatingStats
 // --- Activity Log Routes (Admin) ---
 app.get('/api/admin/activities', authenticateJWT, requireAdmin, adminGetActivities);
 app.get('/api/admin/activities/recent', authenticateJWT, requireAdmin, adminGetRecentActivities);
+
+// --- Chatbot Route (Demo) ---
+app.post('/api/chatbot', chat);
 
 // --- Admin Analytics Routes ---
 app.get('/api/admin/analytics', authenticateJWT, requireAdmin, adminGetAnalytics);
