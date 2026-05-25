@@ -44,6 +44,7 @@ import {
   Moon,
   Sun,
   Download,
+  Printer,
 } from 'lucide-react';
 
 export default function App() {
@@ -1344,9 +1345,14 @@ export default function App() {
                   <span style={{ fontSize: '1.5rem', fontWeight: '800', background: 'rgba(15,23,42,0.05)', padding: '0.4rem 1rem', borderRadius: '4px', letterSpacing: '2px', color: 'var(--accent-red)', display: 'block', margin: '0.5rem 0' }}>
                     {formSuccess.code}
                   </span>
-                  <button className="btn btn-primary" onClick={() => { goToDashboard(); setFormSuccess(null); }} style={{ marginTop: '1rem' }}>
-                    {t('Go to Workspace', 'الذهاب لوحة المعاملات')}
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', marginTop: '1rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                    <button className="btn btn-primary" onClick={() => { goToDashboard(); setFormSuccess(null); }}>
+                      {t('Go to Workspace', 'الذهاب لوحة المعاملات')}
+                    </button>
+                    <button className="btn btn-secondary" onClick={() => window.print()}>
+                      <Printer size={16} /> {t('Print Receipt', 'طباعة الإيصال')}
+                    </button>
+                  </div>
                 </div>
               )}
 
