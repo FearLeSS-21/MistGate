@@ -4,9 +4,9 @@ import { AuthenticatedRequest } from './auth';
 
 export const adminGetActivities = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 30;
-    const action = (req.query.action as string) || '';
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 30));
+    const action = ((req.query.action as string) || '').slice(0, 50);
     const skip = (page - 1) * limit;
 
     const where: Record<string, unknown> = {};

@@ -1,5 +1,6 @@
 import { Response } from 'express';
 import { z } from 'zod';
+import { AppointmentDepartment } from '@prisma/client';
 import prisma from '../utils/db';
 import { AuthenticatedRequest } from './auth';
 import { createNotification } from '../utils/notifications';
@@ -12,7 +13,7 @@ const bookSchema = z.object({
   ]),
   date: z.string().min(1, 'Date is required'),
   timeSlot: z.string().min(1, 'Time slot is required'),
-  notes: z.string().optional(),
+  notes: z.string().max(500, 'Notes must be under 500 characters').optional(),
 });
 
 const timeSlots = [
@@ -36,7 +37,7 @@ export const getAvailableSlots = async (req: AuthenticatedRequest, res: Response
 
     const existingAppointments = await prisma.appointment.findMany({
       where: {
-        department: department as string,
+        department: department as AppointmentDepartment,
         date: { gte: dateStart, lt: dateEnd },
         status: { in: ['SCHEDULED', 'CONFIRMED'] },
       },
@@ -173,12 +174,17 @@ export const adminGetAppointments = async (req: AuthenticatedRequest, res: Respo
   }
 };
 
+const updateAppointmentSchema = z.object({
+  status: z.enum(['SCHEDULED', 'CONFIRMED', 'COMPLETED', 'CANCELLED', 'NO_SHOW']).optional(),
+  notes: z.string().max(500).optional(),
+});
+
 export const adminUpdateAppointment = async (req: AuthenticatedRequest, res: Response) => {
   if (!req.user) return res.status(401).json({ error: 'Unauthorized.' });
 
   try {
     const { id } = req.params;
-    const { status, notes } = req.body;
+    const validatedData = updateAppointmentSchema.parse(req.body);
 
     const appointment = await prisma.appointment.findUnique({ where: { id } });
     if (!appointment) {
@@ -187,14 +193,17 @@ export const adminUpdateAppointment = async (req: AuthenticatedRequest, res: Res
 
     const updated = await prisma.appointment.update({
       where: { id },
-      data: { status: status || undefined, notes: notes !== undefined ? notes : undefined },
+      data: {
+        ...(validatedData.status && { status: validatedData.status }),
+        ...(validatedData.notes !== undefined && { notes: validatedData.notes }),
+      },
     });
 
     await createNotification({
       userId: appointment.userId,
       title: 'Appointment Updated',
-      message: `Your ${appointment.department} appointment on ${appointment.date.toLocaleDateString()} has been updated to ${status || appointment.status}.`,
-      type: status === 'CANCELLED' ? 'error' : 'info',
+      message: `Your ${appointment.department} appointment on ${appointment.date.toLocaleDateString()} has been updated to ${validatedData.status || appointment.status}.`,
+      type: validatedData.status === 'CANCELLED' ? 'error' : 'info',
       link: '/appointments',
     });
 

@@ -5,12 +5,25 @@ import { z } from 'zod';
 import prisma from '../utils/db';
 import { logActivity } from '../utils/activity';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required.');
+}
+
+// In-memory token blacklist (for logout)
+const tokenBlacklist = new Set<string>();
+
+export function isTokenBlacklisted(token: string): boolean {
+  return tokenBlacklist.has(token);
+}
 
 // Schema validations using Zod
 export const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters long'),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters long')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number'),
   name: z.string().min(2, 'Name must be at least 2 characters long'),
   nationalId: z.string().length(14, 'National ID must be exactly 14 digits').regex(/^\d+$/, 'National ID must contain only digits'),
   phone: z.string().min(10, 'Phone must be at least 10 digits').regex(/^\+?\d+$/, 'Invalid phone number format'),
@@ -158,12 +171,29 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
+// User Logout
+export const logout = async (req: AuthenticatedRequest, res: Response) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).json({ error: 'Authorization header is missing.' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  tokenBlacklist.add(token);
+
+  return res.json({ message: 'Logged out successfully.' });
+};
+
 // Middleware: Authenticate Request
 export const authenticateJWT = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
 
   if (authHeader) {
     const token = authHeader.split(' ')[1];
+
+    if (isTokenBlacklisted(token)) {
+      return res.status(401).json({ error: 'Token has been invalidated.' });
+    }
 
     jwt.verify(token, JWT_SECRET, (err, decoded) => {
       if (err) {
@@ -174,7 +204,7 @@ export const authenticateJWT = (req: AuthenticatedRequest, res: Response, next: 
       next();
     });
   } else {
-    res.status(401).json({ error: 'Authorization header is missing.' });
+    return res.status(401).json({ error: 'Authorization header is missing.' });
   }
 };
 
