@@ -1363,6 +1363,30 @@ export default function App() {
               </button>
             </div>
 
+            {/* Quick Action Shortcuts */}
+            <div className="quick-actions" style={{ direction: isRtl ? 'rtl' : 'ltr' }}>
+              <button className="quick-action-btn" onClick={() => handleApplyClick('NATIONAL_ID')}>
+                <FileText size={20} />
+                <span>{t('New Application', 'طلب جديد')}</span>
+              </button>
+              <button className="quick-action-btn" onClick={() => { setCurrentView('appointments'); setAppointmentSuccess(false); fetchMyAppointments(); }}>
+                <Calendar size={20} />
+                <span>{t('Book Appointment', 'حجز موعد')}</span>
+              </button>
+              <button className="quick-action-btn" onClick={() => { setCurrentView('track'); setSearchTrackingCode(''); setTrackedApplication(null); }}>
+                <Search size={20} />
+                <span>{t('Track Application', 'تتبع معاملة')}</span>
+              </button>
+              <button className="quick-action-btn" onClick={() => { setCurrentView('complaints'); setComplaintSuccess(false); fetchCitizenComplaints(); }}>
+                <MessageSquare size={20} />
+                <span>{t('Submit Feedback', 'شكوى أو اقتراح')}</span>
+              </button>
+              <button className="quick-action-btn" onClick={() => setCurrentView('profile')}>
+                <User size={20} />
+                <span>{t('My Profile', 'بياناتي')}</span>
+              </button>
+            </div>
+
             <div className="dashboard-grid" style={{ direction: isRtl ? 'rtl' : 'ltr' }}>
               
               {/* Left Profile Panel */}
