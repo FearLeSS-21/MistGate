@@ -42,6 +42,21 @@
   --border-radius-md: 10px;
 }
 
+/* Dark Mode Overrides */
+.app-container.dark-mode {
+  --bg-light: #0f172a;
+  --bg-card: #1e293b;
+  --bg-navbar: #1e293b;
+  --accent-black: #f1f5f9;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --border-color: #334155;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+  --hover-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+  --nav-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
