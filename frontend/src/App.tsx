@@ -42,6 +42,7 @@ import {
   Download,
   Printer,
   Megaphone,
+  HelpCircle,
 } from 'lucide-react';
 
 export default function App() {
@@ -63,7 +64,7 @@ export default function App() {
     role: 'CITIZEN'
   });
 
-  const [currentView, setCurrentView] = useState<'home' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log' | 'profile' | 'analytics' | 'admin_announcements'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'faq' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log' | 'profile' | 'analytics' | 'admin_announcements'>('home');
   
   // Forms & Service application states
   const [selectedService, setSelectedService] = useState<ServiceType>('NATIONAL_ID');
@@ -924,6 +925,10 @@ export default function App() {
                 {t('Activity', 'النشاط')}
               </span>
             )}
+            <span className={`nav-link ${currentView === 'faq' ? 'active' : ''}`} onClick={() => setCurrentView('faq')}>
+              <HelpCircle size={15} />
+              {t('FAQ', 'الأسئلة')}
+            </span>
             {user?.role === 'ADMIN' && (
               <span className={`nav-link ${currentView === 'admin_announcements' ? 'active' : ''}`} onClick={() => { setCurrentView('admin_announcements'); fetchAdminAnnouncements(); }}>
                 <Megaphone size={15} />
@@ -2204,6 +2209,95 @@ export default function App() {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* VIEW: FAQ SECTION */}
+        {currentView === 'faq' && (
+          <div>
+            <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+              <h2 style={{ textAlign: 'center', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <HelpCircle size={24} /> {t('Frequently Asked Questions', 'الأسئلة الشائعة')}
+              </h2>
+
+              {/* FAQ for each service */}
+              {[
+                {
+                  service: 'NATIONAL_ID' as ServiceType,
+                  title: t('National ID Cards', 'بطاقات الرقم القومي'),
+                  faqs: [
+                    { q: t('How long does it take to renew a National ID?', 'كم يستغرق تجديد بطاقة الرقم القومي؟'), a: t('Standard processing takes 7-14 business days. Expedited service is available for urgent cases.', 'المدة المعتادة من 7-14 يوم عمل. تتوفر خدمة الاستعجال للحالات الطارئة.') },
+                    { q: t('What documents are needed for a lost card replacement?', 'ما هي المستندات المطلوبة لاستخراج بدل فاقد؟'), a: t('You need a police report, original birth certificate, and two recent passport-sized photos.', 'تحتاج إلى محضر شرطة، شهادة ميلاد أصلية، وصورتين شخصيتين حديثتين.') },
+                  ],
+                },
+                {
+                  service: 'PASSPORT' as ServiceType,
+                  title: t('Egyptian Passport', 'جواز السفر المصري'),
+                  faqs: [
+                    { q: t('How long is a passport valid for?', 'ما هي مدة صلاحية جواز السفر؟'), a: t('Adult passports are valid for 7 years. Minor passports (under 18) are valid for 5 years.', 'جواز السفر للبالغين صالح لمدة 7 سنوات. للأطفال تحت 18 سنة صالح لمدة 5 سنوات.') },
+                    { q: t('Can I renew my passport online?', 'هل يمكنني تجديد جواز السفر عبر الإنترنت؟'), a: t('Yes, you can submit your renewal application through this portal and choose pickup or delivery.', 'نعم، يمكنك تقديم طلب التجديد عبر هذه البوابة واختيار الاستلام أو التوصيل.') },
+                  ],
+                },
+                {
+                  service: 'BIRTH_CERTIFICATE' as ServiceType,
+                  title: t('Civil Registry Records', 'وثائق الأحوال المدنية'),
+                  faqs: [
+                    { q: t('How can I get a certified copy of my birth certificate?', 'كيف يمكنني الحصول على شهادة ميلاد معتمدة؟'), a: t('Submit a request through the portal. Certified copies are delivered within 3-5 business days.', 'قدم طلباً عبر البوابة. يتم تسليم الشهادات المعتمدة خلال 3-5 أيام عمل.') },
+                  ],
+                },
+                {
+                  service: 'MILITARY_EXEMPTION' as ServiceType,
+                  title: t('Military & Recruitment', 'التجنيد والتعبئة'),
+                  faqs: [
+                    { q: t('Who is eligible for military exemption?', 'من يحق له الإعفاء من الخدمة العسكرية؟'), a: t('Exemption is granted for medical reasons, sole breadwinners, and those with specific family circumstances. Submit your documents for review.', 'يمنح الإعفاء للأسباب الطبية، والمعيل الوحيد، وذوي الظروف العائلية الخاصة. قدم مستنداتك للمراجعة.') },
+                  ],
+                },
+                {
+                  service: 'TAX_PAYMENT' as ServiceType,
+                  title: t('Tax Payment', 'سداد الضرائب'),
+                  faqs: [
+                    { q: t('What payment methods are accepted?', 'ما هي طرق الدفع المقبولة؟'), a: t('We accept credit/debit cards, bank transfers, and e-wallet payments through the portal.', 'نقبل بطاقات الائتمان/الخصم والتحويلات البنكية والمحافظ الإلكترونية عبر البوابة.') },
+                  ],
+                },
+                {
+                  service: 'TRAFFIC_FINE' as ServiceType,
+                  title: t('Traffic Violations', 'مخالفات المرور'),
+                  faqs: [
+                    { q: t('How can I check my traffic fines?', 'كيف يمكنني الاستعلام عن مخالفات المرور؟'), a: t('Enter your vehicle plate number in the search section on the home page. You can pay fines directly online.', 'أدخل رقم لوحة سيارتك في قسم البحث بالصفحة الرئيسية. يمكنك سداد المخالفات مباشرة عبر الإنترنت.') },
+                  ],
+                },
+                {
+                  service: 'HEALTH_INSURANCE' as ServiceType,
+                  title: t('Health Insurance', 'التأمين الصحي'),
+                  faqs: [
+                    { q: t('How do I register for health insurance?', 'كيف أسجل في التأمين الصحي؟'), a: t('Fill out the application form with your personal details and dependents information. You will receive a confirmation within 5 business days.', 'املأ نموذج الطلب ببياناتك الشخصية وبيانات المعالين. ستتلقى تأكيداً خلال 5 أيام عمل.') },
+                  ],
+                },
+                {
+                  service: 'SOCIAL_INSURANCE' as ServiceType,
+                  title: t('Social Insurance', 'التأمينات الاجتماعية'),
+                  faqs: [
+                    { q: t('Who can apply for social insurance?', 'من يمكنه التقدم للتأمينات الاجتماعية؟'), a: t('Employees, employers, and voluntary contributors can apply. Pensions and other social benefits are also handled through this service.', 'يمكن للعاملين وأصحاب العمل والمشتركين بالتطوع التقديم. يتم أيضاً التعامل مع المعاشات والمزايا الاجتماعية الأخرى عبر هذه الخدمة.') },
+                  ],
+                },
+              ].map(section => (
+                <div key={section.service} className="glass-card" style={{ padding: '1.25rem', marginBottom: '1.25rem', textAlign: isRtl ? 'right' : 'left', direction: isRtl ? 'rtl' : 'ltr' }}>
+                  <h3 style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    {getServiceLabel(section.service)}
+                  </h3>
+                  {section.faqs.map((faq, i) => (
+                    <details key={i} style={{ marginBottom: '0.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+                      <summary style={{ cursor: 'pointer', fontWeight: 500, padding: '0.5rem 0', fontSize: '0.9rem' }}>
+                        {faq.q}
+                      </summary>
+                      <p style={{ padding: '0.5rem 0 0.25rem 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                        {faq.a}
+                      </p>
+                    </details>
+                  ))}
+                </div>
+              ))}
             </div>
           </div>
         )}

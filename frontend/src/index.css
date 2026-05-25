@@ -586,6 +586,32 @@ input:focus, select:focus, textarea:focus {
   color: white;
 }
 
+details summary {
+  list-style: none;
+}
+
+details summary::-webkit-details-marker {
+  display: none;
+}
+
+details summary::before {
+  content: '▶';
+  display: inline-block;
+  margin-right: 0.5rem;
+  font-size: 0.7rem;
+  transition: transform 0.2s ease;
+  color: var(--accent-red);
+}
+
+details[open] summary::before {
+  transform: rotate(90deg);
+}
+
+[dir="rtl"] details summary::before {
+  margin-right: 0;
+  margin-left: 0.5rem;
+}
+
 .service-card p {
   color: var(--text-secondary);
   font-size: 0.85rem;
