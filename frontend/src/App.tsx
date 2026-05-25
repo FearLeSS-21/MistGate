@@ -56,6 +56,8 @@ export default function App() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formSuccess, setFormSuccess] = useState<{ code: string; type: string } | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<{ url: string; name: string } | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   // Form input bindings
   const [nationalIdForm, setNationalIdForm] = useState({
@@ -430,6 +432,44 @@ export default function App() {
     }
   };
 
+  // File Upload Handler
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const allowed = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
+    if (!allowed.includes(file.type)) {
+      alert(t('Only JPEG, PNG, GIF, and PDF files are allowed.', 'يُسمح فقط بملفات JPEG، PNG، GIF، PDF.'));
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert(t('File must be under 5MB.', 'الملف يجب أن يكون أقل من 5 ميجابايت.'));
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const token = localStorage.getItem('misrgate_token');
+      const res = await fetch('http://localhost:5000/api/upload', {
+        method: 'POST',
+        headers: { Authorization: token ? `Bearer ${token}` : '' },
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.url) {
+        setUploadedFile({ url: data.url, name: data.originalName });
+      } else {
+        alert(data.error || 'Upload failed.');
+      }
+    } catch {
+      alert(t('Upload failed. Please try again.', 'فشل الرفع. حاول مرة أخرى.'));
+    } finally {
+      setUploading(false);
+    }
+  };
+
   // Form Submission Builder
   const handleApplicationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -450,8 +490,10 @@ export default function App() {
     try {
       const res = await api.createApplication({
         serviceType: selectedService,
-        data: formData
+        data: formData,
+        ...(uploadedFile?.url && { attachmentUrl: uploadedFile.url }),
       });
+      setUploadedFile(null);
       setFormSuccess({ code: res.trackingCode, type: selectedService });
       
       // Reset forms
@@ -1599,14 +1641,28 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* Attachment Box Simulation */}
+                  {/* File Upload */}
                   <div className="form-group" style={{ marginTop: '1.5rem' }}>
-                    <label>{t('Supporting Document scans (PDF/JPG)', 'المستندات المؤيدة للطلب (مسح ضوئي)')}</label>
-                    <div style={{ border: '2px dashed var(--border-color)', padding: '2rem', borderRadius: 'var(--border-radius-md)', textAlign: 'center', background: '#f8fafc' }}>
-                      <FileUp size={24} style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }} />
-                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                        {t('Drag & Drop scans or browse files', 'اسحب الملفات هنا أو اضغط لتصفح ملفات الجهاز')}
-                      </p>
+                    <label>{t('Supporting Documents (PDF/JPG/PNG)', 'المستندات المؤيدة (PDF/JPG/PNG)')}</label>
+                    <div style={{ border: '2px dashed var(--border-color)', padding: '1.5rem', borderRadius: 'var(--border-radius-md)', textAlign: 'center', background: '#f8fafc' }}>
+                      {uploadedFile ? (
+                        <div>
+                          <FileUp size={24} style={{ color: 'var(--accent-green)', marginBottom: '0.5rem' }} />
+                          <p style={{ fontSize: '0.85rem', color: 'var(--accent-green)', fontWeight: 600 }}>{uploadedFile.name}</p>
+                          <button type="button" className="btn btn-secondary" style={{ marginTop: '0.5rem', fontSize: '0.75rem', padding: '0.3rem 0.6rem' }} onClick={() => setUploadedFile(null)}>
+                            {t('Remove', 'إزالة')}
+                          </button>
+                        </div>
+                      ) : (
+                        <label style={{ cursor: 'pointer', display: 'block' }}>
+                          <FileUp size={24} style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }} />
+                          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                            {t('Click to upload (max 5MB)', 'اضغط لرفع ملف (حد أقصى 5 ميجابايت)')}
+                          </p>
+                          <input type="file" accept=".jpg,.jpeg,.png,.gif,.pdf" onChange={handleFileUpload} style={{ display: 'none' }} />
+                        </label>
+                      )}
+                      {uploading && <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}><Loader2 className="spinner" size={12} /> {t('Uploading...', 'جاري الرفع...')}</p>}
                     </div>
                   </div>
 
@@ -2205,6 +2261,17 @@ export default function App() {
                     </div>
                   </div>
 
+                  {/* Attached Document */}
+                  {selectedAppForReview.attachmentUrl && (
+                    <div style={{ background: '#f0fdf4', padding: '0.75rem 1rem', borderRadius: 'var(--border-radius-md)', marginBottom: '1rem', border: '1px solid #bbf7d0', display: 'flex', alignItems: 'center', gap: '0.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                      <FileUp size={16} style={{ color: 'var(--accent-green)' }} />
+                      <span style={{ fontSize: '0.85rem' }}>{t('Attached Document:', 'المستند المرفق:')}</span>
+                      <a href={selectedAppForReview.attachmentUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.85rem', color: 'var(--accent-blue)', textDecoration: 'underline' }}>
+                        {t('View / Download', 'عرض / تحميل')}
+                      </a>
+                    </div>
+                  )}
+
                   {/* Application Data Form Content */}
                   <h4 style={{ marginBottom: '0.5rem', fontSize: '0.9rem' }}>{t('Form Declarations', 'البيانات والمستندات المصرح بها')}</h4>
                   <div className="arabic-text" style={{ background: '#f8fafc', padding: '1rem', borderRadius: 'var(--border-radius-md)', marginBottom: '2rem', border: '1px solid var(--border-color)', textAlign: 'right' }}>
@@ -2283,6 +2350,16 @@ export default function App() {
                 {t('Submitted on:', 'تاريخ التقديم:')} {new Date(activeApplicationDetails.createdAt).toLocaleString()}
               </div>
             </div>
+
+            {activeApplicationDetails.attachmentUrl && (
+              <div style={{ background: '#f0fdf4', padding: '0.75rem 1rem', borderRadius: 'var(--border-radius-md)', marginBottom: '1rem', border: '1px solid #bbf7d0', display: 'flex', alignItems: 'center', gap: '0.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                <FileUp size={16} style={{ color: 'var(--accent-green)' }} />
+                <span style={{ fontSize: '0.85rem' }}>{t('Attached Document:', 'المستند المرفق:')}</span>
+                <a href={activeApplicationDetails.attachmentUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.85rem', color: 'var(--accent-blue)', textDecoration: 'underline' }}>
+                  {t('View', 'عرض')}
+                </a>
+              </div>
+            )}
 
             <h4 style={{ marginBottom: '0.5rem', fontSize: '0.9rem' }}>{t('Form Declarations', 'البيانات المرسلة')}</h4>
             <div className="arabic-text" style={{ background: '#f8fafc', padding: '1rem', borderRadius: 'var(--border-radius-md)', marginBottom: '1.5rem', border: '1px solid var(--border-color)', textAlign: 'right' }}>
