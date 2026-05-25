@@ -189,6 +189,41 @@ async function main() {
     ],
   });
 
+  // 6. Create sample notifications for Citizen 1
+  await prisma.notification.createMany({
+    data: [
+      {
+        userId: citizen1.id,
+        title: 'Application Under Review',
+        message: 'Your National ID application (MG-1024-5896) is now under review.',
+        type: 'info',
+        link: '/dashboard',
+        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+      },
+      {
+        userId: citizen1.id,
+        title: 'Application Approved',
+        message: 'Your Military Exemption application (MG-3054-9981) has been approved.',
+        type: 'success',
+        link: '/dashboard',
+        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+      },
+    ],
+  });
+
+  // 7. Create sample complaint from Citizen 2
+  await prisma.complaint.create({
+    data: {
+      userId: citizen2.id,
+      category: 'SERVICE_QUALITY',
+      subject: 'Long processing time for birth certificate',
+      message: 'My birth certificate application took 10 days to process. This seems too long for a digital service. Can you improve the processing time?',
+      status: 'RESOLVED',
+      response: 'Thank you for your feedback. We are working on reducing processing times through automation.',
+      respondedBy: admin.name,
+    },
+  });
+
   console.log('[Seed] Seeding completed successfully!');
 }
 

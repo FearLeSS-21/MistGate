@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { api } from './services/api';
-import type { User as ApiUser, Application, ServiceType } from './services/api';
+import type { User as ApiUser, Application, ServiceType, Notification, Complaint } from './services/api';
 import './App.css';
 import {
   Home,
@@ -22,7 +22,12 @@ import {
   Car,
   HeartPulse,
   Briefcase,
-  Sparkles
+  Sparkles,
+  Bell,
+  MessageSquare,
+  ThumbsUp,
+  Clock,
+  ChevronDown
 } from 'lucide-react';
 
 export default function App() {
@@ -39,7 +44,7 @@ export default function App() {
     role: 'CITIZEN'
   });
 
-  const [currentView, setCurrentView] = useState<'home' | 'dashboard' | 'apply' | 'track' | 'admin'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints'>('home');
   
   // Forms & Service application states
   const [selectedService, setSelectedService] = useState<ServiceType>('NATIONAL_ID');
@@ -137,6 +142,22 @@ export default function App() {
   const [adminFilterStatus, setAdminFilterStatus] = useState<string>('ALL');
   const [adminFilterService, setAdminFilterService] = useState<string>('ALL');
 
+  // Notification states
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+
+  // Complaint states
+  const [complaintForm, setComplaintForm] = useState({ category: 'SERVICE_QUALITY', subject: '', message: '' });
+  const [citizenComplaints, setCitizenComplaints] = useState<Complaint[]>([]);
+  const [complaintSuccess, setComplaintSuccess] = useState(false);
+  const [complaintError, setComplaintError] = useState<string | null>(null);
+  const [adminComplaints, setAdminComplaints] = useState<Complaint[]>([]);
+  const [adminComplaintFilter, setAdminComplaintFilter] = useState({ category: 'ALL', status: 'ALL' });
+  const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
+  const [complaintResponse, setComplaintResponse] = useState('');
+
   // Modal active state
   const [activeApplicationDetails, setActiveApplicationDetails] = useState<Application | null>(null);
 
@@ -176,9 +197,80 @@ export default function App() {
     }
   };
 
+  const fetchNotifications = async () => {
+    setNotificationsLoading(true);
+    try {
+      const res = await api.getNotifications();
+      setNotifications(res.notifications);
+      setUnreadCount(res.unreadCount);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setNotificationsLoading(false);
+    }
+  };
+
+  const handleMarkAsRead = async (id: string) => {
+    await api.markNotificationAsRead(id);
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    setUnreadCount(prev => Math.max(0, prev - 1));
+  };
+
+  const handleMarkAllAsRead = async () => {
+    await api.markAllNotificationsAsRead();
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setUnreadCount(0);
+  };
+
+  const fetchCitizenComplaints = async () => {
+    try {
+      const res = await api.getMyComplaints();
+      setCitizenComplaints(res.complaints);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchAdminComplaints = async () => {
+    try {
+      const res = await api.adminGetComplaints(adminComplaintFilter);
+      setAdminComplaints(res.complaints);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleComplaintSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setComplaintError(null);
+    setComplaintSuccess(false);
+    try {
+      await api.createComplaint(complaintForm);
+      setComplaintSuccess(true);
+      setComplaintForm({ category: 'SERVICE_QUALITY', subject: '', message: '' });
+      fetchCitizenComplaints();
+    } catch (err: unknown) {
+      setComplaintError(err instanceof Error ? err.message : 'Failed to submit complaint.');
+    }
+  };
+
+  const handleComplaintResponse = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedComplaint) return;
+    try {
+      await api.adminRespondToComplaint(selectedComplaint.id, { response: complaintResponse });
+      setSelectedComplaint(null);
+      setComplaintResponse('');
+      fetchAdminComplaints();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const goToDashboard = () => {
     setCurrentView('dashboard');
     void fetchCitizenData();
+    void fetchNotifications();
   };
 
   const goToAdmin = () => {
@@ -370,11 +462,70 @@ export default function App() {
               </span>
             )}
 
+            {user?.role === 'CITIZEN' && (
+              <span className={`nav-link ${currentView === 'complaints' ? 'active' : ''}`} onClick={() => { setCurrentView('complaints'); setComplaintSuccess(false); fetchCitizenComplaints(); }}>
+                <MessageSquare size={15} />
+                {t('Feedback', 'الشكاوى')}
+              </span>
+            )}
+
             {user?.role === 'ADMIN' && (
               <span className={`nav-link ${currentView === 'admin' ? 'active' : ''}`} onClick={goToAdmin}>
                 <Lock size={15} />
                 {t('Admin Desk', 'غرفة الإدارة')}
               </span>
+            )}
+            {user?.role === 'ADMIN' && (
+              <span className={`nav-link ${currentView === 'admin_complaints' ? 'active' : ''}`} onClick={() => { setCurrentView('admin_complaints'); fetchAdminComplaints(); }}>
+                <MessageSquare size={15} />
+                {t('Complaints', 'الشكاوى')}
+              </span>
+            )}
+
+            {/* Notification Bell */}
+            {user && (
+              <div className="notification-bell-wrapper">
+                <button className="notification-bell" onClick={(e) => { e.stopPropagation(); setShowNotifications(!showNotifications); fetchNotifications(); }}>
+                  <Bell size={15} />
+                  {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
+                </button>
+                {showNotifications && (
+                  <div className={`notification-dropdown ${isRtl ? 'rtl' : ''}`} onClick={(e) => e.stopPropagation()}>
+                    <div className="notification-dropdown-header">
+                      <strong>{t('Notifications', 'الإشعارات')}</strong>
+                      {unreadCount > 0 && (
+                        <button className="btn btn-secondary" style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem' }} onClick={handleMarkAllAsRead}>
+                          {t('Mark all read', 'تحديد الكل كمقروء')}
+                        </button>
+                      )}
+                    </div>
+                    <div className="notification-list">
+                      {notificationsLoading ? (
+                        <div style={{ padding: '1rem', textAlign: 'center' }}><Loader2 className="spinner" size={16} /></div>
+                      ) : notifications.length === 0 ? (
+                        <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                          {t('No notifications', 'لا توجد إشعارات')}
+                        </div>
+                      ) : (
+                        notifications.slice(0, 10).map(n => (
+                          <div
+                            key={n.id}
+                            className={`notification-item ${n.read ? '' : 'unread'}`}
+                            onClick={() => { if (!n.read) handleMarkAsRead(n.id); }}
+                            style={{ cursor: 'pointer' }}
+                          >
+                            <div className="notification-dot" data-type={n.type}></div>
+                            <div>
+                              <div style={{ fontWeight: n.read ? 400 : 600, fontSize: '0.85rem' }}>{n.title}</div>
+                              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>{n.message}</div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Language Switcher Pill */}
@@ -1333,6 +1484,225 @@ export default function App() {
               )}
 
             </div>
+          </div>
+        )}
+
+        {/* VIEW: CITIZEN COMPLAINTS & FEEDBACK */}
+        {currentView === 'complaints' && user && (
+          <div style={{ maxWidth: '750px', margin: '0 auto', textAlign: isRtl ? 'right' : 'left' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+              <h2>{t('Feedback & Complaints', 'الشكاوى والاقتراحات')}</h2>
+              <button className="btn btn-secondary" onClick={() => { goToDashboard(); }}>
+                {t('← Dashboard', '← لوحة التحكم')}
+              </button>
+            </div>
+
+            <div className="glass-card" style={{ marginBottom: '2rem' }}>
+              <h3 style={{ marginBottom: '1rem', color: 'var(--accent-red)' }}>{t('Submit New Feedback', 'تقديم شكوى أو اقتراح')}</h3>
+              
+              {complaintSuccess && (
+                <div className="success-banner">
+                  <CheckCircle size={18} /> {t('Your feedback has been submitted successfully. We will review it shortly.', 'تم تقديم ملاحظاتك بنجاح. سنقوم بمراجعتها قريباً.')}
+                </div>
+              )}
+              {complaintError && <div className="error-banner"><AlertCircle size={18} /> {complaintError}</div>}
+
+              <form onSubmit={handleComplaintSubmit}>
+                <div className="form-group">
+                  <label>{t('Category', 'التصنيف')}</label>
+                  <select
+                    value={complaintForm.category}
+                    onChange={(e) => setComplaintForm({ ...complaintForm, category: e.target.value })}
+                  >
+                    <option value="SERVICE_QUALITY">{t('Service Quality', 'جودة الخدمة')}</option>
+                    <option value="TECHNICAL_ISSUE">{t('Technical Issue', 'مشكلة تقنية')}</option>
+                    <option value="SUGGESTION">{t('Suggestion', 'اقتراح')}</option>
+                    <option value="STAFF_CONDUCT">{t('Staff Conduct', 'سلوك الموظفين')}</option>
+                    <option value="DELAY_COMPLAINT">{t('Delay Complaint', 'شكوى تأخير')}</option>
+                    <option value="OTHER">{t('Other', 'أخرى')}</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>{t('Subject', 'الموضوع')}</label>
+                  <input
+                    type="text"
+                    required
+                    value={complaintForm.subject}
+                    onChange={(e) => setComplaintForm({ ...complaintForm, subject: e.target.value })}
+                    placeholder={t('Brief subject of your feedback', 'موضوع مختصر لملاحظاتك')}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>{t('Message', 'الرسالة')}</label>
+                  <textarea
+                    rows={4}
+                    required
+                    value={complaintForm.message}
+                    onChange={(e) => setComplaintForm({ ...complaintForm, message: e.target.value })}
+                    placeholder={t('Describe your issue or suggestion in detail...', ' صف مشكلتك أو اقتراحك بالتفصيل...')}
+                  />
+                </div>
+                <button type="submit" className="btn btn-primary">
+                  {t('Submit Feedback', 'إرسال الملاحظات')}
+                </button>
+              </form>
+            </div>
+
+            {/* Previous Complaints List */}
+            <div className="glass-card">
+              <h3 style={{ marginBottom: '1rem', color: 'var(--accent-red)' }}>{t('Your Previous Feedback', 'ملاحظاتك السابقة')}</h3>
+              {citizenComplaints.length === 0 ? (
+                <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '2rem' }}>
+                  {t('No previous feedback submitted.', 'لا توجد ملاحظات سابقة.')}
+                </p>
+              ) : (
+                <div>
+                  {citizenComplaints.map(c => (
+                    <div key={c.id} style={{ borderBottom: '1px solid var(--border-color)', padding: '1rem 0' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                        <strong>{c.subject}</strong>
+                        <span className={`status-badge status-${c.status === 'RESOLVED' || c.status === 'CLOSED' ? 'COMPLETED' : c.status === 'UNDER_REVIEW' ? 'UNDER_REVIEW' : 'PENDING'}`}>
+                          {c.status}
+                        </span>
+                      </div>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>{c.message}</p>
+                      {c.response && (
+                        <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: 'var(--border-radius-md)', marginTop: '0.5rem', fontSize: '0.85rem' }}>
+                          <strong>{t('Response:', 'الرد:')}</strong> {c.response}
+                          {c.respondedBy && <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>{t('Responded by:', 'تم الرد بواسطة:')} {c.respondedBy}</div>}
+                        </div>
+                      )}
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                        {new Date(c.createdAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* VIEW: ADMIN COMPLAINTS MANAGEMENT */}
+        {currentView === 'admin_complaints' && user?.role === 'ADMIN' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+              <h2>{t('Complaints Management', 'إدارة الشكاوى')}</h2>
+              <button className="btn btn-secondary" onClick={goToAdmin}>
+                {t('← Admin Desk', '← غرفة الإدارة')}
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+              <select value={adminComplaintFilter.category} onChange={(e) => setAdminComplaintFilter({ ...adminComplaintFilter, category: e.target.value })} style={{ padding: '0.4rem', fontSize: '0.8rem' }}>
+                <option value="ALL">{t('All Categories', 'كل التصنيفات')}</option>
+                <option value="SERVICE_QUALITY">{t('Service Quality', 'جودة الخدمة')}</option>
+                <option value="TECHNICAL_ISSUE">{t('Technical Issue', 'مشكلة تقنية')}</option>
+                <option value="SUGGESTION">{t('Suggestion', 'اقتراح')}</option>
+                <option value="STAFF_CONDUCT">{t('Staff Conduct', 'سلوك الموظفين')}</option>
+                <option value="DELAY_COMPLAINT">{t('Delay Complaint', 'شكوى تأخير')}</option>
+                <option value="OTHER">{t('Other', 'أخرى')}</option>
+              </select>
+              <select value={adminComplaintFilter.status} onChange={(e) => setAdminComplaintFilter({ ...adminComplaintFilter, status: e.target.value })} style={{ padding: '0.4rem', fontSize: '0.8rem' }}>
+                <option value="ALL">{t('All Statuses', 'كل الحالات')}</option>
+                <option value="OPEN">{t('Open', 'مفتوحة')}</option>
+                <option value="UNDER_REVIEW">{t('Under Review', 'قيد المراجعة')}</option>
+                <option value="RESOLVED">{t('Resolved', 'تم الحل')}</option>
+                <option value="CLOSED">{t('Closed', 'مغلقة')}</option>
+              </select>
+              <button className="btn btn-secondary" onClick={fetchAdminComplaints} style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>
+                {t('Filter', 'تصفية')}
+              </button>
+            </div>
+
+            <div className="glass-card" style={{ textAlign: isRtl ? 'right' : 'left' }}>
+              {adminComplaints.length === 0 ? (
+                <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem' }}>
+                  {t('No complaints found.', 'لا توجد شكاوى.')}
+                </p>
+              ) : (
+                <div className="admin-table-container">
+                  <table className="admin-table" style={{ textAlign: isRtl ? 'right' : 'left' }}>
+                    <thead>
+                      <tr>
+                        <th>{t('Citizen', 'المواطن')}</th>
+                        <th>{t('Category', 'التصنيف')}</th>
+                        <th>{t('Subject', 'الموضوع')}</th>
+                        <th>{t('Status', 'الحالة')}</th>
+                        <th>{t('Date', 'التاريخ')}</th>
+                        <th>{t('Action', 'إجراء')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {adminComplaints.map(c => (
+                        <tr key={c.id}>
+                          <td>
+                            <div style={{ fontWeight: '700' }}>{c.user?.name}</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{c.user?.email}</div>
+                          </td>
+                          <td>{c.category.replace(/_/g, ' ')}</td>
+                          <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.subject}</td>
+                          <td><span className={`status-badge status-${c.status === 'RESOLVED' || c.status === 'CLOSED' ? 'COMPLETED' : c.status === 'UNDER_REVIEW' ? 'UNDER_REVIEW' : 'PENDING'}`}>{c.status}</span></td>
+                          <td>{new Date(c.createdAt).toLocaleDateString()}</td>
+                          <td>
+                            <button className="btn btn-primary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }} onClick={() => { setSelectedComplaint(c); setComplaintResponse(c.response || ''); }}>
+                              {c.status === 'RESOLVED' || c.status === 'CLOSED' ? t('View', 'عرض') : t('Respond', 'رد')}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Complaint Response Modal */}
+            {selectedComplaint && (
+              <div className="modal-overlay">
+                <div className="glass-card modal-content" style={{ textAlign: isRtl ? 'right' : 'left' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem', marginBottom: '1.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                    <h3 style={{ color: 'var(--accent-red)' }}>{t('Complaint Details', 'تفاصيل الشكوى')}</h3>
+                    <button className="btn btn-secondary" onClick={() => setSelectedComplaint(null)} style={{ padding: '0.35rem 0.6rem' }}><X size={16} /></button>
+                  </div>
+                  <div style={{ marginBottom: '1rem' }}>
+                    <p><strong>{t('From:', 'من:')}</strong> {selectedComplaint.user?.name} ({selectedComplaint.user?.email})</p>
+                    <p><strong>{t('Category:', 'التصنيف:')}</strong> {selectedComplaint.category.replace(/_/g, ' ')}</p>
+                    <p><strong>{t('Subject:', 'الموضوع:')}</strong> {selectedComplaint.subject}</p>
+                  </div>
+                  <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: 'var(--border-radius-md)', marginBottom: '1.5rem', border: '1px solid var(--border-color)' }}>
+                    <p style={{ fontSize: '0.9rem' }}>{selectedComplaint.message}</p>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+                      {new Date(selectedComplaint.createdAt).toLocaleString()}
+                    </div>
+                  </div>
+                  {selectedComplaint.response && (
+                    <div style={{ background: '#f0fdf4', padding: '1rem', borderRadius: 'var(--border-radius-md)', marginBottom: '1.5rem', border: '1px solid #bbf7d0' }}>
+                      <strong>{t('Previous Response:', 'الرد السابق:')}</strong>
+                      <p style={{ fontSize: '0.9rem', marginTop: '0.25rem' }}>{selectedComplaint.response}</p>
+                      {selectedComplaint.respondedBy && <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>{t('By:', 'بواسطة:')} {selectedComplaint.respondedBy}</div>}
+                    </div>
+                  )}
+                  {(selectedComplaint.status === 'OPEN' || selectedComplaint.status === 'UNDER_REVIEW') && (
+                    <form onSubmit={handleComplaintResponse}>
+                      <div className="form-group">
+                        <label>{t('Your Response', 'ردك')}</label>
+                        <textarea
+                          rows={3}
+                          required
+                          value={complaintResponse}
+                          onChange={(e) => setComplaintResponse(e.target.value)}
+                          placeholder={t('Write your response to the citizen...', 'اكتب ردك على المواطن...')}
+                        />
+                      </div>
+                      <button type="submit" className="btn btn-primary">
+                        {t('Submit Response', 'إرسال الرد')}
+                      </button>
+                    </form>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

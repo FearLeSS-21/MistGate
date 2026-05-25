@@ -17,6 +17,18 @@ import {
   adminUpdateStatus,
   adminGetStats,
 } from './controllers/applications';
+import {
+  getMyNotifications,
+  markAsRead,
+  markAllAsRead,
+} from './controllers/notifications';
+import {
+  createComplaint,
+  getMyComplaints,
+  adminGetComplaints,
+  adminRespondToComplaint,
+  adminGetComplaintStats,
+} from './controllers/complaints';
 
 // Initialize dotenv configuration
 dotenv.config();
@@ -53,6 +65,20 @@ app.get('/api/auth/profile', authenticateJWT, getProfile);
 app.post('/api/applications', authenticateJWT, createApplication);
 app.get('/api/applications/my-applications', authenticateJWT, getMyApplications);
 app.get('/api/applications/track/:trackingCode', trackApplication);
+
+// --- Notification Routes ---
+app.get('/api/notifications', authenticateJWT, getMyNotifications);
+app.put('/api/notifications/:id/read', authenticateJWT, markAsRead);
+app.put('/api/notifications/read-all', authenticateJWT, markAllAsRead);
+
+// --- Complaint Routes (Citizens) ---
+app.post('/api/complaints', authenticateJWT, createComplaint);
+app.get('/api/complaints', authenticateJWT, getMyComplaints);
+
+// --- Complaint Routes (Admin) ---
+app.get('/api/admin/complaints', authenticateJWT, requireAdmin, adminGetComplaints);
+app.put('/api/admin/complaints/:id/respond', authenticateJWT, requireAdmin, adminRespondToComplaint);
+app.get('/api/admin/complaints/stats', authenticateJWT, requireAdmin, adminGetComplaintStats);
 
 // --- Admin Control Routes ---
 app.get('/api/admin/applications', authenticateJWT, requireAdmin, adminGetApplications);

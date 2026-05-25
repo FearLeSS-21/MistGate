@@ -45,6 +45,35 @@ export interface Application {
   }[];
 }
 
+export interface Notification {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  type: 'info' | 'success' | 'warning' | 'error';
+  read: boolean;
+  link?: string | null;
+  createdAt: string;
+}
+
+export interface Complaint {
+  id: string;
+  userId: string;
+  category: 'SERVICE_QUALITY' | 'TECHNICAL_ISSUE' | 'SUGGESTION' | 'STAFF_CONDUCT' | 'DELAY_COMPLAINT' | 'OTHER';
+  subject: string;
+  message: string;
+  status: 'OPEN' | 'UNDER_REVIEW' | 'RESOLVED' | 'CLOSED';
+  response?: string | null;
+  respondedBy?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  user?: {
+    name: string;
+    email: string;
+    nationalId: string;
+  };
+}
+
 class ApiService {
   private getHeaders(): HeadersInit {
     const token = localStorage.getItem('misrgate_token');
@@ -128,6 +157,63 @@ class ApiService {
 
   async trackApplicationPublic(trackingCode: string): Promise<Partial<Application>> {
     return this.request<Partial<Application>>(`/applications/track/${trackingCode}`);
+  }
+
+  // --- Notification Endpoints ---
+  async getNotifications(): Promise<{ notifications: Notification[]; unreadCount: number }> {
+    return this.request<{ notifications: Notification[]; unreadCount: number }>('/notifications');
+  }
+
+  async markNotificationAsRead(id: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/notifications/${id}/read`, { method: 'PUT' });
+  }
+
+  async markAllNotificationsAsRead(): Promise<{ message: string }> {
+    return this.request<{ message: string }>('/notifications/read-all', { method: 'PUT' });
+  }
+
+  // --- Complaint Endpoints (Citizen) ---
+  async createComplaint(body: { category: string; subject: string; message: string }): Promise<{ message: string; complaint: Complaint }> {
+    return this.request<{ message: string; complaint: Complaint }>('/complaints', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  async getMyComplaints(): Promise<{ complaints: Complaint[] }> {
+    return this.request<{ complaints: Complaint[] }>('/complaints');
+  }
+
+  // --- Complaint Endpoints (Admin) ---
+  async adminGetComplaints(params?: { category?: string; status?: string }): Promise<{ complaints: Complaint[] }> {
+    const query = new URLSearchParams();
+    if (params?.category) query.set('category', params.category);
+    if (params?.status) query.set('status', params.status);
+    const qs = query.toString();
+    return this.request<{ complaints: Complaint[] }>(`/admin/complaints${qs ? `?${qs}` : ''}`);
+  }
+
+  async adminRespondToComplaint(id: string, body: { response: string }): Promise<{ message: string; complaint: Complaint }> {
+    return this.request<{ message: string; complaint: Complaint }>(`/admin/complaints/${id}/respond`, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+  }
+
+  async adminGetComplaintStats(): Promise<{
+    stats: {
+      total: number;
+      byStatus: Record<string, number>;
+      byCategory: Record<string, number>;
+    };
+  }> {
+    return this.request<{
+      stats: {
+        total: number;
+        byStatus: Record<string, number>;
+        byCategory: Record<string, number>;
+      };
+    }>('/admin/complaints/stats');
   }
 
   // --- Admin Endpoints ---

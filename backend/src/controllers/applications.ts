@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { z } from 'zod';
 import prisma from '../utils/db';
 import { AuthenticatedRequest } from './auth';
+import { createNotification } from '../utils/notifications';
 
 // Enums from Prisma Schema
 type ServiceType =
@@ -314,6 +315,15 @@ export const adminUpdateStatus = async (req: AuthenticatedRequest, res: Response
         notes: notes || `Status changed to ${status}.`,
         changedBy: req.user.name,
       },
+    });
+
+    // Notify the citizen about the status change
+    await createNotification({
+      userId: application.userId,
+      title: 'Application Status Updated',
+      message: `Your ${application.serviceType} application (${application.trackingCode}) status changed to ${status}.`,
+      type: status === 'APPROVED' || status === 'COMPLETED' ? 'success' : status === 'REJECTED' ? 'error' : 'info',
+      link: '/dashboard',
     });
 
     return res.json({

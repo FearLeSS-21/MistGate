@@ -851,6 +851,129 @@ input:focus, select:focus, textarea:focus {
   font-size: 0.85rem;
 }
 
+/* Notification Bell & Dropdown */
+.notification-bell-wrapper {
+  position: relative;
+}
+
+.notification-bell {
+  background: #f1f5f9;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.notification-bell:hover {
+  background: var(--accent-black);
+  color: #fff;
+  border-color: var(--accent-black);
+}
+
+.notification-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--accent-red);
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 340px;
+  max-height: 400px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--hover-shadow);
+  z-index: 200;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.notification-dropdown.rtl {
+  right: auto;
+  left: 0;
+}
+
+.notification-dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.notification-list {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.notification-item {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  transition: var(--transition-smooth);
+}
+
+.notification-item:hover {
+  background: #f8fafc;
+}
+
+.notification-item.unread {
+  background: rgba(197, 27, 41, 0.03);
+}
+
+.notification-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.notification-dot[data-type="info"] { background: var(--accent-blue); }
+.notification-dot[data-type="success"] { background: var(--accent-green); }
+.notification-dot[data-type="warning"] { background: var(--accent-gold); }
+.notification-dot[data-type="error"] { background: var(--accent-red); }
+
+/* Status Badges for Complaints */
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.status-PENDING, .status-OPEN { background: #fef3c7; color: #92400e; }
+.status-UNDER_REVIEW { background: #dbeafe; color: #1e40af; }
+.status-APPROVED { background: #dcfce7; color: #166534; }
+.status-REJECTED { background: #fef2f2; color: #991b1b; }
+.status-COMPLETED, .status-RESOLVED, .status-CLOSED { background: #f0fdf4; color: #166534; }
+
 /* Footer */
 .footer {
   text-align: center;

@@ -32,16 +32,60 @@ enum ApplicationStatus {
 }
 
 model User {
-  id           String        @id @default(uuid())
-  email        String        @unique
-  password     String
-  name         String
-  nationalId   String        @unique
-  phone        String
-  role         Role          @default(CITIZEN)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  applications Application[]
+  id            String         @id @default(uuid())
+  email         String         @unique
+  password      String
+  name          String
+  nationalId    String         @unique
+  phone         String
+  role          Role           @default(CITIZEN)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  applications  Application[]
+  notifications Notification[]
+  complaints    Complaint[]
+}
+
+model Complaint {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category  ComplaintCategory
+  subject   String
+  message   String           @db.Text
+  status    ComplaintStatus  @default(OPEN)
+  response  String?          @db.Text
+  respondedBy String?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}
+
+enum ComplaintCategory {
+  SERVICE_QUALITY
+  TECHNICAL_ISSUE
+  SUGGESTION
+  STAFF_CONDUCT
+  DELAY_COMPLAINT
+  OTHER
+}
+
+enum ComplaintStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  CLOSED
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String   @db.Text
+  type      String   @default("info")
+  read      Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
 }
 
 model Application {
