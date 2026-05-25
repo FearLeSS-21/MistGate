@@ -32,7 +32,9 @@ import {
   CalendarCheck,
   Star,
   Activity,
-  History
+  History,
+  TrendingUp,
+  BarChart3,
 } from 'lucide-react';
 
 export default function App() {
@@ -49,7 +51,7 @@ export default function App() {
     role: 'CITIZEN'
   });
 
-  const [currentView, setCurrentView] = useState<'home' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log' | 'analytics'>('home');
   
   // Forms & Service application states
   const [selectedService, setSelectedService] = useState<ServiceType>('NATIONAL_ID');
@@ -177,6 +179,18 @@ export default function App() {
   const [ratingModalApp, setRatingModalApp] = useState<Application | null>(null);
   const [ratingForm, setRatingForm] = useState({ score: 5, review: '' });
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
+
+  // Analytics state
+  const [analyticsData, setAnalyticsData] = useState<{
+    overview: { totalApplications: number; totalUsers: number; totalComplaints: number; totalAppointments: number; totalRatings: number; averageRating: number };
+    appsByService: Record<string, number>;
+    appsByStatus: Record<string, number>;
+    appsTrend: { date: string; count: number }[];
+    complaintsByCategory: Record<string, number>;
+    appointmentsByDepartment: Record<string, number>;
+  } | null>(null);
+  const [analyticsDays, setAnalyticsDays] = useState(30);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
 
   // Activity log states
   const [activityEntries, setActivityEntries] = useState<ActivityEntry[]>([]);
@@ -378,6 +392,23 @@ export default function App() {
       setTimeout(() => { setRatingModalApp(null); setRatingSubmitted(false); }, 2000);
     } catch (err: unknown) {
       console.error(err);
+    }
+  };
+
+  const fetchAnalytics = async (days?: number) => {
+    const d = days ?? analyticsDays;
+    setAnalyticsLoading(true);
+    try {
+      const token = localStorage.getItem('misrgate_token');
+      const res = await fetch(`http://localhost:5000/api/admin/analytics?days=${d}`, {
+        headers: { Authorization: token ? `Bearer ${token}` : '' },
+      });
+      const data = await res.json();
+      if (data.overview) setAnalyticsData(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setAnalyticsLoading(false);
     }
   };
 
@@ -606,6 +637,12 @@ export default function App() {
               <span className={`nav-link ${currentView === 'admin_appointments' ? 'active' : ''}`} onClick={() => { setCurrentView('admin_appointments'); fetchAdminAppointments(); }}>
                 <CalendarCheck size={15} />
                 {t('Appointments', 'المواعيد')}
+              </span>
+            )}
+            {user?.role === 'ADMIN' && (
+              <span className={`nav-link ${currentView === 'analytics' ? 'active' : ''}`} onClick={() => { setCurrentView('analytics'); fetchAnalytics(); }}>
+                <BarChart3 size={15} />
+                {t('Analytics', 'الإحصائيات')}
               </span>
             )}
             {user?.role === 'ADMIN' && (
@@ -2032,6 +2069,129 @@ export default function App() {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* VIEW: ANALYTICS DASHBOARD */}
+        {currentView === 'analytics' && user?.role === 'ADMIN' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><TrendingUp size={22} /> {t('Service Analytics', 'تحليلات الخدمات')}</h2>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{t('Period:', 'الفترة:')}</span>
+                {[7, 30, 90].map(d => (
+                  <button key={d} className={`btn ${analyticsDays === d ? 'btn-primary' : 'btn-secondary'}`} onClick={() => { setAnalyticsDays(d); fetchAnalytics(d); }} style={{ padding: '0.3rem 0.7rem', fontSize: '0.8rem' }}>
+                    {d}{t('d', 'ي')}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {analyticsLoading ? (
+              <div style={{ textAlign: 'center', padding: '3rem' }}><Loader2 className="spinner" size={24} /></div>
+            ) : analyticsData ? (
+              <>
+                {/* Overview Cards */}
+                <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+                  <div className="stat-card"><div className="stat-value">{analyticsData.overview.totalApplications}</div><div className="stat-label">{t('Applications', 'الطلبات')}</div></div>
+                  <div className="stat-card"><div className="stat-value">{analyticsData.overview.totalUsers}</div><div className="stat-label">{t('Users', 'المستخدمون')}</div></div>
+                  <div className="stat-card"><div className="stat-value">{analyticsData.overview.totalComplaints}</div><div className="stat-label">{t('Complaints', 'الشكاوى')}</div></div>
+                  <div className="stat-card"><div className="stat-value">{analyticsData.overview.totalAppointments}</div><div className="stat-label">{t('Appointments', 'المواعيد')}</div></div>
+                  <div className="stat-card"><div className="stat-value">{analyticsData.overview.totalRatings}</div><div className="stat-label">{t('Ratings', 'التقييمات')}</div></div>
+                  <div className="stat-card"><div className="stat-value">{analyticsData.overview.averageRating.toFixed(1)} ★</div><div className="stat-label">{t('Avg Rating', 'متوسط التقييم')}</div></div>
+                </div>
+
+                {/* Two-column charts */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+                  {/* Apps by Service */}
+                  <div className="glass-card" style={{ padding: '1.25rem' }}>
+                    <h4 style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>{t('Applications by Service', 'الطلبات حسب الخدمة')}</h4>
+                    {Object.entries(analyticsData.appsByService).map(([key, val]) => {
+                      const total = analyticsData.overview.totalApplications || 1;
+                      const pct = (val / total) * 100;
+                      return (
+                        <div key={key} style={{ marginBottom: '0.5rem' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.2rem' }}>
+                            <span>{key.replace(/_/g, ' ')}</span>
+                            <span style={{ fontWeight: 600 }}>{val}</span>
+                          </div>
+                          <div style={{ height: '6px', background: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
+                            <div style={{ height: '100%', width: `${pct}%`, background: 'var(--accent-red)', borderRadius: '3px', transition: 'width 0.5s ease' }}></div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Apps by Status */}
+                  <div className="glass-card" style={{ padding: '1.25rem' }}>
+                    <h4 style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>{t('Applications by Status', 'الطلبات حسب الحالة')}</h4>
+                    {Object.entries(analyticsData.appsByStatus).map(([key, val]) => {
+                      const total = analyticsData.overview.totalApplications || 1;
+                      const pct = (val / total) * 100;
+                      return (
+                        <div key={key} style={{ marginBottom: '0.5rem' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.2rem' }}>
+                            <span className={`status-badge status-${key}`} style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem' }}>{key}</span>
+                            <span style={{ fontWeight: 600 }}>{val}</span>
+                          </div>
+                          <div style={{ height: '6px', background: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
+                            <div style={{ height: '100%', width: `${pct}%`, background: key === 'COMPLETED' ? 'var(--accent-green)' : key === 'REJECTED' ? '#ef4444' : key === 'APPROVED' ? 'var(--accent-blue)' : key === 'UNDER_REVIEW' ? 'var(--accent-gold)' : '#94a3b8', borderRadius: '3px', transition: 'width 0.5s ease' }}></div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Trend chart */}
+                <div className="glass-card" style={{ padding: '1.25rem', marginBottom: '1.5rem' }}>
+                  <h4 style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>{t(`Application Trend (Last ${analyticsDays} Days)`, `اتجاه الطلبات (آخر ${analyticsDays} يوماً)`)}</h4>
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '2px', height: '120px', padding: '0.5rem 0' }}>
+                    {analyticsData.appsTrend.map((point, i) => {
+                      const maxCount = Math.max(...analyticsData.appsTrend.map(p => p.count), 1);
+                      const height = (point.count / maxCount) * 100;
+                      return (
+                        <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                          <div style={{ width: '100%', height: `${height}%`, background: 'var(--accent-red)', borderRadius: '2px 2px 0 0', minHeight: '4px', transition: 'height 0.3s ease', opacity: 0.8 }} title={`${point.date}: ${point.count}`}></div>
+                          {analyticsData.appsTrend.length <= 14 && (
+                            <span style={{ fontSize: '0.55rem', color: 'var(--text-muted)', transform: 'rotate(-45deg)', whiteSpace: 'nowrap' }}>
+                              {point.date.slice(5)}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Second row: Complaints + Appointments */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                  <div className="glass-card" style={{ padding: '1.25rem' }}>
+                    <h4 style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>{t('Complaints by Category', 'الشكاوى حسب التصنيف')}</h4>
+                    {Object.entries(analyticsData.complaintsByCategory).map(([key, val]) => (
+                      <div key={key} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', borderBottom: '1px solid var(--border-color)', fontSize: '0.85rem' }}>
+                        <span>{key.replace(/_/g, ' ')}</span>
+                        <span style={{ fontWeight: 600 }}>{val}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="glass-card" style={{ padding: '1.25rem' }}>
+                    <h4 style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>{t('Appointments by Department', 'المواعيد حسب القسم')}</h4>
+                    {Object.entries(analyticsData.appointmentsByDepartment).map(([key, val]) => (
+                      <div key={key} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', borderBottom: '1px solid var(--border-color)', fontSize: '0.85rem' }}>
+                        <span>{key.replace(/_/g, ' ')}</span>
+                        <span style={{ fontWeight: 600 }}>{val}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="glass-card" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+                {t('No analytics data available yet.', 'لا توجد بيانات تحليلات متاحة بعد.')}
+              </div>
+            )}
           </div>
         )}
 
