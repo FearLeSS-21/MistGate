@@ -54,6 +54,7 @@ import {
   adminGetRecentActivities,
 } from './controllers/activities';
 import { uploadFile } from './controllers/upload';
+import { adminGetAnalytics } from './controllers/analytics';
 
 // Initialize dotenv configuration
 dotenv.config();
@@ -175,6 +176,9 @@ app.get('/api/admin/ratings', authenticateJWT, requireAdmin, adminGetRatingStats
 // --- Activity Log Routes (Admin) ---
 app.get('/api/admin/activities', authenticateJWT, requireAdmin, adminGetActivities);
 app.get('/api/admin/activities/recent', authenticateJWT, requireAdmin, adminGetRecentActivities);
+
+// --- Admin Analytics Routes ---
+app.get('/api/admin/analytics', authenticateJWT, requireAdmin, adminGetAnalytics);
 
 // --- Admin Control Routes ---
 app.get('/api/admin/applications', authenticateJWT, requireAdmin, adminGetApplications);
