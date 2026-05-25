@@ -10,6 +10,8 @@ import {
   login,
   logout,
   getProfile,
+  updateProfile,
+  changePassword,
   authenticateJWT,
   requireAdmin,
 } from './controllers/auth';
@@ -132,6 +134,8 @@ app.post('/api/auth/register', register);
 app.post('/api/auth/login', login);
 app.post('/api/auth/logout', authenticateJWT, logout);
 app.get('/api/auth/profile', authenticateJWT, getProfile);
+app.put('/api/auth/profile', authenticateJWT, updateProfile);
+app.put('/api/auth/password', authenticateJWT, changePassword);
 
 // --- Application Routes (Citizens) ---
 app.post('/api/applications', authenticateJWT, createApplication);

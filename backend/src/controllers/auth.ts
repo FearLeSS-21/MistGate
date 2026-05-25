@@ -247,3 +247,75 @@ export const getProfile = async (req: AuthenticatedRequest, res: Response) => {
     return res.status(500).json({ error: 'An error occurred while fetching profile.' });
   }
 };
+
+const updateProfileSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters').optional(),
+  phone: z.string().min(10, 'Phone must be at least 10 digits').regex(/^\+?\d+$/, 'Invalid phone number format').optional(),
+});
+
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required'),
+  newPassword: z.string()
+    .min(8, 'New password must be at least 8 characters')
+    .regex(/[A-Z]/, 'New password must contain at least one uppercase letter')
+    .regex(/[0-9]/, 'New password must contain at least one number'),
+});
+
+export const updateProfile = async (req: AuthenticatedRequest, res: Response) => {
+  if (!req.user) return res.status(401).json({ error: 'Unauthorized.' });
+
+  try {
+    const validatedData = updateProfileSchema.parse(req.body);
+
+    const updatedUser = await prisma.user.update({
+      where: { id: req.user.id },
+      data: validatedData,
+      select: { id: true, email: true, name: true, nationalId: true, phone: true, role: true },
+    });
+
+    return res.json({ message: 'Profile updated successfully.', user: updatedUser });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: error.errors[0].message });
+    }
+    console.error('Update profile error:', error);
+    return res.status(500).json({ error: 'An error occurred while updating profile.' });
+  }
+};
+
+export const changePassword = async (req: AuthenticatedRequest, res: Response) => {
+  if (!req.user) return res.status(401).json({ error: 'Unauthorized.' });
+
+  try {
+    const validatedData = changePasswordSchema.parse(req.body);
+
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+
+    const isMatch = await bcrypt.compare(validatedData.currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Current password is incorrect.' });
+    }
+
+    const hashedPassword = await bcrypt.hash(validatedData.newPassword, 10);
+    await prisma.user.update({
+      where: { id: req.user.id },
+      data: { password: hashedPassword },
+    });
+
+    await logActivity({
+      userId: user.id,
+      userName: user.name,
+      action: 'PASSWORD_CHANGE',
+      details: 'User changed their password',
+    });
+
+    return res.json({ message: 'Password changed successfully.' });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: error.errors[0].message });
+    }
+    console.error('Change password error:', error);
+    return res.status(500).json({ error: 'An error occurred while changing password.' });
+  }
+};
