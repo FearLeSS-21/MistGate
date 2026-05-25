@@ -177,6 +177,11 @@ class ApiService {
     return this.request<{ user: User }>('/auth/profile');
   }
 
+  async logout(): Promise<void> {
+    await this.request<{ message: string }>('/auth/logout', { method: 'POST' });
+    this.clearToken();
+  }
+
   // --- Citizen Endpoints ---
   async createApplication(body: {
     serviceType: string;

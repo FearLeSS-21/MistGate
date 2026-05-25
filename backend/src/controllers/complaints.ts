@@ -6,11 +6,11 @@ import { AuthenticatedRequest } from './auth';
 const createComplaintSchema = z.object({
   category: z.enum(['SERVICE_QUALITY', 'TECHNICAL_ISSUE', 'SUGGESTION', 'STAFF_CONDUCT', 'DELAY_COMPLAINT', 'OTHER']),
   subject: z.string().min(5, 'Subject must be at least 5 characters').max(200),
-  message: z.string().min(10, 'Message must be at least 10 characters'),
+  message: z.string().min(10, 'Message must be at least 10 characters').max(2000, 'Message must be under 2000 characters'),
 });
 
 const respondComplaintSchema = z.object({
-  response: z.string().min(1, 'Response is required'),
+  response: z.string().min(1, 'Response is required').max(2000, 'Response must be under 2000 characters'),
 });
 
 export const createComplaint = async (req: AuthenticatedRequest, res: Response) => {

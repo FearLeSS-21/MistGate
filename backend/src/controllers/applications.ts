@@ -256,9 +256,9 @@ export const trackApplication = async (req: Request, res: Response) => {
 // 4. Admin: List All Applications (with pagination and search)
 export const adminGetApplications = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 20;
-    const search = (req.query.search as string) || '';
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
+    const search = ((req.query.search as string) || '').slice(0, 100);
     const statusFilter = (req.query.status as string) || '';
     const serviceFilter = (req.query.serviceType as string) || '';
     const skip = (page - 1) * limit;
