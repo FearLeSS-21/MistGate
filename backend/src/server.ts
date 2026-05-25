@@ -56,6 +56,7 @@ import {
 import { uploadFile } from './controllers/upload';
 import { adminGetAnalytics } from './controllers/analytics';
 import { chat } from './controllers/chatbot';
+import { exportApplications, exportComplaints, exportAppointments } from './controllers/export';
 
 // Initialize dotenv configuration
 dotenv.config();
@@ -183,6 +184,11 @@ app.post('/api/chatbot', chat);
 
 // --- Admin Analytics Routes ---
 app.get('/api/admin/analytics', authenticateJWT, requireAdmin, adminGetAnalytics);
+
+// --- Data Export Routes (Admin) ---
+app.get('/api/admin/export/applications', authenticateJWT, requireAdmin, exportApplications);
+app.get('/api/admin/export/complaints', authenticateJWT, requireAdmin, exportComplaints);
+app.get('/api/admin/export/appointments', authenticateJWT, requireAdmin, exportAppointments);
 
 // --- Admin Control Routes ---
 app.get('/api/admin/applications', authenticateJWT, requireAdmin, adminGetApplications);
