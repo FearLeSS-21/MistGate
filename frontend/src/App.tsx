@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { api } from './services/api';
 import type { User as ApiUser, Application, ServiceType, Notification, Complaint } from './services/api';
 import './App.css';
@@ -50,7 +50,11 @@ import {
 export default function App() {
   // Navigation & User session states
   const [lang, setLang] = useState<'en' | 'ar'>('en'); // Default language is English
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('misrgate_theme');
+    if (saved) return saved === 'dark';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
   
   // Default mock user to bypass login/signup barrier completely
   const [user, setUser] = useState<ApiUser | null>({
@@ -453,6 +457,23 @@ export default function App() {
       console.error(err);
     }
   };
+
+  // Persist dark mode preference
+  useEffect(() => {
+    localStorage.setItem('misrgate_theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
+
+  // Listen for system theme changes
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const handler = (e: MediaQueryListEvent) => {
+      if (!localStorage.getItem('misrgate_theme')) {
+        setDarkMode(e.matches);
+      }
+    };
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   // Toggle Language Handler
   const toggleLanguage = () => {
@@ -1264,7 +1285,7 @@ export default function App() {
                 <User size={20} /> {t('My Profile', 'الملف الشخصي')}
               </h3>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '2rem', padding: '1rem', background: '#f8fafc', borderRadius: 'var(--border-radius-md)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '2rem', padding: '1rem', background: 'var(--bg-subtle)', borderRadius: 'var(--border-radius-md)' }}>
                 <div><strong>{t('Email:', 'البريد الإلكتروني:')}</strong> <span style={{ color: 'var(--text-secondary)' }}>{user.email}</span></div>
                 <div><strong>{t('National ID:', 'الرقم القومي:')}</strong> <span style={{ color: 'var(--text-secondary)' }}>{user.nationalId}</span></div>
                 <div><strong>{t('Role:', 'الدور:')}</strong> <span className={`status-badge status-${user.role === 'ADMIN' ? 'APPROVED' : 'PENDING'}`}>{user.role}</span></div>
@@ -1342,7 +1363,7 @@ export default function App() {
                     {t('Your request is registered. Use this tracking code to look up progress on home page:',
                        'تم تسجيل المعاملة. يرجى كتابة وحفظ كود تتبع الطلب لمتابعة تقدم المراجعة:')}
                   </p>
-                  <span style={{ fontSize: '1.5rem', fontWeight: '800', background: 'rgba(15,23,42,0.05)', padding: '0.4rem 1rem', borderRadius: '4px', letterSpacing: '2px', color: 'var(--accent-red)', display: 'block', margin: '0.5rem 0' }}>
+                  <span style={{ fontSize: '1.5rem', fontWeight: '800', background: 'var(--bg-input)', padding: '0.4rem 1rem', borderRadius: '4px', letterSpacing: '2px', color: 'var(--accent-red)', display: 'block', margin: '0.5rem 0' }}>
                     {formSuccess.code}
                   </span>
                   <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', marginTop: '1rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
@@ -1880,7 +1901,7 @@ export default function App() {
                   {/* File Upload */}
                   <div className="form-group" style={{ marginTop: '1.5rem' }}>
                     <label>{t('Supporting Documents (PDF/JPG/PNG)', 'المستندات المؤيدة (PDF/JPG/PNG)')}</label>
-                    <div style={{ border: '2px dashed var(--border-color)', padding: '1.5rem', borderRadius: 'var(--border-radius-md)', textAlign: 'center', background: '#f8fafc' }}>
+                    <div style={{ border: '2px dashed var(--border-color)', padding: '1.5rem', borderRadius: 'var(--border-radius-md)', textAlign: 'center', background: 'var(--bg-input)' }}>
                       {uploadedFile ? (
                         <div>
                           <FileUp size={24} style={{ color: 'var(--accent-green)', marginBottom: '0.5rem' }} />
@@ -1999,7 +2020,7 @@ export default function App() {
                       </div>
                       <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>{c.message}</p>
                       {c.response && (
-                        <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: 'var(--border-radius-md)', marginTop: '0.5rem', fontSize: '0.85rem' }}>
+                        <div style={{ background: 'var(--bg-subtle)', padding: '0.75rem', borderRadius: 'var(--border-radius-md)', marginTop: '0.5rem', fontSize: '0.85rem' }}>
                           <strong>{t('Response:', 'الرد:')}</strong> {c.response}
                           {c.respondedBy && <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>{t('Responded by:', 'تم الرد بواسطة:')} {c.respondedBy}</div>}
                         </div>
@@ -2102,14 +2123,14 @@ export default function App() {
                     <p><strong>{t('Category:', 'التصنيف:')}</strong> {selectedComplaint.category.replace(/_/g, ' ')}</p>
                     <p><strong>{t('Subject:', 'الموضوع:')}</strong> {selectedComplaint.subject}</p>
                   </div>
-                  <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: 'var(--border-radius-md)', marginBottom: '1.5rem', border: '1px solid var(--border-color)' }}>
+                  <div style={{ background: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--border-radius-md)', marginBottom: '1.5rem', border: '1px solid var(--border-color)' }}>
                     <p style={{ fontSize: '0.9rem' }}>{selectedComplaint.message}</p>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
                       {new Date(selectedComplaint.createdAt).toLocaleString()}
                     </div>
                   </div>
                   {selectedComplaint.response && (
-                    <div style={{ background: '#f0fdf4', padding: '1rem', borderRadius: 'var(--border-radius-md)', marginBottom: '1.5rem', border: '1px solid #bbf7d0' }}>
+                    <div style={{ background: 'var(--bg-success)', padding: '1rem', borderRadius: 'var(--border-radius-md)', marginBottom: '1.5rem', border: '1px solid var(--border-success)' }}>
                       <strong>{t('Previous Response:', 'الرد السابق:')}</strong>
                       <p style={{ fontSize: '0.9rem', marginTop: '0.25rem' }}>{selectedComplaint.response}</p>
                       {selectedComplaint.respondedBy && <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>{t('By:', 'بواسطة:')} {selectedComplaint.respondedBy}</div>}
@@ -2370,7 +2391,7 @@ export default function App() {
                             <span>{key.replace(/_/g, ' ')}</span>
                             <span style={{ fontWeight: 600 }}>{val}</span>
                           </div>
-                          <div style={{ height: '6px', background: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
+                          <div style={{ height: '6px', background: 'var(--bg-progress-bar)', borderRadius: '3px', overflow: 'hidden' }}>
                             <div style={{ height: '100%', width: `${pct}%`, background: 'var(--accent-red)', borderRadius: '3px', transition: 'width 0.5s ease' }}></div>
                           </div>
                         </div>
@@ -2390,7 +2411,7 @@ export default function App() {
                             <span className={`status-badge status-${key}`} style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem' }}>{key}</span>
                             <span style={{ fontWeight: 600 }}>{val}</span>
                           </div>
-                          <div style={{ height: '6px', background: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
+                          <div style={{ height: '6px', background: 'var(--bg-progress-bar)', borderRadius: '3px', overflow: 'hidden' }}>
                             <div style={{ height: '100%', width: `${pct}%`, background: key === 'COMPLETED' ? 'var(--accent-green)' : key === 'REJECTED' ? '#ef4444' : key === 'APPROVED' ? 'var(--accent-blue)' : key === 'UNDER_REVIEW' ? 'var(--accent-gold)' : '#94a3b8', borderRadius: '3px', transition: 'width 0.5s ease' }}></div>
                           </div>
                         </div>
@@ -2623,7 +2644,7 @@ export default function App() {
                   </div>
 
                   {/* Citizen Metadata */}
-                  <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: 'var(--border-radius-md)', marginBottom: '1.5rem', border: '1px solid var(--border-color)' }}>
+                  <div style={{ background: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--border-radius-md)', marginBottom: '1.5rem', border: '1px solid var(--border-color)' }}>
                     <h4 style={{ marginBottom: '0.5rem', fontSize: '0.9rem' }}>{t('Citizen Demographics', 'بيانات مقدم المعاملة')}</h4>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.85rem' }}>
                       <div>{t('Name:', 'الاسم:')} <span style={{ fontWeight: 'bold' }}>{selectedAppForReview.user?.name}</span></div>
@@ -2635,7 +2656,7 @@ export default function App() {
 
                   {/* Attached Document */}
                   {selectedAppForReview.attachmentUrl && (
-                    <div style={{ background: '#f0fdf4', padding: '0.75rem 1rem', borderRadius: 'var(--border-radius-md)', marginBottom: '1rem', border: '1px solid #bbf7d0', display: 'flex', alignItems: 'center', gap: '0.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                    <div style={{ background: 'var(--bg-success)', padding: '0.75rem 1rem', borderRadius: 'var(--border-radius-md)', marginBottom: '1rem', border: '1px solid var(--border-success)', display: 'flex', alignItems: 'center', gap: '0.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
                       <FileUp size={16} style={{ color: 'var(--accent-green)' }} />
                       <span style={{ fontSize: '0.85rem' }}>{t('Attached Document:', 'المستند المرفق:')}</span>
                       <a href={selectedAppForReview.attachmentUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.85rem', color: 'var(--accent-blue)', textDecoration: 'underline' }}>
@@ -2646,7 +2667,7 @@ export default function App() {
 
                   {/* Application Data Form Content */}
                   <h4 style={{ marginBottom: '0.5rem', fontSize: '0.9rem' }}>{t('Form Declarations', 'البيانات والمستندات المصرح بها')}</h4>
-                  <div className="arabic-text" style={{ background: '#f8fafc', padding: '1rem', borderRadius: 'var(--border-radius-md)', marginBottom: '2rem', border: '1px solid var(--border-color)', textAlign: 'right' }}>
+                  <div className="arabic-text" style={{ background: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--border-radius-md)', marginBottom: '2rem', border: '1px solid var(--border-color)', textAlign: 'right' }}>
                     {Object.entries(selectedAppForReview.data as Record<string, string>).map(([key, val]) => (
                       <div key={key} style={{ margin: '0.4rem 0', fontSize: '0.85rem' }}>
                         <strong>
