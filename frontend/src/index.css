@@ -60,32 +60,32 @@
   --border-radius-md: 10px;
 }
 
-/* Dark Mode Overrides */
+/* Dark Mode Overrides — Full coheisve dark palette */
 .app-container.dark-mode {
-  --bg-light: #0f172a;
-  --bg-card: #1e293b;
-  --bg-navbar: #1e293b;
-  --accent-black: #f1f5f9;
-  --text-primary: #e2e8f0;
+  --bg-light: #080c14;
+  --bg-card: #111827;
+  --bg-navbar: #0f172a;
+  --accent-black: #f8fafc;
+  --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
-  --border-color: #334155;
-  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
-  --hover-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
-  --nav-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+  --border-color: #1e293b;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --hover-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+  --nav-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
   --bg-input: #1e293b;
-  --bg-subtle: #1e293b;
-  --bg-toggle: #334155;
-  --bg-chat-bot: #334155;
-  --bg-chat-input: #1e293b;
+  --bg-subtle: #0f172a;
+  --bg-toggle: #1e293b;
+  --bg-chat-bot: #1e293b;
+  --bg-chat-input: #0f172a;
   --bg-notification-hover: #1e293b;
-  --bg-table-th: #1e293b;
-  --bg-timeline-dot: #475569;
-  --bg-progress-bar: #334155;
-  --bg-success: #052e16;
+  --bg-table-th: #0f172a;
+  --bg-timeline-dot: #334155;
+  --bg-progress-bar: #1e293b;
+  --bg-success: #042f0e;
   --border-success: #166534;
-  --text-success: #bbf7d0;
-  --bg-error: #450a0a;
+  --text-success: #86efac;
+  --bg-error: #3b0a0a;
   --border-error: #991b1b;
   --text-error: #fca5a5;
   --bg-info-card: #1e293b;
@@ -1583,6 +1583,115 @@ details[open] summary::before {
 
 .app-container.dark-mode .hero-search button.btn-primary:hover {
   background: #991b1b;
+}
+
+.app-container.dark-mode .gov-portal-card {
+  border-color: var(--border-color);
+}
+
+.app-container.dark-mode .gov-portal-card--active {
+  background: var(--bg-card);
+  border-color: var(--accent-gold);
+}
+
+.app-container.dark-mode .gov-portal-icon {
+  background: rgba(197, 160, 89, 0.15);
+  border-color: rgba(197, 160, 89, 0.3);
+}
+
+.app-container.dark-mode .gov-portal-card h3 {
+  color: var(--text-primary);
+}
+
+.app-container.dark-mode .gov-portal-card p {
+  color: var(--text-secondary);
+}
+
+.app-container.dark-mode .rating-star {
+  color: var(--text-muted);
+}
+
+.app-container.dark-mode .notification-badge {
+  border-color: var(--bg-card);
+}
+
+.app-container.dark-mode .timeline-dot {
+  border-color: var(--bg-light);
+}
+
+.app-container.dark-mode .timeline-content {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+.app-container.dark-mode .service-icon {
+  background: rgba(197, 27, 41, 0.12);
+  border-color: rgba(197, 27, 41, 0.2);
+}
+
+.app-container.dark-mode .service-card:hover .service-icon {
+  background: var(--accent-black);
+  color: var(--accent-white);
+}
+
+.app-container.dark-mode .search-results {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+.app-container.dark-mode .footer {
+  background: var(--bg-subtle);
+  border-top-color: var(--border-color);
+  color: var(--text-muted);
+}
+
+.app-container.dark-mode body::before {
+  background: radial-gradient(circle, rgba(197, 27, 41, 0.04) 0%, transparent 75%);
+}
+
+.app-container.dark-mode .hero-search {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+.app-container.dark-mode .logo-text {
+  color: var(--accent-black);
+}
+
+.app-container.dark-mode .chatbot-input-row {
+  background: var(--bg-chat-input);
+  border-top-color: var(--border-color);
+}
+
+.app-container.dark-mode .chatbot-panel {
+  border-color: var(--border-color);
+  background: var(--bg-card);
+}
+
+.app-container.dark-mode .chat-msg.bot .chat-bubble {
+  background: var(--bg-chat-bot);
+  color: var(--text-primary);
+}
+
+.app-container.dark-mode .updates-card-header {
+  border-bottom-color: var(--border-color);
+}
+
+.app-container.dark-mode .updates-card-footer {
+  border-top-color: var(--border-color);
+  border-bottom: none;
+}
+
+.app-container.dark-mode .tracking-header {
+  border-bottom-color: var(--border-color);
+}
+
+.app-container.dark-mode .chatbot-messages {
+  background: transparent;
+}
+
+.app-container.dark-mode .app-container {
+  background: var(--bg-light);
 }
 
 /* Appointment Time Slot Selector */

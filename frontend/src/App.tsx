@@ -1113,13 +1113,13 @@ export default function App() {
             {favorites.length > 0 && (
               <div className="favorites-section" style={{ textAlign: 'center' }}>
                 <h3 style={{ justifyContent: 'center' }}>
-                  <Star size={16} fill="#f59e0b" color="#f59e0b" />
+                  <Star size={16} fill="var(--accent-gold)" color="var(--accent-gold)" />
                   {t('Your Favorite Services', 'خدماتك المفضلة')}
                 </h3>
                 <div className="favorites-list" style={{ justifyContent: 'center' }}>
                   {favorites.map(fav => (
                     <button key={fav} className="favorites-chip" onClick={() => handleApplyClick(fav as ServiceType)}>
-                      <Star size={12} fill="#f59e0b" color="#f59e0b" />
+                      <Star size={12} fill="var(--accent-gold)" color="var(--accent-gold)" />
                       {getServiceLabel(fav)}
                     </button>
                   ))}
@@ -1143,9 +1143,9 @@ export default function App() {
                     className="favorite-star"
                     onClick={(e) => { e.stopPropagation(); handleToggleFavorite('NATIONAL_ID'); }}
                     title={favorites.includes('NATIONAL_ID') ? 'Remove from favorites' : 'Add to favorites'}
-                    style={{ color: favorites.includes('NATIONAL_ID') ? '#f59e0b' : 'var(--text-secondary)', marginLeft: '0.5rem' }}
+                    style={{ color: favorites.includes('NATIONAL_ID') ? 'var(--accent-gold)' : 'var(--text-secondary)', marginLeft: '0.5rem' }}
                   >
-                    <Star size={16} fill={favorites.includes('NATIONAL_ID') ? '#f59e0b' : 'transparent'} />
+                    <Star size={16} fill={favorites.includes('NATIONAL_ID') ? 'var(--accent-gold)' : 'transparent'} />
                   </button>
                 </h3>
                 <p>
@@ -1162,8 +1162,8 @@ export default function App() {
                 <div className="service-icon" style={{ alignSelf: isRtl ? 'flex-end' : 'flex-start' }}><Shield size={20} /></div>
                 <h3>
                   {t('Military & Recruitment', 'التجنيد والتعبئة')}
-                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('MILITARY_EXEMPTION'); }} title={favorites.includes('MILITARY_EXEMPTION') ? 'Remove from favorites' : 'Add to favorites'} style={{ color: favorites.includes('MILITARY_EXEMPTION') ? '#f59e0b' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
-                    <Star size={16} fill={favorites.includes('MILITARY_EXEMPTION') ? '#f59e0b' : 'transparent'} />
+                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('MILITARY_EXEMPTION'); }} title={favorites.includes('MILITARY_EXEMPTION') ? 'Remove from favorites' : 'Add to favorites'} style={{ color: favorites.includes('MILITARY_EXEMPTION') ? 'var(--accent-gold)' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
+                    <Star size={16} fill={favorites.includes('MILITARY_EXEMPTION') ? 'var(--accent-gold)' : 'transparent'} />
                   </button>
                 </h3>
                 <p>
@@ -1180,8 +1180,8 @@ export default function App() {
                 <div className="service-icon" style={{ alignSelf: isRtl ? 'flex-end' : 'flex-start' }}><Bookmark size={20} /></div>
                 <h3>
                   {t('Civil Registry Records', 'وثائق الأحوال المدنية')}
-                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('BIRTH_CERTIFICATE'); }} title={favorites.includes('BIRTH_CERTIFICATE') ? 'Remove from favorites' : 'Add to favorites'} style={{ color: favorites.includes('BIRTH_CERTIFICATE') ? '#f59e0b' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
-                    <Star size={16} fill={favorites.includes('BIRTH_CERTIFICATE') ? '#f59e0b' : 'transparent'} />
+                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('BIRTH_CERTIFICATE'); }} title={favorites.includes('BIRTH_CERTIFICATE') ? 'Remove from favorites' : 'Add to favorites'} style={{ color: favorites.includes('BIRTH_CERTIFICATE') ? 'var(--accent-gold)' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
+                    <Star size={16} fill={favorites.includes('BIRTH_CERTIFICATE') ? 'var(--accent-gold)' : 'transparent'} />
                   </button>
                 </h3>
                 <p>
@@ -1198,8 +1198,8 @@ export default function App() {
                 <div className="service-icon" style={{ alignSelf: isRtl ? 'flex-end' : 'flex-start' }}><BookOpen size={20} /></div>
                 <h3>
                   {t('Egyptian Passport', 'جواز السفر المصري')}
-                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('PASSPORT'); }} title={favorites.includes('PASSPORT') ? 'Remove from favorites' : 'Add to favorites'} style={{ color: favorites.includes('PASSPORT') ? '#f59e0b' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
-                    <Star size={16} fill={favorites.includes('PASSPORT') ? '#f59e0b' : 'transparent'} />
+                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('PASSPORT'); }} title={favorites.includes('PASSPORT') ? 'Remove from favorites' : 'Add to favorites'} style={{ color: favorites.includes('PASSPORT') ? 'var(--accent-gold)' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
+                    <Star size={16} fill={favorites.includes('PASSPORT') ? 'var(--accent-gold)' : 'transparent'} />
                   </button>
                 </h3>
                 <p>
@@ -1216,8 +1216,8 @@ export default function App() {
                 <div className="service-icon" style={{ alignSelf: isRtl ? 'flex-end' : 'flex-start' }}><Receipt size={20} /></div>
                 <h3>
                   {t('Tax Payment', 'سداد الضرائب')}
-                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('TAX_PAYMENT'); }} title={favorites.includes('TAX_PAYMENT') ? 'Remove from favorites' : 'Add to favorites'} style={{ color: favorites.includes('TAX_PAYMENT') ? '#f59e0b' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
-                    <Star size={16} fill={favorites.includes('TAX_PAYMENT') ? '#f59e0b' : 'transparent'} />
+                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('TAX_PAYMENT'); }} title={favorites.includes('TAX_PAYMENT') ? 'Remove from favorites' : 'Add to favorites'} style={{ color: favorites.includes('TAX_PAYMENT') ? 'var(--accent-gold)' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
+                    <Star size={16} fill={favorites.includes('TAX_PAYMENT') ? 'var(--accent-gold)' : 'transparent'} />
                   </button>
                 </h3>
                 <p>
@@ -1234,8 +1234,8 @@ export default function App() {
                 <div className="service-icon" style={{ alignSelf: isRtl ? 'flex-end' : 'flex-start' }}><Car size={20} /></div>
                 <h3>
                   {t('Traffic Violations', 'مخالفات المرور')}
-                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('TRAFFIC_FINE'); }} title={favorites.includes('TRAFFIC_FINE') ? 'Remove from favorites' : 'Add to favorites'} style={{ color: favorites.includes('TRAFFIC_FINE') ? '#f59e0b' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
-                    <Star size={16} fill={favorites.includes('TRAFFIC_FINE') ? '#f59e0b' : 'transparent'} />
+                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('TRAFFIC_FINE'); }} title={favorites.includes('TRAFFIC_FINE') ? 'Remove from favorites' : 'Add to favorites'} style={{ color: favorites.includes('TRAFFIC_FINE') ? 'var(--accent-gold)' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
+                    <Star size={16} fill={favorites.includes('TRAFFIC_FINE') ? 'var(--accent-gold)' : 'transparent'} />
                   </button>
                 </h3>
                 <p>
@@ -1252,8 +1252,8 @@ export default function App() {
                 <div className="service-icon" style={{ alignSelf: isRtl ? 'flex-end' : 'flex-start' }}><HeartPulse size={20} /></div>
                 <h3>
                   {t('Health Insurance', 'التأمين الصحي')}
-                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('HEALTH_INSURANCE'); }} title={favorites.includes('HEALTH_INSURANCE') ? 'Remove from favorites' : 'Add to favorites'} style={{ color: favorites.includes('HEALTH_INSURANCE') ? '#f59e0b' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
-                    <Star size={16} fill={favorites.includes('HEALTH_INSURANCE') ? '#f59e0b' : 'transparent'} />
+                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('HEALTH_INSURANCE'); }} title={favorites.includes('HEALTH_INSURANCE') ? 'Remove from favorites' : 'Add to favorites'} style={{ color: favorites.includes('HEALTH_INSURANCE') ? 'var(--accent-gold)' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
+                    <Star size={16} fill={favorites.includes('HEALTH_INSURANCE') ? 'var(--accent-gold)' : 'transparent'} />
                   </button>
                 </h3>
                 <p>
@@ -1270,8 +1270,8 @@ export default function App() {
                 <div className="service-icon" style={{ alignSelf: isRtl ? 'flex-end' : 'flex-start' }}><Briefcase size={20} /></div>
                 <h3>
                   {t('Social Insurance', 'التأمينات الاجتماعية')}
-                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('SOCIAL_INSURANCE'); }} title={favorites.includes('SOCIAL_INSURANCE') ? 'Remove from favorites' : 'Add to favorites'} style={{ color: favorites.includes('SOCIAL_INSURANCE') ? '#f59e0b' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
-                    <Star size={16} fill={favorites.includes('SOCIAL_INSURANCE') ? '#f59e0b' : 'transparent'} />
+                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('SOCIAL_INSURANCE'); }} title={favorites.includes('SOCIAL_INSURANCE') ? 'Remove from favorites' : 'Add to favorites'} style={{ color: favorites.includes('SOCIAL_INSURANCE') ? 'var(--accent-gold)' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
+                    <Star size={16} fill={favorites.includes('SOCIAL_INSURANCE') ? 'var(--accent-gold)' : 'transparent'} />
                   </button>
                 </h3>
                 <p>
@@ -2838,7 +2838,7 @@ export default function App() {
                             <span style={{ fontWeight: 600 }}>{val}</span>
                           </div>
                           <div style={{ height: '6px', background: 'var(--bg-progress-bar)', borderRadius: '3px', overflow: 'hidden' }}>
-                            <div style={{ height: '100%', width: `${pct}%`, background: key === 'COMPLETED' ? 'var(--accent-green)' : key === 'REJECTED' ? '#ef4444' : key === 'APPROVED' ? 'var(--accent-blue)' : key === 'UNDER_REVIEW' ? 'var(--accent-gold)' : '#94a3b8', borderRadius: '3px', transition: 'width 0.5s ease' }}></div>
+                            <div style={{ height: '100%', width: `${pct}%`, background: key === 'COMPLETED' ? 'var(--accent-green)' : key === 'REJECTED' ? 'var(--accent-red)' : key === 'APPROVED' ? 'var(--accent-blue)' : key === 'UNDER_REVIEW' ? 'var(--accent-gold)' : 'var(--text-muted)', borderRadius: '3px', transition: 'width 0.5s ease' }}></div>
                           </div>
                         </div>
                       );
@@ -3031,7 +3031,7 @@ export default function App() {
                       <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                           <strong>{a.title}</strong>
-                          <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', background: a.active ? 'var(--accent-green)' : 'var(--text-muted)', color: 'white' }}>
+                          <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', background: a.active ? 'var(--accent-green)' : 'var(--text-muted)', color: 'var(--accent-white)' }}>
                             {a.active ? t('Active', 'نشط') : t('Inactive', 'غير نشط')}
                           </span>
                         </div>
@@ -3328,7 +3328,7 @@ export default function App() {
             </div>
 
             {activeApplicationDetails.attachmentUrl && (
-              <div style={{ background: '#f0fdf4', padding: '0.75rem 1rem', borderRadius: 'var(--border-radius-md)', marginBottom: '1rem', border: '1px solid #bbf7d0', display: 'flex', alignItems: 'center', gap: '0.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+              <div style={{ background: 'var(--bg-success)', padding: '0.75rem 1rem', borderRadius: 'var(--border-radius-md)', marginBottom: '1rem', border: '1px solid var(--border-success)', display: 'flex', alignItems: 'center', gap: '0.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
                 <FileUp size={16} style={{ color: 'var(--accent-green)' }} />
                 <span style={{ fontSize: '0.85rem' }}>{t('Attached Document:', 'المستند المرفق:')}</span>
                 <a href={activeApplicationDetails.attachmentUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.85rem', color: 'var(--accent-blue)', textDecoration: 'underline' }}>
@@ -3338,7 +3338,7 @@ export default function App() {
             )}
 
             <h4 style={{ marginBottom: '0.5rem', fontSize: '0.9rem' }}>{t('Form Declarations', 'البيانات المرسلة')}</h4>
-            <div className="arabic-text" style={{ background: '#f8fafc', padding: '1rem', borderRadius: 'var(--border-radius-md)', marginBottom: '1.5rem', border: '1px solid var(--border-color)', textAlign: 'right' }}>
+            <div className="arabic-text" style={{ background: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--border-radius-md)', marginBottom: '1.5rem', border: '1px solid var(--border-color)', textAlign: 'right' }}>
               {Object.entries(activeApplicationDetails.data as Record<string, string>).map(([key, val]) => (
                 <div key={key} style={{ margin: '0.4rem 0', fontSize: '0.85rem' }}>
                   <strong>
@@ -3386,7 +3386,7 @@ export default function App() {
                   <p style={{ marginBottom: '0.75rem', color: 'var(--text-secondary)' }}>{t('How was your experience with', 'كيف كانت تجربتك مع')} {getServiceLabel(ratingModalApp.serviceType)}?</p>
                   <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', direction: 'ltr' }}>
                     {[1, 2, 3, 4, 5].map(star => (
-                      <button key={star} type="button" onClick={() => setRatingForm({ ...ratingForm, score: star })} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '2rem', color: star <= ratingForm.score ? 'var(--accent-gold)' : '#e2e8f0', transition: 'var(--transition-smooth)' }}>
+                      <button key={star} type="button" onClick={() => setRatingForm({ ...ratingForm, score: star })} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '2rem', color: star <= ratingForm.score ? 'var(--accent-gold)' : 'var(--text-muted)', transition: 'var(--transition-smooth)' }}>
                         {star <= ratingForm.score ? '★' : '☆'}
                       </button>
                     ))}
