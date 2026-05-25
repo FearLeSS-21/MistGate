@@ -1279,6 +1279,312 @@ details[open] summary::before {
 .app-container.dark-mode .status-RESOLVED,
 .app-container.dark-mode .status-CLOSED { background: #052e16; color: #86efac; }
 
+/* ===== COMPREHENSIVE DARK MODE FIXES ===== */
+.app-container.dark-mode header {
+  background: var(--bg-navbar);
+  border-bottom-color: var(--border-color);
+}
+
+.app-container.dark-mode .navbar {
+  background: var(--bg-navbar);
+}
+
+.app-container.dark-mode .navbar-content a,
+.app-container.dark-mode .nav-link {
+  color: var(--text-secondary);
+}
+
+.app-container.dark-mode .nav-link:hover,
+.app-container.dark-mode .nav-link.active {
+  color: var(--accent-red);
+}
+
+.app-container.dark-mode .lang-btn {
+  background: var(--bg-toggle);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.app-container.dark-mode .lang-btn:hover {
+  background: var(--accent-black);
+  color: #fff;
+}
+
+.app-container.dark-mode .hero {
+  background: transparent;
+}
+
+.app-container.dark-mode .hero-badge {
+  background: var(--accent-red-glow);
+  color: var(--accent-red);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.app-container.dark-mode .hero-title {
+  color: var(--text-primary);
+}
+
+.app-container.dark-mode .hero-subtitle {
+  color: var(--text-secondary);
+}
+
+.app-container.dark-mode .hero-search input {
+  background: var(--bg-input);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.app-container.dark-mode .hero-search input::placeholder {
+  color: var(--text-muted);
+}
+
+.app-container.dark-mode .glass-card {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+.app-container.dark-mode .service-card p {
+  color: var(--text-secondary);
+}
+
+.app-container.dark-mode .service-card h3 {
+  color: var(--text-primary);
+}
+
+.app-container.dark-mode .favorites-chip {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: var(--text-primary);
+}
+
+.app-container.dark-mode .favorites-chip:hover {
+  background: var(--accent-gold);
+  color: #fff;
+}
+
+.app-container.dark-mode input,
+.app-container.dark-mode select,
+.app-container.dark-mode textarea {
+  background: var(--bg-input);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.app-container.dark-mode input::placeholder,
+.app-container.dark-mode textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.app-container.dark-mode .btn-primary {
+  background: var(--accent-red);
+  color: #fff;
+}
+
+.app-container.dark-mode .btn-primary:hover {
+  background: #991b1b;
+}
+
+.app-container.dark-mode .btn-secondary {
+  background: var(--bg-toggle);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.app-container.dark-mode .btn-secondary:hover {
+  background: var(--accent-black);
+  color: #fff;
+  border-color: var(--accent-black);
+}
+
+.app-container.dark-mode .btn-outline {
+  background: transparent;
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.app-container.dark-mode .btn-outline:hover {
+  background: var(--accent-black);
+  color: #fff;
+  border-color: var(--accent-black);
+}
+
+.app-container.dark-mode .btn-danger {
+  background: #450a0a;
+  border-color: #991b1b;
+  color: #fca5a5;
+}
+
+.app-container.dark-mode .btn-danger:hover {
+  background: #991b1b;
+  color: #fff;
+}
+
+.app-container.dark-mode .stat-card {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+.app-container.dark-mode .stat-number {
+  color: var(--text-primary);
+}
+
+.app-container.dark-mode .stat-label {
+  color: var(--text-secondary);
+}
+
+.app-container.dark-mode .admin-table {
+  border-color: var(--border-color);
+}
+
+.app-container.dark-mode .admin-table th {
+  background: var(--bg-table-th);
+  color: var(--text-secondary);
+  border-bottom-color: var(--border-color);
+}
+
+.app-container.dark-mode .admin-table td {
+  border-bottom-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.app-container.dark-mode .admin-table tr:hover td {
+  background: var(--bg-subtle);
+}
+
+.app-container.dark-mode .modal-content {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+.app-container.dark-mode .modal-content h3,
+.app-container.dark-mode .modal-content h4 {
+  color: var(--text-primary);
+}
+
+.app-container.dark-mode .notification-dropdown {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+.app-container.dark-mode .notification-item {
+  border-bottom-color: var(--border-color);
+}
+
+.app-container.dark-mode .notification-item:hover {
+  background: var(--bg-notification-hover);
+}
+
+.app-container.dark-mode .notification-dropdown-header {
+  border-bottom-color: var(--border-color);
+}
+
+.app-container.dark-mode .profile-card {
+  background: var(--bg-card);
+}
+
+.app-container.dark-mode .profile-name {
+  color: var(--text-primary);
+}
+
+.app-container.dark-mode .profile-email {
+  color: var(--text-secondary);
+}
+
+.app-container.dark-mode .profile-detail-item {
+  border-bottom-color: var(--border-color);
+}
+
+.app-container.dark-mode .profile-detail-label {
+  color: var(--text-muted);
+}
+
+.app-container.dark-mode .profile-detail-val {
+  color: var(--text-primary);
+}
+
+.app-container.dark-mode .updates-card {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+.app-container.dark-mode .updates-card-badge {
+  background: var(--accent-red-glow);
+  color: var(--accent-red);
+}
+
+.app-container.dark-mode .quick-action-btn {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.app-container.dark-mode .quick-action-btn:hover {
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+  background: var(--accent-red-glow);
+}
+
+.app-container.dark-mode .announcement-item {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.app-container.dark-mode .announcement-item strong {
+  color: var(--text-primary);
+}
+
+.app-container.dark-mode .announcement-item p {
+  color: var(--text-secondary);
+}
+
+.app-container.dark-mode details summary {
+  color: var(--text-primary);
+}
+
+.app-container.dark-mode .report-container .glass-card {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+.app-container.dark-mode .avatar-large {
+  background: var(--accent-red-glow);
+  color: var(--accent-red);
+}
+
+.app-container.dark-mode .chatbot-toggle {
+  background: var(--accent-black);
+  color: #fff;
+}
+
+.app-container.dark-mode .appointment-slot {
+  background: var(--bg-input);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.app-container.dark-mode .appointment-slot:hover {
+  border-color: var(--accent-red);
+  background: var(--accent-red-glow);
+}
+
+.app-container.dark-mode .appointment-slot.selected {
+  background: var(--accent-red);
+  color: #fff;
+}
+
+.app-container.dark-mode .dashboard-grid .glass-card {
+  background: var(--bg-card);
+}
+
+.app-container.dark-mode .hero-search button.btn-primary {
+  background: var(--accent-red);
+  color: #fff;
+}
+
+.app-container.dark-mode .hero-search button.btn-primary:hover {
+  background: #991b1b;
+}
+
 /* Appointment Time Slot Selector */
 .appointment-slots {
   display: grid;
