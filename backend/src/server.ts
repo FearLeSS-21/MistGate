@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import multer from 'multer';
+import path from 'path';
 import dotenv from 'dotenv';
 import {
   register,
@@ -49,6 +51,7 @@ import {
   adminGetActivities,
   adminGetRecentActivities,
 } from './controllers/activities';
+import { uploadFile } from './controllers/upload';
 
 // Initialize dotenv configuration
 dotenv.config();
@@ -94,6 +97,26 @@ app.use('/api/', apiLimiter);
 app.use('/api/auth/', authLimiter);
 
 app.use(express.json({ limit: '10kb' }));
+
+// Multer config for file uploads
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    cb(null, path.join(__dirname, '../../uploads'));
+  },
+  filename: (_req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, uniqueSuffix + ext);
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+});
+
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
 
 // Public Welcome Route
 app.get('/', (req, res) => {
@@ -153,6 +176,9 @@ app.get('/api/admin/activities/recent', authenticateJWT, requireAdmin, adminGetR
 app.get('/api/admin/applications', authenticateJWT, requireAdmin, adminGetApplications);
 app.put('/api/admin/applications/:id/status', authenticateJWT, requireAdmin, adminUpdateStatus);
 app.get('/api/admin/stats', authenticateJWT, requireAdmin, adminGetStats);
+
+// --- File Upload Route ---
+app.post('/api/upload', authenticateJWT, upload.single('file'), uploadFile);
 
 // --- 404 Route ---
 app.use((req, res) => {
