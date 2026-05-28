@@ -1690,8 +1690,8 @@ export default function App() {
             </div>
 
             <div className="glass-card">
-              <h2 style={{ marginBottom: '0.5rem', color: 'var(--accent-red)' }}>
-                {getServiceLabel(selectedService)}
+              <h2 style={{ marginBottom: '0.5rem', color: 'var(--accent-red)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <FileText size={22} /> {getServiceLabel(selectedService)}
               </h2>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '2rem' }}>
                 {t('Enter official citizen details. Government validation requires accurate data.', 'يرجى إدخال البيانات الرسمية بدقة متناهية لتسهيل المراجعة الأمنية والمدنية.')}
