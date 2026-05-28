@@ -256,6 +256,18 @@ export default function App() {
   // Modal active state
   const [activeApplicationDetails, setActiveApplicationDetails] = useState<Application | null>(null);
 
+  // Font size accessibility
+  const [fontSize, setFontSize] = useState(() => parseInt(localStorage.getItem('misrgate_fontsize') || '100'));
+  const adjustFont = (delta: number) => {
+    const newSize = Math.max(80, Math.min(140, fontSize + delta));
+    setFontSize(newSize);
+    localStorage.setItem('misrgate_fontsize', newSize.toString());
+    document.documentElement.style.fontSize = `${newSize}%`;
+  };
+  useEffect(() => {
+    document.documentElement.style.fontSize = `${fontSize}%`;
+  }, []);
+
   // Translation helper function
   const t = (enText: string, arText: string) => {
     return lang === 'en' ? enText : arText;
@@ -1054,6 +1066,10 @@ export default function App() {
             <button onClick={() => setDarkMode(!darkMode)} className="lang-btn" style={{ fontSize: '0.75rem' }}>
               {darkMode ? <Sun size={14} /> : <Moon size={14} />}
             </button>
+
+            {/* Font Size Controls */}
+            <button className="lang-btn" onClick={() => adjustFont(-10)} style={{ fontSize: '0.7rem' }} title={t('Decrease font size', 'تصغير الخط')}>A-</button>
+            <button className="lang-btn" onClick={() => adjustFont(10)} style={{ fontSize: '0.85rem' }} title={t('Increase font size', 'تكبير الخط')}>A+</button>
 
             {/* Language Switcher Pill */}
             <button onClick={toggleLanguage} className="lang-btn">
