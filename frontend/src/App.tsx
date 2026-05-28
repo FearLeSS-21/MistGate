@@ -3619,159 +3619,24 @@ export default function App() {
 
       </main>
 
-      {/* 3. Global Modal for Citizen Viewing Application Details */}
-      {activeApplicationDetails && (
-        <div className="modal-overlay">
-          <div className="glass-card modal-content" style={{ maxWidth: '650px', textAlign: isRtl ? 'right' : 'left' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem', marginBottom: '1.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
-              <h3 style={{ color: 'var(--accent-red)' }}>{t('Application Details:', 'تفاصيل المعاملة:')} {activeApplicationDetails.trackingCode}</h3>
-              <button className="btn btn-secondary" onClick={() => setActiveApplicationDetails(null)} style={{ padding: '0.35rem 0.6rem' }}><X size={16} /></button>
-            </div>
-
-            <div style={{ marginBottom: '1.5rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
-                <span>{t('Service Type:', 'نوع الخدمة:')} <strong>{getServiceLabel(activeApplicationDetails.serviceType)}</strong></span>
-                <span className={`status-badge status-${activeApplicationDetails.status}`}>{activeApplicationDetails.status}</span>
-              </div>
-              <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                {t('Submitted on:', 'تاريخ التقديم:')} {new Date(activeApplicationDetails.createdAt).toLocaleString()}
-              </div>
-            </div>
-
-            {activeApplicationDetails.attachmentUrl && (
-              <div style={{ background: 'var(--bg-success)', padding: '0.75rem 1rem', borderRadius: 'var(--border-radius-md)', marginBottom: '1rem', border: '1px solid var(--border-success)', display: 'flex', alignItems: 'center', gap: '0.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
-                <FileUp size={16} style={{ color: 'var(--accent-green)' }} />
-                <span style={{ fontSize: '0.85rem' }}>{t('Attached Document:', 'المستند المرفق:')}</span>
-                <a href={activeApplicationDetails.attachmentUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.85rem', color: 'var(--accent-blue)', textDecoration: 'underline' }}>
-                  {t('View', 'عرض')}
-                </a>
-              </div>
-            )}
-
-            <h4 style={{ marginBottom: '0.5rem', fontSize: '0.9rem' }}>{t('Form Declarations', 'البيانات المرسلة')}</h4>
-            <div className="arabic-text" style={{ background: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--border-radius-md)', marginBottom: '1.5rem', border: '1px solid var(--border-color)', textAlign: 'right' }}>
-              {Object.entries(activeApplicationDetails.data as Record<string, string>).map(([key, val]) => (
-                <div key={key} style={{ margin: '0.4rem 0', fontSize: '0.85rem' }}>
-                  <strong>
-                    {key === 'docType' ? 'Document Type / نوع الوثيقة' : key}: 
-                  </strong>{' '}
-                  {key === 'docType' ? getMilitaryDocLabel(val) : val}
-                </div>
-              ))}
-            </div>
-
-            <h4 style={{ marginBottom: '0.5rem', fontSize: '0.9rem' }}>{t('Tracking History Timeline', 'مراحل مراجعة وتتبع الطلب')}</h4>
-            <div className="timeline" style={{ paddingLeft: isRtl ? '0' : '1.5rem', paddingRight: isRtl ? '1.5rem' : '0' }}>
-              {activeApplicationDetails.statusHistory?.map((history) => (
-                <div key={history.id} className="timeline-item" style={{ marginBottom: '1rem' }}>
-                  <div className="timeline-dot" style={{ left: isRtl ? 'auto' : '-1.85rem', right: isRtl ? '-1.85rem' : 'auto' }}></div>
-                  <div className="timeline-content" style={{ padding: '0.75rem 1rem' }}>
-                    <div className="timeline-time">{new Date(history.createdAt).toLocaleString()}</div>
-                    <div style={{ fontWeight: '700', fontSize: '0.85rem' }}>{history.status}</div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>{history.notes}</div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
-                      {t('Officer in charge:', 'الموظف المختص:')} {history.changedBy}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-          </div>
-        </div>
-      )}
-
-      {/* 4. Rating Modal for Completed Applications */}
-      {ratingModalApp && (
-        <div className="modal-overlay">
-          <div className="glass-card modal-content" style={{ maxWidth: '500px', textAlign: isRtl ? 'right' : 'left' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem', marginBottom: '1.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
-              <h3 style={{ color: 'var(--accent-red)' }}>{t('Rate Your Experience', 'تقييم الخدمة')}</h3>
-              <button className="btn btn-secondary" onClick={() => setRatingModalApp(null)} style={{ padding: '0.35rem 0.6rem' }}><X size={16} /></button>
-            </div>
-            {ratingSubmitted ? (
-              <div className="success-banner"><CheckCircle size={18} /> {t('Thank you for your rating!', 'شكراً على تقييمك!')}</div>
-            ) : (
-              <form onSubmit={handleSubmitRating}>
-                <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-                  <p style={{ marginBottom: '0.75rem', color: 'var(--text-secondary)' }}>{t('How was your experience with', 'كيف كانت تجربتك مع')} {getServiceLabel(ratingModalApp.serviceType)}?</p>
-                  <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', direction: 'ltr' }}>
-                    {[1, 2, 3, 4, 5].map(star => (
-                      <button key={star} type="button" onClick={() => setRatingForm({ ...ratingForm, score: star })} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '2rem', color: star <= ratingForm.score ? 'var(--accent-gold)' : 'var(--text-muted)', transition: 'var(--transition-smooth)' }}>
-                        {star <= ratingForm.score ? '★' : '☆'}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label>{t('Review (optional)', 'مراجعة (اختياري)')}</label>
-                  <textarea rows={3} value={ratingForm.review} onChange={(e) => setRatingForm({ ...ratingForm, review: e.target.value })} placeholder={t('Share your experience...', 'شارك تجربتك...')} />
-                </div>
-                <button type="submit" className="btn btn-primary">{t('Submit Rating', 'إرسال التقييم')}</button>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* 5. AI Chatbot Floating Widget */}
-      <div className={`chatbot-wrapper ${chatOpen ? 'open' : ''}`} style={{ left: '1.5rem', right: 'auto' }}>
-        {chatOpen && (
-          <div className="chatbot-panel">
-            <div className="chatbot-header">
-              <Bot size={18} />
-              <span>{t('MisrGate AI Assistant', 'المساعد الذكي لمصر')}</span>
-              <button className="chatbot-close" onClick={() => setChatOpen(false)}><X size={16} /></button>
-            </div>
-            <div className="chatbot-messages">
-              {chatMessages.map((m, i) => (
-                <div key={i} className={`chat-msg ${m.role}`}>
-                  <div className="chat-bubble">{m.text}</div>
-                </div>
-              ))}
-              {chatLoading && (
-                <div className="chat-msg bot">
-                  <div className="chat-bubble typing">
-                    <Loader2 className="spinner" size={14} /> {t('Thinking...', 'يجري التفكير...')}
-                  </div>
-                </div>
-              )}
-            </div>
-            <div className="chatbot-input-row">
-              <input
-                type="text"
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleChatSend(); } }}
-                placeholder={t('Ask me anything...', 'اسألني أي شيء...')}
-                style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}
-              />
-              <button className="chatbot-send-btn" onClick={handleChatSend} disabled={chatLoading || !chatInput.trim()}>
-                <Send size={16} />
-              </button>
-            </div>
-          </div>
-        )}
-        <button className="chatbot-toggle" onClick={() => setChatOpen(!chatOpen)}>
-          {chatOpen ? <X size={22} /> : <MessageCircle size={22} />}
+      {/* Floating Quick Support Button */}
+      {currentView !== 'complaints' && (
+        <button
+          className="floating-support-btn"
+          onClick={() => { if (user) { setCurrentView('complaints'); setComplaintSuccess(false); fetchCitizenComplaints(); } }}
+          style={{
+            position: 'fixed', bottom: '1.5rem', right: isRtl ? 'auto' : '1.5rem', left: isRtl ? '1.5rem' : 'auto',
+            width: '50px', height: '50px', borderRadius: '50%', border: 'none',
+            background: 'var(--accent-red)', color: '#fff', cursor: 'pointer',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.3)', zIndex: 999,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem',
+          }}
+          title={t('Contact Support', 'الاتصال بالدعم')}
+        >
+          <MessageCircle size={24} />
         </button>
-      </div>
+      )}
 
-      {/* 6. Footer */}
-      <footer className="footer">
-        <div className="content-wrapper" style={{ padding: 0 }}>
-          <p>© 2026 Arab Republic of Egypt | Digital Government Services Portal (MisrGate)</p>
-          <p style={{ fontSize: '0.75rem' }}>
-            {t('All digital transactions comply with secure Egyptian G-Cloud parameters.',
-               'جميع المعاملات الرقمية بالبوابة مؤمنة وخاضعة لرقابة مركز الحوسبة السحابية الحكومية.')}
-          </p>
-          <div className="footer-links">
-            <a href="#" className="footer-link">{t('Terms of Service', 'شروط الاستخدام')}</a>
-            <a href="#" className="footer-link">{t('Privacy Policy', 'سياسة الخصوصية')}</a>
-            <a href="#" className="footer-link">{t('Technical Support', 'الدعم الفني')}</a>
-          </div>
-        </div>
-      </footer>
-    </div>
-  );
-}
+      </div>
+    );
+  }
