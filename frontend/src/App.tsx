@@ -68,7 +68,7 @@ export default function App() {
     role: 'CITIZEN'
   });
 
-  const [currentView, setCurrentView] = useState<'home' | 'faq' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log' | 'profile' | 'analytics' | 'admin_announcements' | 'admin_reports' | 'timeline' | 'service_directory' | 'about' | 'terms'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'faq' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log' | 'profile' | 'analytics' | 'admin_announcements' | 'admin_reports' | 'timeline' | 'service_directory' | 'about' | 'terms' | 'holidays'>('home');
   
   // Forms & Service application states
   const [selectedService, setSelectedService] = useState<ServiceType>('NATIONAL_ID');
@@ -2450,7 +2450,50 @@ export default function App() {
                   <button className="btn btn-outline" onClick={() => setCurrentView('terms')}>
                     <FileText size={14} /> {t('Terms & Conditions', 'الشروط والأحكام')}
                   </button>
+                  <button className="btn btn-outline" onClick={() => setCurrentView('holidays')}>
+                    <Calendar size={14} /> {t('Holidays', 'الإجازات')}
+                  </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* VIEW: GOVERNMENT HOLIDAYS */}
+        {currentView === 'holidays' && (
+          <div>
+            <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+              <h2 style={{ textAlign: 'center', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <Calendar size={24} /> {t('Official Government Holidays', 'الإجازات الرسمية')}
+              </h2>
+
+              {([
+                { date: t('January 7', '7 يناير'), name: t('Coptic Christmas', 'عيد الميلاد المجيد') },
+                { date: t('January 25', '25 يناير'), name: t('Revolution Day / Police Day', 'عيد الشرطة / ثورة 25 يناير') },
+                { date: t('April 25', '25 أبريل'), name: t('Sinai Liberation Day', 'عيد تحرير سيناء') },
+                { date: t('May 1', '1 مايو'), name: t('Labour Day', 'عيد العمال') },
+                { date: t('June 30', '30 يونيو'), name: t('June 30 Revolution', 'ثورة 30 يونيو') },
+                { date: t('July 23', '23 يوليو'), name: t('July 23 Revolution', 'عيد ثورة 23 يوليو') },
+                { date: t('October 6', '6 أكتوبر'), name: t('Armed Forces Day', 'عيد القوات المسلحة') },
+                { date: t('Variable (Islamic)', 'مُتغير (هجري)'), name: t('Eid al-Fitr (4 days)', 'عيد الفطر المبارك (4 أيام)') },
+                { date: t('Variable (Islamic)', 'مُتغير (هجري)'), name: t('Eid al-Adha (4 days)', 'عيد الأضحى المبارك (4 أيام)') },
+                { date: t('Variable (Islamic)', 'مُتغير (هجري)'), name: t('Islamic New Year', 'رأس السنة الهجرية') },
+                { date: t('Variable (Islamic)', 'مُتغير (هجري)'), name: t('Prophet Muhammad\'s Birthday', 'المولد النبوي الشريف') },
+              ] as const).map((holiday, i) => (
+                <div key={i} className="glass-card" style={{ padding: '1rem 1.5rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <Calendar size={16} style={{ color: 'var(--accent-red)' }} />
+                    <span style={{ fontWeight: 600 }}>{holiday.name}</span>
+                  </div>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{holiday.date}</span>
+                </div>
+              ))}
+
+              <div className="glass-card" style={{ padding: '1rem', marginTop: '1.5rem', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                {t(
+                  'Islamic (Hijri) holidays are approximate and confirmed by official authorities. Government offices are closed on all listed dates.',
+                  'الإجازات الهجرية تقريبية وتُؤكدها الجهات الرسمية. المكاتب الحكومية مُغلقة في جميع التواريخ المذكورة.'
+                )}
               </div>
             </div>
           </div>
