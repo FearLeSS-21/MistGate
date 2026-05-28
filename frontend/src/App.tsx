@@ -1464,6 +1464,11 @@ export default function App() {
                                 <button className="btn btn-secondary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }} onClick={() => setActiveApplicationDetails(app)}>
                                   {t('Timeline', 'تتبع المعاملة')}
                                 </button>
+                                {app.status === 'PENDING' && (
+                                  <button className="btn btn-secondary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', color: 'var(--accent-red)' }} onClick={async () => { if (confirm(t('Cancel this application?', 'إلغاء هذا الطلب؟'))) { try { await api.cancelApplication(app.id); fetchCitizenData(); } catch { alert(t('Failed to cancel.', 'فشل الإلغاء.')); } } }}>
+                                    <X size={12} /> {t('Cancel', 'إلغاء')}
+                                  </button>
+                                )}
                                 {app.status === 'COMPLETED' && (
                                   <button className="btn btn-outline" style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }} onClick={() => { setRatingModalApp(app); setRatingForm({ score: 5, review: '' }); setRatingSubmitted(false); }}>
                                     <Star size={12} /> {t('Rate', 'تقييم')}

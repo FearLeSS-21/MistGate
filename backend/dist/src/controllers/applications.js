@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.adminGetStats = exports.adminUpdateStatus = exports.adminGetApplications = exports.trackApplication = exports.getMyApplications = exports.createApplication = void 0;
+exports.adminGetStats = exports.cancelApplication = exports.adminUpdateStatus = exports.adminGetApplications = exports.trackApplication = exports.getMyApplications = exports.createApplication = void 0;
 const zod_1 = require("zod");
 const db_1 = __importDefault(require("../utils/db"));
 const notifications_1 = require("../utils/notifications");
@@ -359,7 +359,31 @@ const adminUpdateStatus = async (req, res) => {
     }
 };
 exports.adminUpdateStatus = adminUpdateStatus;
-// 6. Admin: Get Dashboard Statistics
+// 6. Citizen: Cancel Own Application
+const cancelApplication = async (req, res) => {
+    if (!req.user)
+        return res.status(401).json({ error: 'Unauthorized.' });
+    try {
+        const { id } = req.params;
+        const application = await db_1.default.application.findUnique({ where: { id } });
+        if (!application)
+            return res.status(404).json({ error: 'Application not found.' });
+        if (application.userId !== req.user.id)
+            return res.status(403).json({ error: 'You can only cancel your own applications.' });
+        if (application.status !== 'PENDING')
+            return res.status(400).json({ error: 'Only pending applications can be cancelled.' });
+        await db_1.default.application.update({ where: { id }, data: { status: 'REJECTED', notes: 'Cancelled by applicant.' } });
+        await db_1.default.statusHistory.create({ data: { applicationId: id, status: 'REJECTED', notes: 'Application cancelled by citizen.', changedBy: req.user.name } });
+        await (0, activity_1.logActivity)({ userId: req.user.id, userName: req.user.name, action: 'CANCEL_APPLICATION', details: `Cancelled application ${application.trackingCode}` });
+        return res.json({ message: 'Application cancelled successfully.' });
+    }
+    catch (error) {
+        console.error('Cancel application error:', error);
+        return res.status(500).json({ error: 'An error occurred while cancelling.' });
+    }
+};
+exports.cancelApplication = cancelApplication;
+// 7. Admin: Get Dashboard Statistics
 const adminGetStats = async (req, res) => {
     try {
         const total = await db_1.default.application.count();

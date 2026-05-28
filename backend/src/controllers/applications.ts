@@ -391,7 +391,26 @@ export const adminUpdateStatus = async (req: AuthenticatedRequest, res: Response
   }
 };
 
-// 6. Admin: Get Dashboard Statistics
+// 6. Citizen: Cancel Own Application
+export const cancelApplication = async (req: AuthenticatedRequest, res: Response) => {
+  if (!req.user) return res.status(401).json({ error: 'Unauthorized.' });
+  try {
+    const { id } = req.params;
+    const application = await prisma.application.findUnique({ where: { id } });
+    if (!application) return res.status(404).json({ error: 'Application not found.' });
+    if (application.userId !== req.user.id) return res.status(403).json({ error: 'You can only cancel your own applications.' });
+    if (application.status !== 'PENDING') return res.status(400).json({ error: 'Only pending applications can be cancelled.' });
+    await prisma.application.update({ where: { id }, data: { status: 'REJECTED', notes: 'Cancelled by applicant.' } });
+    await prisma.statusHistory.create({ data: { applicationId: id, status: 'REJECTED', notes: 'Application cancelled by citizen.', changedBy: req.user.name } });
+    await logActivity({ userId: req.user.id, userName: req.user.name, action: 'CANCEL_APPLICATION', details: `Cancelled application ${application.trackingCode}` });
+    return res.json({ message: 'Application cancelled successfully.' });
+  } catch (error) {
+    console.error('Cancel application error:', error);
+    return res.status(500).json({ error: 'An error occurred while cancelling.' });
+  }
+};
+
+// 7. Admin: Get Dashboard Statistics
 export const adminGetStats = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const total = await prisma.application.count();

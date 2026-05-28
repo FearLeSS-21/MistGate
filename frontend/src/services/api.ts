@@ -239,6 +239,10 @@ class ApiService {
     return this.request<Partial<Application>>(`/applications/track/${trackingCode}`);
   }
 
+  async cancelApplication(id: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/applications/${id}/cancel`, { method: 'PUT' });
+  }
+
   // --- Notification Endpoints ---
   async getNotifications(): Promise<{ notifications: Notification[]; unreadCount: number }> {
     return this.request<{ notifications: Notification[]; unreadCount: number }>('/notifications');
