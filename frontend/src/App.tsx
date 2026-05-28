@@ -3060,7 +3060,7 @@ export default function App() {
                         <span className={`status-badge status-${a.status === 'SCHEDULED' ? 'PENDING' : a.status === 'CONFIRMED' ? 'UNDER_REVIEW' : a.status === 'COMPLETED' || a.status === 'CANCELLED' ? 'COMPLETED' : 'REJECTED'}`}>{a.status}</span>
                       </div>
                       {a.status === 'SCHEDULED' && (
-                        <button className="btn btn-danger" style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }} onClick={() => handleCancelAppointment(a.id)}>
+                        <button className="btn btn-danger" style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }} onClick={() => { if (window.confirm(t('Cancel this appointment?', 'إلغاء هذا الموعد؟'))) handleCancelAppointment(a.id); }}>
                           {t('Cancel', 'إلغاء')}
                         </button>
                       )}
