@@ -76,6 +76,10 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    return () => { if (ratingTimeoutRef.current) clearTimeout(ratingTimeoutRef.current); };
+  }, []);
+
   // Default mock user to bypass login/signup barrier completely
   const [user, setUser] = useState<ApiUser | null>({
     id: 'demo-citizen-12345',
@@ -577,13 +581,14 @@ export default function App() {
     }
   };
 
+  const ratingTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const handleSubmitRating = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!ratingModalApp) return;
     try {
       await api.submitRating(ratingModalApp.id, ratingForm);
       setRatingSubmitted(true);
-      setTimeout(() => { setRatingModalApp(null); setRatingSubmitted(false); }, 2000);
+      ratingTimeoutRef.current = setTimeout(() => { setRatingModalApp(null); setRatingSubmitted(false); }, 2000);
     } catch (err: unknown) {
       console.error(err);
     }
