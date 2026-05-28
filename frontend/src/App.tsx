@@ -68,7 +68,7 @@ export default function App() {
     role: 'CITIZEN'
   });
 
-  const [currentView, setCurrentView] = useState<'home' | 'faq' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log' | 'profile' | 'analytics' | 'admin_announcements' | 'admin_reports' | 'timeline' | 'service_directory' | 'about' | 'terms' | 'holidays'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'faq' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log' | 'profile' | 'analytics' | 'admin_announcements' | 'admin_reports' | 'timeline' | 'service_directory' | 'about' | 'terms' | 'holidays' | 'guides'>('home');
   
   // Forms & Service application states
   const [selectedService, setSelectedService] = useState<ServiceType>('NATIONAL_ID');
@@ -980,6 +980,10 @@ export default function App() {
             <span className={`nav-link ${currentView === 'faq' ? 'active' : ''}`} onClick={() => setCurrentView('faq')}>
               <HelpCircle size={15} />
               {t('FAQ', 'الأسئلة')}
+            </span>
+            <span className={`nav-link ${currentView === 'guides' ? 'active' : ''}`} onClick={() => setCurrentView('guides')}>
+              <BookOpen size={15} />
+              {t('Guides', 'الأدلة')}
             </span>
             <span className={`nav-link ${currentView === 'about' ? 'active' : ''}`} onClick={() => setCurrentView('about')}>
               <Globe size={15} />
@@ -2376,6 +2380,34 @@ export default function App() {
                       <span>{dept.hours}</span>
                     </div>
                   </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* VIEW: SERVICE GUIDES */}
+        {currentView === 'guides' && (
+          <div>
+            <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+              <h2 style={{ textAlign: 'center', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <BookOpen size={24} /> {t('Service Application Guides', 'أدلة تقديم الخدمات')}
+              </h2>
+
+              {([
+                { title: t('National ID Card Renewal', 'تجديد بطاقة الرقم القومي'), steps: [t('Fill in your personal details (name, birth date, address)', 'املأ بياناتك الشخصية (الاسم، تاريخ الميلاد، العنوان)'), t('Select reason: first time, renewal, lost or damaged', 'اختر السبب: أول مرة، تجديد، بدل فاقد أو تالف'), t('Upload required documents (photo, police report if lost)', 'ارفع المستندات المطلوبة (صورة شخصية، محضر شرطة إذا كان بدل فاقد)'), t('Submit and receive your tracking code', 'قدّم الطلب واستلم كود التتبع')] },
+                { title: t('Passport Application', 'طلب جواز السفر'), steps: [t('Fill in personal details in English and Arabic', 'املأ البيانات الشخصية بالإنجليزية والعربية'), t('Provide qualification and profession information', 'قدم معلومات المؤهل والوظيفة'), t('Upload passport photo and required documents', 'ارفع الصورة الشخصية والمستندات المطلوبة'), t('Choose delivery method: pickup or courier', 'اختر طريقة الاستلام: من المكتب أو التوصيل')] },
+                { title: t('Military & Recruitment Documents', 'الأوراق العسكرية'), steps: [t('Select document type: exemption, travel permit, postponement, or service certificate', 'اختر نوع المستند: إعفاء، تصريح سفر، تأجيل، شهادة خدمة'), t('Provide reason and supporting details', 'قدم السبب والتفاصيل الداعمة'), t('Submit your request and track status', 'قدّم طلبك وتابع الحالة')] },
+                { title: t('Tax Payment', 'سداد الضرائب'), steps: [t('Enter your tax registration number', 'أدخل رقم التسجيل الضريبي'), t('Select payment type: income tax, VAT, stamp duty', 'اختر نوع الدفع: ضريبة دخل، قيمة مضافة، دمغة'), t('Enter the amount and select payment method', 'أدخل المبلغ واختر طريقة الدفع'), t('Confirm and download receipt', 'أكد التحميل واستلم الإيصال')] },
+                { title: t('Traffic Fine Payment', 'مخالفات المرور'), steps: [t('Enter license plate number and violation reference', 'أدخل رقم اللوحة ورقم المخالفة'), t('Select governorate where the violation occurred', 'اختر المحافظة التي حدثت بها المخالفة'), t('Review fine amount and confirm payment', 'راجع قيمة الغرامة وأكد الدفع')] },
+              ] as const).map((guide, i) => (
+                <div key={i} className="glass-card" style={{ padding: '1.5rem', marginBottom: '1rem' }}>
+                  <h3 style={{ color: 'var(--accent-red)', marginBottom: '1rem' }}>{guide.title}</h3>
+                  <ol style={{ lineHeight: '2', color: 'var(--text-secondary)', paddingLeft: isRtl ? '' : '1.5rem', paddingRight: isRtl ? '1.5rem' : '' }}>
+                    {guide.steps.map((step, si) => (
+                      <li key={si}>{step}</li>
+                    ))}
+                  </ol>
                 </div>
               ))}
             </div>
