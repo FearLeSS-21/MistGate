@@ -61,13 +61,23 @@ export default function App() {
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [lastLogin, setLastLogin] = useState(() => localStorage.getItem('misrgate_last_login') || new Date().toLocaleString());
+
+  useEffect(() => {
+    const stored = localStorage.getItem('misrgate_last_login');
+    if (!stored) {
+      const now = new Date().toLocaleString();
+      localStorage.setItem('misrgate_last_login', now);
+      setLastLogin(now);
+    }
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => setShowScrollTop(window.scrollY > 400);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-  
+
   // Default mock user to bypass login/signup barrier completely
   const [user, setUser] = useState<ApiUser | null>({
     id: 'demo-citizen-12345',
@@ -1624,6 +1634,7 @@ export default function App() {
                 <div><strong>{t('Email:', 'البريد الإلكتروني:')}</strong> <span style={{ color: 'var(--text-secondary)' }}>{user.email}</span></div>
                 <div><strong>{t('National ID:', 'الرقم القومي:')}</strong> <span style={{ color: 'var(--text-secondary)' }}>{user.nationalId}</span></div>
                 <div><strong>{t('Role:', 'الدور:')}</strong> <span className={`status-badge status-${user.role === 'ADMIN' ? 'APPROVED' : 'PENDING'}`}>{user.role}</span></div>
+                <div><strong>{t('Last Login:', 'آخر تسجيل دخول:')}</strong> <span style={{ color: 'var(--text-secondary)' }}>{lastLogin}</span></div>
               </div>
 
               {/* Edit Profile Form */}
