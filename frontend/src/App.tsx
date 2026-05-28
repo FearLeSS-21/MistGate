@@ -68,7 +68,7 @@ export default function App() {
     role: 'CITIZEN'
   });
 
-  const [currentView, setCurrentView] = useState<'home' | 'faq' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log' | 'profile' | 'analytics' | 'admin_announcements' | 'admin_reports' | 'timeline' | 'service_directory' | 'about'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'faq' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log' | 'profile' | 'analytics' | 'admin_announcements' | 'admin_reports' | 'timeline' | 'service_directory' | 'about' | 'terms'>('home');
   
   // Forms & Service application states
   const [selectedService, setSelectedService] = useState<ServiceType>('NATIONAL_ID');
@@ -2444,6 +2444,72 @@ export default function App() {
                   {t(
                     'For technical support or inquiries, please use the Feedback system or visit your nearest Citizen Service Center. You can also reach us through the official government hotline at 15999.',
                     'للدعم الفني أو الاستفسارات، يرجى استخدام نظام الشكاوى أو زيارة أقرب مركز خدمة مواطن. يمكنكم أيضًا الاتصال بنا عبر الخط الساخن للحكومة على 15999.'
+                  )}
+                </p>
+                <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem' }}>
+                  <button className="btn btn-outline" onClick={() => setCurrentView('terms')}>
+                    <FileText size={14} /> {t('Terms & Conditions', 'الشروط والأحكام')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* VIEW: TERMS & CONDITIONS */}
+        {currentView === 'terms' && (
+          <div>
+            <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+              <h2 style={{ textAlign: 'center', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <FileText size={24} /> {t('Terms & Conditions', 'الشروط والأحكام')}
+              </h2>
+
+              <div className="glass-card" style={{ padding: '2rem', marginBottom: '1.5rem' }}>
+                <h3 style={{ color: 'var(--accent-red)' }}>{t('1. Acceptance of Terms', '1. الموافقة على الشروط')}</h3>
+                <p style={{ lineHeight: '1.7', color: 'var(--text-secondary)', marginTop: '0.75rem' }}>
+                  {t(
+                    'By accessing and using MisrGate, you accept and agree to be bound by these Terms & Conditions. If you do not agree with any part, please discontinue use immediately.',
+                    'باستخدام بوابة مصر، فإنك توافق على الالتزام بهذه الشروط والأحكام. إذا كنت لا توافق على أي جزء منها، يرجى التوقف عن الاستخدام فوراً.'
+                  )}
+                </p>
+              </div>
+
+              <div className="glass-card" style={{ padding: '2rem', marginBottom: '1.5rem' }}>
+                <h3 style={{ color: 'var(--accent-red)' }}>{t('2. User Responsibilities', '2. مسؤوليات المستخدم')}</h3>
+                <ul style={{ lineHeight: '2', color: 'var(--text-secondary)', paddingLeft: isRtl ? '' : '1.5rem', paddingRight: isRtl ? '1.5rem' : '' }}>
+                  <li>{t('Provide accurate and up-to-date personal information', 'تقديم معلومات شخصية دقيقة ومحدثة')}</li>
+                  <li>{t('Maintain the confidentiality of your account credentials', 'الحفاظ على سرية بيانات حسابك')}</li>
+                  <li>{t('Use the portal only for lawful purposes', 'استخدام البوابة للأغراض القانونية فقط')}</li>
+                  <li>{t('Not misuse or attempt to disrupt the service', 'عدم إساءة استخدام الخدمة أو محاولة تعطيلها')}</li>
+                </ul>
+              </div>
+
+              <div className="glass-card" style={{ padding: '2rem', marginBottom: '1.5rem' }}>
+                <h3 style={{ color: 'var(--accent-red)' }}>{t('3. Data Privacy', '3. خصوصية البيانات')}</h3>
+                <p style={{ lineHeight: '1.7', color: 'var(--text-secondary)', marginTop: '0.75rem' }}>
+                  {t(
+                    'We collect and process your personal data in accordance with applicable Egyptian laws. Your data is used solely for processing government service requests and is not shared with third parties without your consent.',
+                    'نقوم بجمع ومعالجة بياناتك الشخصية وفقاً للقوانين المصرية. تُستخدم بياناتك فقط لمعالجة طلبات الخدمات الحكومية ولا تتم مشاركتها مع أطراف ثالثة دون موافقتك.'
+                  )}
+                </p>
+              </div>
+
+              <div className="glass-card" style={{ padding: '2rem', marginBottom: '1.5rem' }}>
+                <h3 style={{ color: 'var(--accent-red)' }}>{t('4. Service Availability', '4. توفر الخدمة')}</h3>
+                <p style={{ lineHeight: '1.7', color: 'var(--text-secondary)', marginTop: '0.75rem' }}>
+                  {t(
+                    'While we strive for 24/7 availability, MisrGate may occasionally be unavailable for maintenance. We are not liable for any losses arising from service interruptions.',
+                    'بينما نسعى لتوفير الخدمة على مدار الساعة، قد تكون بوابة مصر غير متاحة أحياناً للصيانة. نحن غير مسؤولين عن أي خسائر ناتجة عن انقطاع الخدمة.'
+                  )}
+                </p>
+              </div>
+
+              <div className="glass-card" style={{ padding: '2rem' }}>
+                <h3 style={{ color: 'var(--accent-red)' }}>{t('5. Contact', '5. الاتصال')}</h3>
+                <p style={{ lineHeight: '1.7', color: 'var(--text-secondary)', marginTop: '0.75rem' }}>
+                  {t(
+                    'For questions regarding these terms, please contact us through the Feedback system or call the government hotline at 15999.',
+                    'للاستفسار حول هذه الشروط، يرجى التواصل معنا عبر نظام الشكاوى أو الاتصال بالخط الساخن على 15999.'
                   )}
                 </p>
               </div>
