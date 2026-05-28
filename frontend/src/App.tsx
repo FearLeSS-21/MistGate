@@ -1417,6 +1417,26 @@ export default function App() {
               </button>
             </div>
 
+            {/* Quick Stats Summary */}
+            <div className="dashboard-stats" style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap', direction: isRtl ? 'rtl' : 'ltr' }}>
+              <div className="glass-card" style={{ flex: 1, minWidth: '140px', padding: '1rem', textAlign: 'center' }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--accent-red)' }}>{citizenApps.length}</div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{t('Applications', 'الطلبات')}</div>
+              </div>
+              <div className="glass-card" style={{ flex: 1, minWidth: '140px', padding: '1rem', textAlign: 'center' }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--accent-red)' }}>{citizenApps.filter(a => a.status === 'APPROVED').length}</div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{t('Approved', 'معتمد')}</div>
+              </div>
+              <div className="glass-card" style={{ flex: 1, minWidth: '140px', padding: '1rem', textAlign: 'center' }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--accent-red)' }}>{citizenApps.filter(a => a.status === 'PENDING').length}</div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{t('Pending', 'قيد الانتظار')}</div>
+              </div>
+              <div className="glass-card" style={{ flex: 1, minWidth: '140px', padding: '1rem', textAlign: 'center' }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--accent-red)' }}>{citizenComplaints.length}</div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{t('Feedback', 'التقييمات')}</div>
+              </div>
+            </div>
+
             <div className="dashboard-grid" style={{ direction: isRtl ? 'rtl' : 'ltr' }}>
               
               {/* Left Profile Panel */}
