@@ -1495,9 +1495,14 @@ export default function App() {
         {/* VIEW: TRACKING TIMELINE */}
         {currentView === 'track' && trackedApplication && (
           <div style={{ maxWidth: '700px', margin: '0 auto', textAlign: isRtl ? 'right' : 'left' }}>
-            <button className="btn btn-secondary" onClick={() => { setCurrentView('home'); setTrackedApplication(null); }} style={{ marginBottom: '1.5rem' }}>
-              {isRtl ? '← العودة للرئيسية' : '← Return Home'}
-            </button>
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+              <button className="btn btn-secondary" onClick={() => { setCurrentView('home'); setTrackedApplication(null); }}>
+                {isRtl ? '← العودة للرئيسية' : '← Return Home'}
+              </button>
+              <button className="btn btn-outline" onClick={() => window.print()}>
+                <Printer size={14} /> {t('Print', 'طباعة')}
+              </button>
+            </div>
             <div className="glass-card">
               <div className="tracking-header" style={{ flexDirection: isRtl ? 'row-reverse' : 'row' }}>
                 <div>
