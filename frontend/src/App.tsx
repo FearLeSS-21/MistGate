@@ -1756,7 +1756,7 @@ export default function App() {
                           <label>{t('Marital Status', 'الحالة الاجتماعية')}</label>
                           <select
                             value={nationalIdForm.maritalStatus}
-                            onChange={(e) => setNationalIdForm({ ...nationalIdForm, maritalStatus: e.target.value })}
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setNationalIdForm({ ...nationalIdForm, maritalStatus: e.target.value })}
                           >
                             <option value="single">{t('Single', 'أعزب / عزباء')}</option>
                             <option value="married">{t('Married', 'متزوج / متزوجة')}</option>
@@ -1781,7 +1781,7 @@ export default function App() {
                           <label>{t('Reason for Renewal', 'سبب طلب البطاقة')}</label>
                           <select
                             value={nationalIdForm.reason}
-                            onChange={(e) => setNationalIdForm({ ...nationalIdForm, reason: e.target.value })}
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setNationalIdForm({ ...nationalIdForm, reason: e.target.value })}
                           >
                             <option value="renewal">{t('Scheduled Renewal', 'تجديد دوري')}</option>
                             <option value="first_time">{t('First Time Issue (Age 15)', 'استخراج أول مرة')}</option>
@@ -1836,7 +1836,7 @@ export default function App() {
                           <label>{t('Military Document Requested', 'الوثيقة التجنيدية المطلوبة')}</label>
                           <select
                             value={militaryForm.docType}
-                            onChange={(e) => setMilitaryForm({ ...militaryForm, docType: e.target.value })}
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setMilitaryForm({ ...militaryForm, docType: e.target.value })}
                           >
                             <option value="exemption">{t('Military Exemption Certificate', 'شهادة الإعفاء من الخدمة العسكرية')}</option>
                             <option value="travel_permit">{t('Armed Forces Travel Permit', 'تصريح سفر عسكري للخارج')}</option>
@@ -1850,7 +1850,7 @@ export default function App() {
                         <label>{t('Exemption / Application Reason', 'سبب طلب الشهادة أو الإعفاء')}</label>
                         <select
                           value={militaryForm.reason}
-                          onChange={(e) => setMilitaryForm({ ...militaryForm, reason: e.target.value })}
+                          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setMilitaryForm({ ...militaryForm, reason: e.target.value })}
                         >
                           <option value="sole_breadwinner">{t('Sole Breadwinner (Father deceased/over 60)', 'العائل الوحيد للعائلة')}</option>
                           <option value="medical">{t('Medical Unfitness (Medical board review)', 'غير لائق طبياً')}</option>
@@ -1902,7 +1902,7 @@ export default function App() {
                           <label>{t('Gender', 'الجنس')}</label>
                           <select
                             value={birthCertForm.gender}
-                            onChange={(e) => setBirthCertForm({ ...birthCertForm, gender: e.target.value as 'male' | 'female' })}
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setBirthCertForm({ ...birthCertForm, gender: e.target.value as 'male' | 'female' })}
                           >
                             <option value="male">{t('Male', 'ذكر')}</option>
                             <option value="female">{t('Female', 'أنثى')}</option>
@@ -1990,7 +1990,7 @@ export default function App() {
                           <label>{t('Marital Status', 'الحالة الاجتماعية')}</label>
                           <select
                             value={passportForm.maritalStatus}
-                            onChange={(e) => setPassportForm({ ...passportForm, maritalStatus: e.target.value })}
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPassportForm({ ...passportForm, maritalStatus: e.target.value })}
                           >
                             <option value="single">{t('Single', 'أعزب / عزباء')}</option>
                             <option value="married">{t('Married', 'متزوج / متزوجة')}</option>
@@ -2052,7 +2052,7 @@ export default function App() {
                           <label>{t('Payment Type', 'نوع السداد')}</label>
                           <select
                             value={taxForm.paymentType}
-                            onChange={(e) => setTaxForm({ ...taxForm, paymentType: e.target.value })}
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setTaxForm({ ...taxForm, paymentType: e.target.value })}
                           >
                             <option value="income_tax">{t('Income Tax', 'ضريبة الدخل')}</option>
                             <option value="vat">{t('VAT', 'ضريبة القيمة المضافة')}</option>
@@ -2076,7 +2076,7 @@ export default function App() {
                         <label>{t('Payment Method', 'طريقة الدفع')}</label>
                         <select
                           value={taxForm.paymentMethod}
-                          onChange={(e) => setTaxForm({ ...taxForm, paymentMethod: e.target.value })}
+                          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setTaxForm({ ...taxForm, paymentMethod: e.target.value })}
                         >
                           <option value="card">{t('Bank Card', 'بطاقة بنكية')}</option>
                           <option value="bank_transfer">{t('Bank Transfer', 'تحويل بنكي')}</option>
@@ -2163,7 +2163,7 @@ export default function App() {
                           <label>{t('Coverage Type', 'نوع التغطية')}</label>
                           <select
                             value={healthForm.coverageType}
-                            onChange={(e) => setHealthForm({ ...healthForm, coverageType: e.target.value })}
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setHealthForm({ ...healthForm, coverageType: e.target.value })}
                           >
                             <option value="individual">{t('Individual', 'فردي')}</option>
                             <option value="family">{t('Family', 'أسري')}</option>
@@ -2220,7 +2220,7 @@ export default function App() {
                           <label>{t('Contribution Type', 'نوع الاشتراك')}</label>
                           <select
                             value={socialForm.contributionType}
-                            onChange={(e) => setSocialForm({ ...socialForm, contributionType: e.target.value })}
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSocialForm({ ...socialForm, contributionType: e.target.value })}
                           >
                             <option value="employee">{t('Employee', 'عامل')}</option>
                             <option value="voluntary">{t('Voluntary', 'تطوعي')}</option>
@@ -2231,7 +2231,7 @@ export default function App() {
                           <label>{t('Monthly Income Bracket', 'شريحة الدخل الشهري')}</label>
                           <select
                             value={socialForm.monthlyIncomeBracket}
-                            onChange={(e) => setSocialForm({ ...socialForm, monthlyIncomeBracket: e.target.value })}
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSocialForm({ ...socialForm, monthlyIncomeBracket: e.target.value })}
                           >
                             <option value="under_5k">{t('Under 5,000 EGP', 'أقل من 5,000')}</option>
                             <option value="5k_15k">{t('5,000 – 15,000 EGP', '5,000 – 15,000')}</option>
@@ -2310,7 +2310,7 @@ export default function App() {
                   <label>{t('Category', 'التصنيف')}</label>
                   <select
                     value={complaintForm.category}
-                    onChange={(e) => setComplaintForm({ ...complaintForm, category: e.target.value })}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setComplaintForm({ ...complaintForm, category: e.target.value })}
                   >
                     <option value="SERVICE_QUALITY">{t('Service Quality', 'جودة الخدمة')}</option>
                     <option value="TECHNICAL_ISSUE">{t('Technical Issue', 'مشكلة تقنية')}</option>
@@ -2769,7 +2769,7 @@ export default function App() {
               <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                 <select
                   value={faqFilter}
-                  onChange={(e) => setFaqFilter(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFaqFilter(e.target.value)}
                   style={{ padding: '0.5rem 1rem', borderRadius: 'var(--border-radius-md)', border: '1px solid var(--border-color)', background: 'var(--bg-card)', color: 'var(--text-primary)', maxWidth: '300px' }}
                 >
                   <option value="ALL">{t('All Services', 'كل الخدمات')}</option>
@@ -2872,7 +2872,7 @@ export default function App() {
             </div>
 
             <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
-              <select value={adminComplaintFilter.category} onChange={(e) => setAdminComplaintFilter({ ...adminComplaintFilter, category: e.target.value })} style={{ padding: '0.4rem', fontSize: '0.8rem' }}>
+              <select value={adminComplaintFilter.category} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setAdminComplaintFilter({ ...adminComplaintFilter, category: e.target.value })} style={{ padding: '0.4rem', fontSize: '0.8rem' }}>
                 <option value="ALL">{t('All Categories', 'كل التصنيفات')}</option>
                 <option value="SERVICE_QUALITY">{t('Service Quality', 'جودة الخدمة')}</option>
                 <option value="TECHNICAL_ISSUE">{t('Technical Issue', 'مشكلة تقنية')}</option>
@@ -2881,7 +2881,7 @@ export default function App() {
                 <option value="DELAY_COMPLAINT">{t('Delay Complaint', 'شكوى تأخير')}</option>
                 <option value="OTHER">{t('Other', 'أخرى')}</option>
               </select>
-              <select value={adminComplaintFilter.status} onChange={(e) => setAdminComplaintFilter({ ...adminComplaintFilter, status: e.target.value })} style={{ padding: '0.4rem', fontSize: '0.8rem' }}>
+              <select value={adminComplaintFilter.status} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setAdminComplaintFilter({ ...adminComplaintFilter, status: e.target.value })} style={{ padding: '0.4rem', fontSize: '0.8rem' }}>
                 <option value="ALL">{t('All Statuses', 'كل الحالات')}</option>
                 <option value="OPEN">{t('Open', 'مفتوحة')}</option>
                 <option value="UNDER_REVIEW">{t('Under Review', 'قيد المراجعة')}</option>
@@ -3005,7 +3005,7 @@ export default function App() {
                   <label>{t('Department', 'الإدارة')}</label>
                   <select
                     value={appointmentForm.department}
-                    onChange={(e) => { setAppointmentForm({ ...appointmentForm, department: e.target.value }); fetchAvailableSlots(appointmentForm.date, e.target.value); }}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => { setAppointmentForm({ ...appointmentForm, department: e.target.value }); fetchAvailableSlots(appointmentForm.date, e.target.value); }}
                   >
                     <option value="CIVIL_REGISTRY">{t('Civil Registry', 'الأحوال المدنية')}</option>
                     <option value="PASSPORT_OFFICE">{t('Passport Office', 'مكتب الجوازات')}</option>
@@ -3033,7 +3033,7 @@ export default function App() {
                     <select
                       required
                       value={appointmentForm.timeSlot}
-                      onChange={(e) => setAppointmentForm({ ...appointmentForm, timeSlot: e.target.value })}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setAppointmentForm({ ...appointmentForm, timeSlot: e.target.value })}
                     >
                       <option value="">{t('Select a time slot...', 'اختر موعداً...')}</option>
                       {availableSlots.map(slot => (
@@ -3122,7 +3122,7 @@ export default function App() {
               <button className="btn btn-secondary" onClick={goToAdmin}>{t('← Admin Desk', '← غرفة الإدارة')}</button>
             </div>
             <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
-              <select value={activityActionFilter} onChange={(e) => { setActivityActionFilter(e.target.value); }} style={{ padding: '0.4rem', fontSize: '0.8rem' }}>
+              <select value={activityActionFilter} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => { setActivityActionFilter(e.target.value); }} style={{ padding: '0.4rem', fontSize: '0.8rem' }}>
                 <option value="">{t('All Actions', 'كل الإجراءات')}</option>
                 <option value="SUBMIT_APPLICATION">{t('Submit Application', 'تقديم طلب')}</option>
                 <option value="UPDATE_APPLICATION_STATUS">{t('Update Status', 'تحديث الحالة')}</option>
@@ -3303,7 +3303,7 @@ export default function App() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
               <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FileText size={22} /> {t('System Reports', 'تقارير النظام')}</h2>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <select value={reportPeriod} onChange={(e) => { setReportPeriod(e.target.value); fetchReport(e.target.value); }} style={{ padding: '0.4rem', fontSize: '0.8rem' }}>
+                <select value={reportPeriod} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => { setReportPeriod(e.target.value); fetchReport(e.target.value); }} style={{ padding: '0.4rem', fontSize: '0.8rem' }}>
                   <option value="7">{t('Last 7 Days', 'آخر 7 أيام')}</option>
                   <option value="30">{t('Last 30 Days', 'آخر 30 يوم')}</option>
                   <option value="90">{t('Last 90 Days', 'آخر 90 يوم')}</option>
@@ -3550,7 +3550,7 @@ export default function App() {
                       <Search size={13} />
                     </button>
                   </div>
-                  <select value={adminFilterService} onChange={(e) => { setAdminFilterService(e.target.value); }} style={{ padding: '0.4rem', fontSize: '0.8rem' }}>
+                  <select value={adminFilterService} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => { setAdminFilterService(e.target.value); }} style={{ padding: '0.4rem', fontSize: '0.8rem' }}>
                     <option value="ALL">{t('All Services', 'كل الخدمات')}</option>
                     <option value="NATIONAL_ID">{t('National ID Cards', 'بطاقات الرقم القومي')}</option>
                     <option value="MILITARY_EXEMPTION">{t('Military / Recruitment', 'المعاملات العسكرية')}</option>
@@ -3561,7 +3561,7 @@ export default function App() {
                     <option value="HEALTH_INSURANCE">{t('Health Insurance', 'التأمين الصحي')}</option>
                     <option value="SOCIAL_INSURANCE">{t('Social Insurance', 'التأمينات الاجتماعية')}</option>
                   </select>
-                  <select value={adminFilterStatus} onChange={(e) => { setAdminFilterStatus(e.target.value); }} style={{ padding: '0.4rem', fontSize: '0.8rem' }}>
+                  <select value={adminFilterStatus} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => { setAdminFilterStatus(e.target.value); }} style={{ padding: '0.4rem', fontSize: '0.8rem' }}>
                     <option value="ALL">{t('All Statuses', 'كل الحالات')}</option>
                     <option value="PENDING">{t('Pending', 'قيد الانتظار')}</option>
                     <option value="UNDER_REVIEW">{t('Under Review', 'تحت التدقيق')}</option>
@@ -3705,7 +3705,7 @@ export default function App() {
                       <label>{t('Update Status', 'تحديث حالة المعاملة في البوابة')}</label>
                       <select
                         value={adminDecision.status}
-                        onChange={(e) => setAdminDecision({ ...adminDecision, status: e.target.value })}
+                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setAdminDecision({ ...adminDecision, status: e.target.value })}
                       >
                         <option value="PENDING">{t('PENDING - Awaiting Review', 'PENDING - قيد الانتظار والمراجعة الأولية')}</option>
                         <option value="UNDER_REVIEW">{t('UNDER REVIEW - Document Audit', 'UNDER_REVIEW - قيد التدقيق وفحص المستندات')}</option>
