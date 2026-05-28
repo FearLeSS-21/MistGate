@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { api } from './services/api';
 import type { User as ApiUser, Application, ServiceType, Notification, Complaint, Appointment, ActivityEntry, Announcement, Report, TimelineEvent } from './services/api';
 import './App.css';
@@ -175,6 +175,7 @@ export default function App() {
   const [citizenAppsLoading, setCitizenAppsLoading] = useState(false);
 
   // Admin states
+  const adminFetchId = useRef(0);
   const [adminApps, setAdminApps] = useState<Application[]>([]);
   const [adminStats, setAdminStats] = useState<{
     totalApplications: number;
@@ -311,6 +312,7 @@ export default function App() {
   };
 
   const fetchAdminData = async (pageNum?: number) => {
+    const fetchId = ++adminFetchId.current;
     setAdminLoading(true);
     try {
       const p = pageNum ?? adminPagination.page;
@@ -324,6 +326,7 @@ export default function App() {
         }),
         api.adminGetStats()
       ]);
+      if (fetchId !== adminFetchId.current) return;
       setAdminApps(appsRes.applications);
       setAdminPagination({
         page: appsRes.pagination.page,
