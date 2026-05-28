@@ -251,6 +251,7 @@ export default function App() {
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [passwordSuccess, setPasswordSuccess] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [profileSaving, setProfileSaving] = useState(false);
 
   // Modal active state
@@ -1615,6 +1616,15 @@ export default function App() {
                   {profileSaving ? <Loader2 className="spinner" size={16} /> : (t('Save Changes', 'حفظ التغييرات'))}
                 </button>
               </form>
+
+              {/* Notification Preferences */}
+              <div style={{ margin: '2rem 0', padding: '1rem', background: 'var(--bg-subtle)', borderRadius: 'var(--border-radius-md)' }}>
+                <h4 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Bell size={16} /> {t('Notification Preferences', 'تفضيلات الإشعارات')}</h4>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                  <input type="checkbox" checked={notificationsEnabled} onChange={(e) => setNotificationsEnabled(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: 'var(--accent-red)' }} />
+                  <span>{t('Enable email & SMS notifications for application updates', 'تفعيل الإشعارات عبر البريد الإلكتروني والرسائل النصية لتحديثات الطلبات')}</span>
+                </label>
+              </div>
 
               <hr style={{ margin: '2rem 0', border: 'none', borderTop: '1px solid var(--border-color)' }} />
 
