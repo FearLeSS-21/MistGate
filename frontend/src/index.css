@@ -1269,6 +1269,9 @@ details[open] summary::before {
 .status-APPROVED { background: #dcfce7; color: #166534; }
 .status-REJECTED { background: #fef2f2; color: #991b1b; }
 .status-COMPLETED, .status-RESOLVED, .status-CLOSED { background: #f0fdf4; color: #166534; }
+.status-CANCELLED, .status-NO_SHOW { background: #f3f4f6; color: #4b5563; }
+.status-SCHEDULED { background: #f0f9ff; color: #0369a1; }
+.status-CONFIRMED { background: #ecfdf5; color: #065f46; }
 
 .app-container.dark-mode .status-PENDING,
 .app-container.dark-mode .status-OPEN { background: #422006; color: #fbbf24; }
@@ -1278,6 +1281,10 @@ details[open] summary::before {
 .app-container.dark-mode .status-COMPLETED,
 .app-container.dark-mode .status-RESOLVED,
 .app-container.dark-mode .status-CLOSED { background: #052e16; color: #86efac; }
+.app-container.dark-mode .status-CANCELLED,
+.app-container.dark-mode .status-NO_SHOW { background: #1f2937; color: #9ca3af; }
+.app-container.dark-mode .status-SCHEDULED { background: #0c4a6e; color: #7dd3fc; }
+.app-container.dark-mode .status-CONFIRMED { background: #064e3b; color: #6ee7b7; }
 
 /* ===== COMPREHENSIVE DARK MODE FIXES ===== */
 .app-container.dark-mode header {
