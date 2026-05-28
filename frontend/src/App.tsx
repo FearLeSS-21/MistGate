@@ -496,7 +496,7 @@ export default function App() {
       await api.createComplaint(complaintForm);
       setComplaintSuccess(true);
       setComplaintForm({ category: 'SERVICE_QUALITY', subject: '', message: '' });
-      fetchCitizenComplaints();
+      void fetchCitizenComplaints();
     } catch (err: unknown) {
       setComplaintError(err instanceof Error ? err.message : 'Failed to submit complaint.');
     }
@@ -509,7 +509,7 @@ export default function App() {
       await api.adminRespondToComplaint(selectedComplaint.id, { response: complaintResponse });
       setSelectedComplaint(null);
       setComplaintResponse('');
-      fetchAdminComplaints();
+      void fetchAdminComplaints();
     } catch (err) {
       console.error(err);
     }
@@ -564,7 +564,7 @@ export default function App() {
       await api.bookAppointment(appointmentForm);
       setAppointmentSuccess(true);
       setAppointmentForm({ department: 'GENERAL_INQUIRY', date: '', timeSlot: '' });
-      fetchMyAppointments();
+      void fetchMyAppointments();
     } catch (err: unknown) {
       console.error(err);
     } finally {
@@ -575,7 +575,7 @@ export default function App() {
   const handleCancelAppointment = async (id: string) => {
     try {
       await api.cancelAppointment(id);
-      fetchMyAppointments();
+      void fetchMyAppointments();
     } catch (err) {
       console.error(err);
     }
@@ -841,7 +841,7 @@ export default function App() {
       await api.adminUpdateStatus(selectedAppForReview.id, adminDecision);
       setSelectedAppForReview(null);
       setAdminDecision({ status: 'UNDER_REVIEW', notes: '' });
-      fetchAdminData();
+      void fetchAdminData();
     } catch (err) {
       console.error(err);
       alert('Failed to update status.');
@@ -940,17 +940,17 @@ export default function App() {
             )}
 
             {user?.role === 'CITIZEN' && (
-              <span className={`nav-link ${currentView === 'complaints' ? 'active' : ''}`} onClick={() => { setCurrentView('complaints'); setComplaintSuccess(false); fetchCitizenComplaints(); }} title={t('Submit feedback or complaint', 'تقديم شكوى أو اقتراح')}>
+              <span className={`nav-link ${currentView === 'complaints' ? 'active' : ''}`} onClick={() => { setCurrentView('complaints'); setComplaintSuccess(false); void fetchCitizenComplaints(); }} title={t('Submit feedback or complaint', 'تقديم شكوى أو اقتراح')}>
                 <MessageSquare size={15} />
                 {t('Feedback', 'الشكاوى')}
               </span>
             )}
             {user?.role === 'CITIZEN' && (<>
-              <span className={`nav-link ${currentView === 'timeline' ? 'active' : ''}`} onClick={() => { setCurrentView('timeline'); fetchTimeline(); }} title={t('View activity log', 'عرض سجل النشاطات')}>
+              <span className={`nav-link ${currentView === 'timeline' ? 'active' : ''}`} onClick={() => { setCurrentView('timeline'); void fetchTimeline(); }} title={t('View activity log', 'عرض سجل النشاطات')}>
                 <History size={15} />
                 {t('Timeline', 'النشاطات')}
               </span>
-              <span className={`nav-link ${currentView === 'appointments' ? 'active' : ''}`} onClick={() => { setCurrentView('appointments'); setAppointmentSuccess(false); fetchMyAppointments(); }} title={t('Manage appointments', 'إدارة المواعيد')}>
+              <span className={`nav-link ${currentView === 'appointments' ? 'active' : ''}`} onClick={() => { setCurrentView('appointments'); setAppointmentSuccess(false); void fetchMyAppointments(); }} title={t('Manage appointments', 'إدارة المواعيد')}>
                 <Calendar size={15} />
                 {t('Appointments', 'المواعيد')}
               </span>
@@ -963,13 +963,13 @@ export default function App() {
               </span>
             )}
             {user?.role === 'ADMIN' && (
-              <span className={`nav-link ${currentView === 'admin_complaints' ? 'active' : ''}`} onClick={() => { setCurrentView('admin_complaints'); fetchAdminComplaints(); }} title={t('Manage complaints', 'إدارة الشكاوى')}>
+              <span className={`nav-link ${currentView === 'admin_complaints' ? 'active' : ''}`} onClick={() => { setCurrentView('admin_complaints'); void fetchAdminComplaints(); }} title={t('Manage complaints', 'إدارة الشكاوى')}>
                 <MessageSquare size={15} />
                 {t('Complaints', 'الشكاوى')}
               </span>
             )}
             {user?.role === 'ADMIN' && (
-              <span className={`nav-link ${currentView === 'admin_appointments' ? 'active' : ''}`} onClick={() => { setCurrentView('admin_appointments'); fetchAdminAppointments(); }} title={t('Manage appointments', 'إدارة المواعيد')}>
+              <span className={`nav-link ${currentView === 'admin_appointments' ? 'active' : ''}`} onClick={() => { setCurrentView('admin_appointments'); void fetchAdminAppointments(); }} title={t('Manage appointments', 'إدارة المواعيد')}>
                 <CalendarCheck size={15} />
                 {t('Appointments', 'المواعيد')}
               </span>
@@ -987,7 +987,7 @@ export default function App() {
               </span>
             )}
             {user?.role === 'ADMIN' && (
-              <span className={`nav-link ${currentView === 'activity_log' ? 'active' : ''}`} onClick={() => { setCurrentView('activity_log'); fetchActivities(1); }} title={t('Activity log', 'سجل النشاطات')}>
+              <span className={`nav-link ${currentView === 'activity_log' ? 'active' : ''}`} onClick={() => { setCurrentView('activity_log'); void fetchActivities(1); }} title={t('Activity log', 'سجل النشاطات')}>
                 <Activity size={15} />
                 {t('Activity', 'النشاط')}
               </span>
@@ -1018,7 +1018,7 @@ export default function App() {
             {/* Notification Bell */}
             {user && (
               <div className="notification-bell-wrapper">
-                <button className="notification-bell" onClick={(e) => { e.stopPropagation(); setShowNotifications(!showNotifications); fetchNotifications(); }}>
+                <button className="notification-bell" onClick={(e) => { e.stopPropagation(); setShowNotifications(!showNotifications); void fetchNotifications(); }}>
                   <Bell size={15} />
                   {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
                 </button>
@@ -1406,7 +1406,7 @@ export default function App() {
                 <FileText size={20} />
                 <span>{t('New Application', 'طلب جديد')}</span>
               </button>
-              <button className="quick-action-btn" onClick={() => { setCurrentView('appointments'); setAppointmentSuccess(false); fetchMyAppointments(); }}>
+              <button className="quick-action-btn" onClick={() => { setCurrentView('appointments'); setAppointmentSuccess(false); void fetchMyAppointments(); }}>
                 <Calendar size={20} />
                 <span>{t('Book Appointment', 'حجز موعد')}</span>
               </button>
@@ -1414,7 +1414,7 @@ export default function App() {
                 <Search size={20} />
                 <span>{t('Track Application', 'تتبع معاملة')}</span>
               </button>
-              <button className="quick-action-btn" onClick={() => { setCurrentView('complaints'); setComplaintSuccess(false); fetchCitizenComplaints(); }}>
+              <button className="quick-action-btn" onClick={() => { setCurrentView('complaints'); setComplaintSuccess(false); void fetchCitizenComplaints(); }}>
                 <MessageSquare size={20} />
                 <span>{t('Submit Feedback', 'شكوى أو اقتراح')}</span>
               </button>
@@ -1518,7 +1518,7 @@ export default function App() {
                                   {t('Timeline', 'تتبع المعاملة')}
                                 </button>
                                 {app.status === 'PENDING' && (
-                                  <button className="btn btn-secondary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', color: 'var(--accent-red)' }} onClick={async () => { if (confirm(t('Cancel this application?', 'إلغاء هذا الطلب؟'))) { try { await api.cancelApplication(app.id); fetchCitizenData(); } catch { alert(t('Failed to cancel.', 'فشل الإلغاء.')); } } }}>
+                                  <button className="btn btn-secondary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', color: 'var(--accent-red)' }} onClick={async () => { if (confirm(t('Cancel this application?', 'إلغاء هذا الطلب؟'))) { try { await api.cancelApplication(app.id); void fetchCitizenData(); } catch { alert(t('Failed to cancel.', 'فشل الإلغاء.')); } } }}>
                                     <X size={12} /> {t('Cancel', 'إلغاء')}
                                   </button>
                                 )}
@@ -3474,7 +3474,7 @@ export default function App() {
                     <Download size={12} /> {t('APT', 'المواعيد')}
                   </button>
                 </div>
-                <button className="btn btn-secondary" onClick={() => fetchAdminData()}>
+                <button className="btn btn-secondary" onClick={() => void fetchAdminData()}>
                   {t('Refresh', 'تحديث')}
                 </button>
               </div>
@@ -3543,10 +3543,10 @@ export default function App() {
                       placeholder={t('Search by name, code, or national ID...', 'بحث بالاسم أو الكود أو الرقم القومي...')}
                       value={adminSearch}
                       onChange={(e) => setAdminSearch(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === 'Enter') fetchAdminData(1); }}
+                      onKeyDown={(e) => { if (e.key === 'Enter') void fetchAdminData(1); }}
                       style={{ border: 'none', background: 'transparent', flex: 1, padding: '0.4rem', fontSize: '0.8rem' }}
                     />
-                    <button className="btn btn-primary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={() => fetchAdminData(1)}>
+                    <button className="btn btn-primary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={() => void fetchAdminData(1)}>
                       <Search size={13} />
                     </button>
                   </div>
@@ -3569,7 +3569,7 @@ export default function App() {
                     <option value="REJECTED">{t('Rejected', 'مرفوضة')}</option>
                     <option value="COMPLETED">{t('Completed', 'مكتملة ومطبعة')}</option>
                   </select>
-                  <button className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }} onClick={() => fetchAdminData(1)}>
+                  <button className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }} onClick={() => void fetchAdminData(1)}>
                     {t('Filter', 'تصفية')}
                   </button>
                 </div>
@@ -3626,7 +3626,7 @@ export default function App() {
                     className="btn btn-secondary"
                     style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }}
                     disabled={adminPagination.page <= 1}
-                    onClick={() => fetchAdminData(adminPagination.page - 1)}
+                    onClick={() => void fetchAdminData(adminPagination.page - 1)}
                   >
                     {t('‹ Prev', '‹ السابق')}
                   </button>
@@ -3640,7 +3640,7 @@ export default function App() {
                     className="btn btn-secondary"
                     style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }}
                     disabled={adminPagination.page >= adminPagination.totalPages}
-                    onClick={() => fetchAdminData(adminPagination.page + 1)}
+                    onClick={() => void fetchAdminData(adminPagination.page + 1)}
                   >
                     {t('Next ›', 'التالي ›')}
                   </button>
@@ -3763,7 +3763,7 @@ export default function App() {
       {currentView !== 'complaints' && (
         <button
           className="floating-support-btn"
-          onClick={() => { if (user) { setCurrentView('complaints'); setComplaintSuccess(false); fetchCitizenComplaints(); } }}
+          onClick={() => { if (user) { setCurrentView('complaints'); setComplaintSuccess(false); void fetchCitizenComplaints(); } }}
           style={{
             position: 'fixed', bottom: '1.5rem', right: isRtl ? 'auto' : '1.5rem', left: isRtl ? '1.5rem' : 'auto',
             width: '50px', height: '50px', borderRadius: '50%', border: 'none',
