@@ -470,6 +470,53 @@ class ApiService {
       body: JSON.stringify({ serviceType }),
     });
   }
+
+  // --- Analytics (Admin) ---
+  async adminGetAnalytics(days: number): Promise<Record<string, unknown>> {
+    return this.request<Record<string, unknown>>(`/admin/analytics?days=${days}`);
+  }
+
+  // --- Profile ---
+  async updateProfile(body: { name: string; phone: string }): Promise<{ user: { name: string; phone: string } }> {
+    return this.request<{ user: { name: string; phone: string } }>('/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+  }
+
+  async changePassword(body: { currentPassword: string; newPassword: string }): Promise<{ message: string }> {
+    return this.request<{ message: string }>('/auth/password', {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+  }
+
+  // --- Export (blob download) ---
+  async exportData(endpoint: string): Promise<Blob> {
+    const token = localStorage.getItem('misrgate_token');
+    const url = `${API_BASE_URL}/admin/export/${endpoint}`;
+    const res = await fetch(url, {
+      headers: { Authorization: token ? `Bearer ${token}` : '' },
+    });
+    if (!res.ok) throw new Error('Export failed.');
+    return res.blob();
+  }
+
+  // --- File Upload (multipart) ---
+  async uploadFile(file: File): Promise<{ url: string; originalName: string }> {
+    const token = localStorage.getItem('misrgate_token');
+    const formData = new FormData();
+    formData.append('file', file);
+    const url = `${API_BASE_URL}/upload`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { Authorization: token ? `Bearer ${token}` : '' },
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Upload failed.');
+    return data;
+  }
 }
 
 export const api = new ApiService();
