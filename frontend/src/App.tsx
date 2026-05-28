@@ -520,6 +520,8 @@ export default function App() {
   const goToAdmin = () => {
     setCurrentView('admin');
     void fetchAdminData();
+    void fetchAdminComplaints();
+    void fetchAdminAppointments();
   };
 
   const fetchAvailableSlots = async (date: string, department: string) => {
