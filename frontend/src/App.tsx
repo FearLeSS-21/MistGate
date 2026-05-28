@@ -942,89 +942,89 @@ export default function App() {
             </div>
           </a>
           <nav className="nav-links" style={{ flexDirection: isRtl ? 'row-reverse' : 'row' }}>
-            <span className={`nav-link ${currentView === 'home' ? 'active' : ''}`} onClick={() => setCurrentView('home')}>
+            <span className={`nav-link ${currentView === 'home' ? 'active' : ''}`} onClick={() => setCurrentView('home')} title={t('Home page', 'الصفحة الرئيسية')}>
               <Home size={15} />
               {t('Home', 'الرئيسية')}
             </span>
             
             {user?.role === 'CITIZEN' && (
-              <span className={`nav-link ${currentView === 'dashboard' ? 'active' : ''}`} onClick={goToDashboard}>
+              <span className={`nav-link ${currentView === 'dashboard' ? 'active' : ''}`} onClick={goToDashboard} title={t('Your dashboard', 'لوحة التحكم الخاصة بك')}>
                 <LayoutDashboard size={15} />
                 {t('Dashboard', 'لوحة التحكم')}
               </span>
             )}
 
             {user?.role === 'CITIZEN' && (
-              <span className={`nav-link ${currentView === 'complaints' ? 'active' : ''}`} onClick={() => { setCurrentView('complaints'); setComplaintSuccess(false); fetchCitizenComplaints(); }}>
+              <span className={`nav-link ${currentView === 'complaints' ? 'active' : ''}`} onClick={() => { setCurrentView('complaints'); setComplaintSuccess(false); fetchCitizenComplaints(); }} title={t('Submit feedback or complaint', 'تقديم شكوى أو اقتراح')}>
                 <MessageSquare size={15} />
                 {t('Feedback', 'الشكاوى')}
               </span>
             )}
             {user?.role === 'CITIZEN' && (<>
-              <span className={`nav-link ${currentView === 'timeline' ? 'active' : ''}`} onClick={() => { setCurrentView('timeline'); fetchTimeline(); }}>
+              <span className={`nav-link ${currentView === 'timeline' ? 'active' : ''}`} onClick={() => { setCurrentView('timeline'); fetchTimeline(); }} title={t('View activity log', 'عرض سجل النشاطات')}>
                 <History size={15} />
                 {t('Timeline', 'النشاطات')}
               </span>
-              <span className={`nav-link ${currentView === 'appointments' ? 'active' : ''}`} onClick={() => { setCurrentView('appointments'); setAppointmentSuccess(false); fetchMyAppointments(); }}>
+              <span className={`nav-link ${currentView === 'appointments' ? 'active' : ''}`} onClick={() => { setCurrentView('appointments'); setAppointmentSuccess(false); fetchMyAppointments(); }} title={t('Manage appointments', 'إدارة المواعيد')}>
                 <Calendar size={15} />
                 {t('Appointments', 'المواعيد')}
               </span>
             </>)}
 
             {user?.role === 'ADMIN' && (
-              <span className={`nav-link ${currentView === 'admin' ? 'active' : ''}`} onClick={goToAdmin}>
+              <span className={`nav-link ${currentView === 'admin' ? 'active' : ''}`} onClick={goToAdmin} title={t('Admin moderation desk', 'غرفة الإدارة والمراجعة')}>
                 <Lock size={15} />
                 {t('Admin Desk', 'غرفة الإدارة')}
               </span>
             )}
             {user?.role === 'ADMIN' && (
-              <span className={`nav-link ${currentView === 'admin_complaints' ? 'active' : ''}`} onClick={() => { setCurrentView('admin_complaints'); fetchAdminComplaints(); }}>
+              <span className={`nav-link ${currentView === 'admin_complaints' ? 'active' : ''}`} onClick={() => { setCurrentView('admin_complaints'); fetchAdminComplaints(); }} title={t('Manage complaints', 'إدارة الشكاوى')}>
                 <MessageSquare size={15} />
                 {t('Complaints', 'الشكاوى')}
               </span>
             )}
             {user?.role === 'ADMIN' && (
-              <span className={`nav-link ${currentView === 'admin_appointments' ? 'active' : ''}`} onClick={() => { setCurrentView('admin_appointments'); fetchAdminAppointments(); }}>
+              <span className={`nav-link ${currentView === 'admin_appointments' ? 'active' : ''}`} onClick={() => { setCurrentView('admin_appointments'); fetchAdminAppointments(); }} title={t('Manage appointments', 'إدارة المواعيد')}>
                 <CalendarCheck size={15} />
                 {t('Appointments', 'المواعيد')}
               </span>
             )}
             {user?.role === 'ADMIN' && (
-              <span className={`nav-link ${currentView === 'admin_reports' ? 'active' : ''}`} onClick={() => { setCurrentView('admin_reports'); fetchReport('7'); }}>
+              <span className={`nav-link ${currentView === 'admin_reports' ? 'active' : ''}`} onClick={() => { setCurrentView('admin_reports'); fetchReport('7'); }} title={t('View reports', 'التقارير')}>
                 <FileText size={15} />
                 {t('Reports', 'التقارير')}
               </span>
             )}
             {user?.role === 'ADMIN' && (
-              <span className={`nav-link ${currentView === 'analytics' ? 'active' : ''}`} onClick={() => { setCurrentView('analytics'); fetchAnalytics(); }}>
+              <span className={`nav-link ${currentView === 'analytics' ? 'active' : ''}`} onClick={() => { setCurrentView('analytics'); fetchAnalytics(); }} title={t('View analytics', 'الإحصائيات')}>
                 <BarChart3 size={15} />
                 {t('Analytics', 'الإحصائيات')}
               </span>
             )}
             {user?.role === 'ADMIN' && (
-              <span className={`nav-link ${currentView === 'activity_log' ? 'active' : ''}`} onClick={() => { setCurrentView('activity_log'); fetchActivities(1); }}>
+              <span className={`nav-link ${currentView === 'activity_log' ? 'active' : ''}`} onClick={() => { setCurrentView('activity_log'); fetchActivities(1); }} title={t('Activity log', 'سجل النشاطات')}>
                 <Activity size={15} />
                 {t('Activity', 'النشاط')}
               </span>
             )}
-            <span className={`nav-link ${currentView === 'service_directory' ? 'active' : ''}`} onClick={() => setCurrentView('service_directory')}>
+            <span className={`nav-link ${currentView === 'service_directory' ? 'active' : ''}`} onClick={() => setCurrentView('service_directory')} title={t('Service directory', 'دليل الخدمات')}>
               <MapPin size={15} />
               {t('Directory', 'الدليل')}
             </span>
-            <span className={`nav-link ${currentView === 'faq' ? 'active' : ''}`} onClick={() => setCurrentView('faq')}>
+            <span className={`nav-link ${currentView === 'faq' ? 'active' : ''}`} onClick={() => setCurrentView('faq')} title={t('Frequently asked questions', 'الأسئلة الشائعة')}>
               <HelpCircle size={15} />
               {t('FAQ', 'الأسئلة')}
             </span>
-            <span className={`nav-link ${currentView === 'guides' ? 'active' : ''}`} onClick={() => setCurrentView('guides')}>
+            <span className={`nav-link ${currentView === 'guides' ? 'active' : ''}`} onClick={() => setCurrentView('guides')} title={t('Service guides', 'أدلة الخدمات')}>
               <BookOpen size={15} />
               {t('Guides', 'الأدلة')}
             </span>
-            <span className={`nav-link ${currentView === 'about' ? 'active' : ''}`} onClick={() => setCurrentView('about')}>
+            <span className={`nav-link ${currentView === 'about' ? 'active' : ''}`} onClick={() => setCurrentView('about')} title={t('About MisrGate', 'عن بوابة مصر')}>
               <Globe size={15} />
               {t('About', 'عن البوابة')}
             </span>
             {user?.role === 'ADMIN' && (
-              <span className={`nav-link ${currentView === 'admin_announcements' ? 'active' : ''}`} onClick={() => { setCurrentView('admin_announcements'); fetchAdminAnnouncements(); }}>
+              <span className={`nav-link ${currentView === 'admin_announcements' ? 'active' : ''}`} onClick={() => { setCurrentView('admin_announcements'); fetchAdminAnnouncements(); }} title={t('Manage announcements', 'إدارة الإعلانات')}>
                 <Megaphone size={15} />
                 {t('Announcements', 'الإعلانات')}
               </span>
@@ -1078,14 +1078,14 @@ export default function App() {
 
             {/* Profile Link */}
             {user && (
-              <span className={`nav-link ${currentView === 'profile' ? 'active' : ''}`} onClick={() => { setCurrentView('profile'); setProfileForm({ name: user.name, phone: user.phone }); setProfileSuccess(''); setPasswordSuccess(''); }}>
+              <span className={`nav-link ${currentView === 'profile' ? 'active' : ''}`} onClick={() => { setCurrentView('profile'); setProfileForm({ name: user.name, phone: user.phone }); setProfileSuccess(''); setPasswordSuccess(''); }} title={t('View profile', 'الملف الشخصي')}>
                 <User size={15} />
                 {t('Profile', 'الملف الشخصي')}
               </span>
             )}
 
             {/* Dark Mode Toggle */}
-            <button onClick={() => setDarkMode(!darkMode)} className="lang-btn" style={{ fontSize: '0.75rem' }}>
+            <button onClick={() => setDarkMode(!darkMode)} className="lang-btn" style={{ fontSize: '0.75rem' }} title={t('Toggle dark mode', 'تبديل الوضع المظلم')}>
               {darkMode ? <Sun size={14} /> : <Moon size={14} />}
             </button>
 
@@ -1094,7 +1094,7 @@ export default function App() {
             <button className="lang-btn" onClick={() => adjustFont(10)} style={{ fontSize: '0.85rem' }} title={t('Increase font size', 'تكبير الخط')}>A+</button>
 
             {/* Language Switcher Pill */}
-            <button onClick={toggleLanguage} className="lang-btn">
+            <button onClick={toggleLanguage} className="lang-btn" title={t('Switch language', 'تغيير اللغة')}>
               <Globe size={14} />
               <span>{lang === 'en' ? 'العربية' : 'English'}</span>
             </button>
