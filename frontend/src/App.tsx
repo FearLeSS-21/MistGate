@@ -52,7 +52,7 @@ import {
 
 export default function App() {
   // Navigation & User session states
-  const [lang, setLang] = useState<'en' | 'ar'>('en'); // Default language is English
+  const [lang, setLang] = useState<'en' | 'ar'>(() => (localStorage.getItem('misrgate_lang') as 'en' | 'ar') || 'en');
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('misrgate_theme');
     if (saved) return saved === 'dark';
@@ -68,6 +68,7 @@ export default function App() {
       localStorage.setItem('misrgate_last_login', now);
       setLastLogin(now);
     }
+    document.dir = lang === 'ar' ? 'rtl' : 'ltr';
   }, []);
 
   useEffect(() => {
@@ -284,7 +285,7 @@ export default function App() {
   };
   useEffect(() => {
     document.documentElement.style.fontSize = `${fontSize}%`;
-  }, []);
+  }, [fontSize]);
 
   // Translation helper function
   const t = (enText: string, arText: string) => {
@@ -598,12 +599,8 @@ export default function App() {
     const d = days ?? analyticsDays;
     setAnalyticsLoading(true);
     try {
-      const token = localStorage.getItem('misrgate_token');
-      const res = await fetch(`http://localhost:5000/api/admin/analytics?days=${d}`, {
-        headers: { Authorization: token ? `Bearer ${token}` : '' },
-      });
-      const data = await res.json();
-      if (data.overview) setAnalyticsData(data);
+      const data = await api.adminGetAnalytics(d);
+      if (data.overview) setAnalyticsData(data as typeof analyticsData);
     } catch (err) {
       console.error(err);
     } finally {
@@ -647,7 +644,10 @@ export default function App() {
 
   // Toggle Language Handler
   const toggleLanguage = () => {
-    setLang(prev => (prev === 'en' ? 'ar' : 'en'));
+    const next = lang === 'en' ? 'ar' : 'en';
+    setLang(next);
+    localStorage.setItem('misrgate_lang', next);
+    document.dir = next === 'ar' ? 'rtl' : 'ltr';
   };
 
   // Role Switcher Handler (For Demo/Evaluation Convenience)
@@ -669,18 +669,12 @@ export default function App() {
     setProfileError('');
     setProfileSaving(true);
     try {
-      const token = localStorage.getItem('misrgate_token');
-      const res = await fetch('http://localhost:5000/api/auth/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : '' },
-        body: JSON.stringify(profileForm),
-      });
-      const data = await res.json();
+      const data = await api.updateProfile(profileForm);
       if (data.user) {
         setUser(prev => prev ? { ...prev, name: data.user.name, phone: data.user.phone } : prev);
         setProfileSuccess(t('Profile updated successfully!', 'تم تحديث الملف الشخصي بنجاح!'));
       } else {
-        setProfileError(data.error || 'Update failed.');
+        setProfileError(t('Update failed.', 'فشل التحديث.'));
       }
     } catch {
       setProfileError(t('An error occurred.', 'حدث خطأ.'));
@@ -698,38 +692,23 @@ export default function App() {
       return;
     }
     try {
-      const token = localStorage.getItem('misrgate_token');
-      const res = await fetch('http://localhost:5000/api/auth/password', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : '' },
-        body: JSON.stringify({ currentPassword: passwordForm.currentPassword, newPassword: passwordForm.newPassword }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setPasswordSuccess(t('Password changed successfully!', 'تم تغيير كلمة المرور بنجاح!'));
-        setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      } else {
-        setPasswordError(data.error || 'Failed to change password.');
-      }
-    } catch {
-      setPasswordError(t('An error occurred.', 'حدث خطأ.'));
+      await api.changePassword({ currentPassword: passwordForm.currentPassword, newPassword: passwordForm.newPassword });
+      setPasswordSuccess(t('Password changed successfully!', 'تم تغيير كلمة المرور بنجاح!'));
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (err: unknown) {
+      setPasswordError(err instanceof Error ? err.message : t('Failed to change password.', 'فشل تغيير كلمة المرور.'));
     }
   };
 
   // CSV Download Handler
   const downloadCSV = async (endpoint: string, filename: string) => {
     try {
-      const token = localStorage.getItem('misrgate_token');
-      const res = await fetch(`http://localhost:5000/api/admin/export/${endpoint}`, {
-        headers: { Authorization: token ? `Bearer ${token}` : '' },
-      });
-      if (!res.ok) { alert('Export failed.'); return; }
-      const blob = await res.blob();
+      const blob = await api.exportData(endpoint);
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url; a.download = filename;
       a.click(); URL.revokeObjectURL(url);
-    } catch { alert('Export failed.'); }
+    } catch { alert(t('Export failed.', 'فشل التصدير.')); }
   };
 
   // Quick Tracker Search
@@ -769,19 +748,11 @@ export default function App() {
 
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const token = localStorage.getItem('misrgate_token');
-      const res = await fetch('http://localhost:5000/api/upload', {
-        method: 'POST',
-        headers: { Authorization: token ? `Bearer ${token}` : '' },
-        body: formData,
-      });
-      const data = await res.json();
+      const data = await api.uploadFile(file);
       if (data.url) {
         setUploadedFile({ url: data.url, name: data.originalName });
       } else {
-        alert(data.error || 'Upload failed.');
+        alert(t('Upload failed.', 'فشل الرفع.'));
       }
     } catch {
       alert(t('Upload failed. Please try again.', 'فشل الرفع. حاول مرة أخرى.'));
@@ -844,7 +815,7 @@ export default function App() {
       void fetchAdminData();
     } catch (err) {
       console.error(err);
-      alert('Failed to update status.');
+      alert(t('Failed to update status.', 'فشل تحديث الحالة.'));
     }
   };
 
