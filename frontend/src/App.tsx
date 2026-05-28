@@ -47,7 +47,6 @@ import {
   Clock,
   MapPin,
   Phone,
-  ArrowUp,
 } from 'lucide-react';
 
 export default function App() {
@@ -2354,18 +2353,1311 @@ export default function App() {
           </div>
         )}
 
-        {/* Scroll to Top Button */}
-        <button
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="lang-btn"
-          style={{
-            position: 'fixed', bottom: '1.5rem', left: isRtl ? 'auto' : '1.5rem', right: isRtl ? '1.5rem' : 'auto',
-            width: '40px', height: '40px', borderRadius: '50%', zIndex: 999,
-          }}
-          title={t('Scroll to top', 'العودة للأعلى')}
-        >
-          <ArrowUp size={18} />
-        </button>
+        {/* VIEW: TIMELINE */}
+        {currentView === 'timeline' && user && (
+          <div>
+            <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+              <h2 style={{ textAlign: 'center', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <History size={22} /> {t('My Activity Timeline', 'النشاطات الحديثة')}
+              </h2>
+
+              {timelineLoading ? (
+                <div style={{ textAlign: 'center', padding: '3rem' }}><Loader2 className="spinner" size={24} /></div>
+              ) : timelineEvents.length === 0 ? (
+                <div className="glass-card" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+                  {t('No activity yet. Start by applying for a service!', 'لا توجد نشاطات بعد. ابدأ بتقديم طلب خدمة!')}
+                </div>
+              ) : (
+                <div className="timeline-container">
+                  {timelineEvents.map((event) => (
+                    <div key={event.id} className={`timeline-item timeline-${event.type}`}>
+                      <div className="timeline-dot">
+                        {event.type === 'application' && <FileText size={14} />}
+                        {event.type === 'status_change' && <Clock size={14} />}
+                        {event.type === 'appointment' && <Calendar size={14} />}
+                        {event.type === 'complaint' && <MessageSquare size={14} />}
+                        {event.type === 'rating' && <Star size={14} />}
+                      </div>
+                      <div className="timeline-content glass-card" style={{ textAlign: isRtl ? 'right' : 'left', direction: isRtl ? 'rtl' : 'ltr' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.25rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                          <strong style={{ fontSize: '0.9rem' }}>{event.title}</strong>
+                          <span className={`status-badge status-${event.status === 'COMPLETED' || event.status === 'APPROVED' || event.status === 'RESOLVED' || event.status === 'CLOSED' || event.status === 'CONFIRMED' ? 'COMPLETED' : event.status === 'PENDING' || event.status === 'SCHEDULED' ? 'PENDING' : 'UNDER_REVIEW'}`} style={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>
+                            {event.status}
+                          </span>
+                        </div>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: '0 0 0.25rem 0' }}>{event.description}</p>
+                        <small style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{new Date(event.date).toLocaleDateString()} {new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* VIEW: SERVICE DIRECTORY */}
+        {currentView === 'service_directory' && (
+          <div>
+            <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+              <h2 style={{ textAlign: 'center', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <MapPin size={22} /> {t('Government Service Directory', 'دليل الخدمات الحكومية')}
+              </h2>
+
+              {([
+                { name: t('National ID & Civil Registry', 'الأحوال المدنية وبطاقات الرقم القومي'), phone: '15999', hours: t('Sun-Thu 8:00 AM - 3:00 PM', 'الأحد-الخميس 8 ص - 3 م'), address: t('Abdel Aziz Riad St., Mohandessin, Giza', 'شارع عبد العزيز رياض، المهندسين، الجيزة'), desc: t('Issuance and renewal of national ID cards, birth and death certificates.', 'إصدار وتجديد بطاقات الرقم القومي، وثائق الميلاد والوفاة.') },
+                { name: t('Passport Office', 'مكتب الجوازات'), phone: '15999', hours: t('Sun-Thu 8:00 AM - 6:00 PM', 'الأحد-الخميس 8 ص - 6 م'), address: t('Nasr Rd., Nasr City, Cairo', 'شارع نصر، مدينة نصر، القاهرة'), desc: t('Passport applications, renewals, and emergency travel documents.', 'إصدار وتجديد جوازات السفر ووثائق السفر الطارئة.') },
+                { name: t('Traffic Department', 'إدارة المرور'), phone: '136', hours: t('Sun-Thu 7:30 AM - 2:30 PM', 'الأحد-الخميس 7:30 ص - 2:30 م'), address: t('Tharwat St., Mohandessin, Giza', 'شارع ثروت، المهندسين، الجيزة'), desc: t('Vehicle registration, traffic fine payments, and driving licenses.', 'تسجيل المركبات، سداد مخالفات المرور، ورخص القيادة.') },
+                { name: t('Tax Authority', 'مصلحة الضرائب'), phone: '16395', hours: t('Sun-Thu 8:00 AM - 3:00 PM', 'الأحد-الخميس 8 ص - 3 م'), address: t('Al-Maleya St., Nasr City, Cairo', 'شارع المالية، مدينة نصر، القاهرة'), desc: t('Income tax, VAT, stamp duty, and tax certificate services.', 'ضريبة الدخل، القيمة المضافة، الدمغة، وشهادات الضرائب.') },
+                { name: t('Health Insurance Authority', 'هيئة التأمين الصحي'), phone: '16775', hours: t('Sun-Thu 8:00 AM - 2:00 PM', 'الأحد-الخميس 8 ص - 2 م'), address: t('Al-Shaheed Abdel Aziz St., Giza', 'شارع الشهيد عبد العزيز، الجيزة'), desc: t('Health insurance registration, eligibility checks, and dependent management.', 'التسجيل في التأمين الصحي، التحقق من الأهلية، وإدارة المعالين.') },
+                { name: t('Social Insurance Authority', 'هيئة التأمينات الاجتماعية'), phone: '16777', hours: t('Sun-Thu 8:00 AM - 2:00 PM', 'الأحد-الخميس 8 ص - 2 م'), address: t('Al-Sabtiya St., Cairo', 'شارع السبتية، القاهرة'), desc: t('Social insurance subscriptions, pension requests, and contribution management.', 'اشتراكات التأمينات الاجتماعية، طلبات المعاش، وإدارة المساهمات.') },
+                { name: t('Military Recruitment Office', 'مكتب التجنيد والتعبئة'), phone: '146', hours: t('Sun-Thu 8:00 AM - 2:00 PM', 'الأحد-الخميس 8 ص - 2 م'), address: t('Al-Abassiya, Cairo', 'العباسية، القاهرة'), desc: t('Military exemption, postponement, travel permits, and service certificates.', 'الإعفاء العسكري، التأجيل، تصاريح السفر، وشهادات الخدمة.') },
+                { name: t('Citizen Service Center', 'مركز خدمة المواطن'), phone: '15377', hours: t('Sun-Thu 8:00 AM - 8:00 PM', 'الأحد-الخميس 8 ص - 8 م'), address: t('Multiple locations across all governorates', 'فروع متعددة بجميع المحافظات'), desc: t('One-stop center for government document services and citizen inquiries.', 'مركز متكامل لخدمات المستندات الحكومية واستفسارات المواطنين.') },
+              ] as const).map((dept, i) => (
+                <div key={i} className="glass-card" style={{ padding: '1.25rem', marginBottom: '1rem', textAlign: isRtl ? 'right' : 'left', direction: isRtl ? 'rtl' : 'ltr' }}>
+                  <h3 style={{ marginBottom: '0.5rem', color: 'var(--accent-red)' }}>{dept.name}</h3>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>{dept.desc}</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.85rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Phone size={14} style={{ color: 'var(--accent-red)' }} />
+                      <span>{dept.phone}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                      <MapPin size={14} style={{ color: 'var(--accent-red)', marginTop: '0.15rem' }} />
+                      <span>{dept.address}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Clock size={14} style={{ color: 'var(--accent-red)' }} />
+                      <span>{dept.hours}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* VIEW: SERVICE GUIDES */}
+        {currentView === 'guides' && (
+          <div>
+            <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+              <h2 style={{ textAlign: 'center', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <BookOpen size={24} /> {t('Service Application Guides', 'أدلة تقديم الخدمات')}
+              </h2>
+
+              {([
+                { title: t('National ID Card Renewal', 'تجديد بطاقة الرقم القومي'), steps: [t('Fill in your personal details (name, birth date, address)', 'املأ بياناتك الشخصية (الاسم، تاريخ الميلاد، العنوان)'), t('Select reason: first time, renewal, lost or damaged', 'اختر السبب: أول مرة، تجديد، بدل فاقد أو تالف'), t('Upload required documents (photo, police report if lost)', 'ارفع المستندات المطلوبة (صورة شخصية، محضر شرطة إذا كان بدل فاقد)'), t('Submit and receive your tracking code', 'قدّم الطلب واستلم كود التتبع')] },
+                { title: t('Passport Application', 'طلب جواز السفر'), steps: [t('Fill in personal details in English and Arabic', 'املأ البيانات الشخصية بالإنجليزية والعربية'), t('Provide qualification and profession information', 'قدم معلومات المؤهل والوظيفة'), t('Upload passport photo and required documents', 'ارفع الصورة الشخصية والمستندات المطلوبة'), t('Choose delivery method: pickup or courier', 'اختر طريقة الاستلام: من المكتب أو التوصيل')] },
+                { title: t('Military & Recruitment Documents', 'الأوراق العسكرية'), steps: [t('Select document type: exemption, travel permit, postponement, or service certificate', 'اختر نوع المستند: إعفاء، تصريح سفر، تأجيل، شهادة خدمة'), t('Provide reason and supporting details', 'قدم السبب والتفاصيل الداعمة'), t('Submit your request and track status', 'قدّم طلبك وتابع الحالة')] },
+                { title: t('Tax Payment', 'سداد الضرائب'), steps: [t('Enter your tax registration number', 'أدخل رقم التسجيل الضريبي'), t('Select payment type: income tax, VAT, stamp duty', 'اختر نوع الدفع: ضريبة دخل، قيمة مضافة، دمغة'), t('Enter the amount and select payment method', 'أدخل المبلغ واختر طريقة الدفع'), t('Confirm and download receipt', 'أكد التحميل واستلم الإيصال')] },
+                { title: t('Traffic Fine Payment', 'مخالفات المرور'), steps: [t('Enter license plate number and violation reference', 'أدخل رقم اللوحة ورقم المخالفة'), t('Select governorate where the violation occurred', 'اختر المحافظة التي حدثت بها المخالفة'), t('Review fine amount and confirm payment', 'راجع قيمة الغرامة وأكد الدفع')] },
+              ] as const).map((guide, i) => (
+                <div key={i} className="glass-card" style={{ padding: '1.5rem', marginBottom: '1rem' }}>
+                  <h3 style={{ color: 'var(--accent-red)', marginBottom: '1rem' }}>{guide.title}</h3>
+                  <ol style={{ lineHeight: '2', color: 'var(--text-secondary)', paddingLeft: isRtl ? '' : '1.5rem', paddingRight: isRtl ? '1.5rem' : '' }}>
+                    {guide.steps.map((step, si) => (
+                      <li key={si}>{step}</li>
+                    ))}
+                  </ol>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* VIEW: ABOUT US */}
+        {currentView === 'about' && (
+          <div>
+            <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+              <h2 style={{ textAlign: 'center', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <Globe size={24} /> {t('About MisrGate', 'عن بوابة مصر')}
+              </h2>
+
+              <div className="glass-card" style={{ padding: '2rem', marginBottom: '1.5rem' }}>
+                <h3 style={{ color: 'var(--accent-red)', marginBottom: '1rem' }}>
+                  {t('Our Mission', 'رسالتنا')}
+                </h3>
+                <p style={{ lineHeight: '1.7', color: 'var(--text-secondary)' }}>
+                  {t(
+                    'MisrGate is the official Egyptian e-government services portal, designed to provide citizens with secure, fast, and transparent access to government services. Our mission is to digitize and streamline administrative processes, reducing paperwork and saving time for every Egyptian citizen.',
+                    'بوابة مصر هي البوابة الرسمية للخدمات الحكومية الإلكترونية، صُممت لتوفير وصول آمن وسريع وشفاف للمواطنين إلى الخدمات الحكومية. رسالتنا هي رقمنة وتبسيط الإجراءات الإدارية، وتقليل الأوراق الروتينية وتوفير الوقت لكل مواطن مصري.'
+                  )}
+                </p>
+              </div>
+
+              <div className="glass-card" style={{ padding: '2rem', marginBottom: '1.5rem' }}>
+                <h3 style={{ color: 'var(--accent-red)', marginBottom: '1rem' }}>
+                  {t('Key Features', 'المميزات الرئيسية')}
+                </h3>
+                <ul style={{ lineHeight: '2', color: 'var(--text-secondary)', paddingLeft: isRtl ? '' : '1.5rem', paddingRight: isRtl ? '1.5rem' : '' }}>
+                  <li>{t('8 integrated government services on one platform', '8 خدمات حكومية متكاملة على منصة واحدة')}</li>
+                  <li>{t('Real-time application tracking with unique tracking codes', 'تتبع فوري للمعاملات بأكواد تتبع فريدة')}</li>
+                  <li>{t('Secure document upload and management', 'رفع وإدارة آمنة للوثائق')}</li>
+                  <li>{t('Online appointment booking across departments', 'حجز مواعيد إلكتروني عبر الإدارات')}</li>
+                  <li>{t('Bilingual interface (English / Arabic) with full RTL support', 'واجهة ثنائية اللغة (إنجليزية / عربية) مع دعم كامل للكتابة من اليمين')}</li>
+                  <li>{t('Real-time notifications on application status changes', 'إشعارات فورية عند تغيير حالة المعاملة')}</li>
+                  <li>{t('Citizen feedback and complaints system', 'نظام لشكاوى واقتراحات المواطنين')}</li>
+                  <li>{t('Comprehensive admin desk for review and management', 'غرفة إدارة متكاملة للمراجعة والإدارة')}</li>
+                </ul>
+              </div>
+
+              <div className="glass-card" style={{ padding: '2rem', marginBottom: '1.5rem' }}>
+                <h3 style={{ color: 'var(--accent-red)', marginBottom: '1rem' }}>
+                  {t('Available Services', 'الخدمات المتاحة')}
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  {[
+                    t('National ID Card Renewal', 'تجديد بطاقة الرقم القومي'),
+                    t('Military & Recruitment Documents', 'الأوراق العسكرية'),
+                    t('Civil Registry Certificates', 'وثائق الأحوال المدنية'),
+                    t('Passport Services', 'خدمات جواز السفر'),
+                    t('Tax Payment (ETA)', 'سداد الضرائب'),
+                    t('Traffic Violations', 'مخالفات المرور'),
+                    t('Health Insurance', 'التأمين الصحي'),
+                    t('Social Insurance', 'التأمينات الاجتماعية'),
+                  ].map((s, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem', background: 'var(--bg-card)', borderRadius: 'var(--radius-sm)' }}>
+                      <span style={{ color: 'var(--accent-green)' }}>✓</span>
+                      <span style={{ fontSize: '0.85rem' }}>{s}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="glass-card" style={{ padding: '2rem' }}>
+                <h3 style={{ color: 'var(--accent-red)', marginBottom: '1rem' }}>
+                  {t('Contact & Support', 'الاتصال والدعم')}
+                </h3>
+                <p style={{ lineHeight: '1.7', color: 'var(--text-secondary)' }}>
+                  {t(
+                    'For technical support or inquiries, please use the Feedback system or visit your nearest Citizen Service Center. You can also reach us through the official government hotline at 15999.',
+                    'للدعم الفني أو الاستفسارات، يرجى استخدام نظام الشكاوى أو زيارة أقرب مركز خدمة مواطن. يمكنكم أيضًا الاتصال بنا عبر الخط الساخن للحكومة على 15999.'
+                  )}
+                </p>
+                <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                  <button className="btn btn-outline" onClick={() => setCurrentView('terms')}>
+                    <FileText size={14} /> {t('Terms', 'الشروط')}
+                  </button>
+                  <button className="btn btn-outline" onClick={() => setCurrentView('holidays')}>
+                    <Calendar size={14} /> {t('Holidays', 'الإجازات')}
+                  </button>
+                  <button className="btn btn-outline" onClick={() => setCurrentView('sitemap')}>
+                    <Home size={14} /> {t('Sitemap', 'خريطة الموقع')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* VIEW: GOVERNMENT HOLIDAYS */}
+        {currentView === 'holidays' && (
+          <div>
+            <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+              <h2 style={{ textAlign: 'center', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <Calendar size={24} /> {t('Official Government Holidays', 'الإجازات الرسمية')}
+              </h2>
+
+              {([
+                { date: t('January 7', '7 يناير'), name: t('Coptic Christmas', 'عيد الميلاد المجيد') },
+                { date: t('January 25', '25 يناير'), name: t('Revolution Day / Police Day', 'عيد الشرطة / ثورة 25 يناير') },
+                { date: t('April 25', '25 أبريل'), name: t('Sinai Liberation Day', 'عيد تحرير سيناء') },
+                { date: t('May 1', '1 مايو'), name: t('Labour Day', 'عيد العمال') },
+                { date: t('June 30', '30 يونيو'), name: t('June 30 Revolution', 'ثورة 30 يونيو') },
+                { date: t('July 23', '23 يوليو'), name: t('July 23 Revolution', 'عيد ثورة 23 يوليو') },
+                { date: t('October 6', '6 أكتوبر'), name: t('Armed Forces Day', 'عيد القوات المسلحة') },
+                { date: t('Variable (Islamic)', 'مُتغير (هجري)'), name: t('Eid al-Fitr (4 days)', 'عيد الفطر المبارك (4 أيام)') },
+                { date: t('Variable (Islamic)', 'مُتغير (هجري)'), name: t('Eid al-Adha (4 days)', 'عيد الأضحى المبارك (4 أيام)') },
+                { date: t('Variable (Islamic)', 'مُتغير (هجري)'), name: t('Islamic New Year', 'رأس السنة الهجرية') },
+                { date: t('Variable (Islamic)', 'مُتغير (هجري)'), name: t('Prophet Muhammad\'s Birthday', 'المولد النبوي الشريف') },
+              ] as const).map((holiday, i) => (
+                <div key={i} className="glass-card" style={{ padding: '1rem 1.5rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <Calendar size={16} style={{ color: 'var(--accent-red)' }} />
+                    <span style={{ fontWeight: 600 }}>{holiday.name}</span>
+                  </div>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{holiday.date}</span>
+                </div>
+              ))}
+
+              <div className="glass-card" style={{ padding: '1rem', marginTop: '1.5rem', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                {t(
+                  'Islamic (Hijri) holidays are approximate and confirmed by official authorities. Government offices are closed on all listed dates.',
+                  'الإجازات الهجرية تقريبية وتُؤكدها الجهات الرسمية. المكاتب الحكومية مُغلقة في جميع التواريخ المذكورة.'
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* VIEW: SITEMAP */}
+        {currentView === 'sitemap' && (
+          <div>
+            <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+              <h2 style={{ textAlign: 'center', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <Home size={24} /> {t('Site Map', 'خريطة الموقع')}
+              </h2>
+              <div className="glass-card" style={{ padding: '1.5rem' }}>
+                {([
+                  { view: 'home', label: t('Home', 'الرئيسية'), icon: '🏠' },
+                  { view: 'dashboard', label: t('Dashboard', 'لوحة التحكم'), icon: '📊' },
+                  { view: 'apply', label: t('Apply for Service', 'تقديم طلب'), icon: '📝' },
+                  { view: 'track', label: t('Track Application', 'تتبع الطلب'), icon: '🔍' },
+                  { view: 'appointments', label: t('Appointments', 'المواعيد'), icon: '📅' },
+                  { view: 'complaints', label: t('Feedback', 'الشكاوى'), icon: '💬' },
+                  { view: 'timeline', label: t('Timeline', 'النشاطات'), icon: '📋' },
+                  { view: 'service_directory', label: t('Service Directory', 'دليل الخدمات'), icon: '📍' },
+                  { view: 'faq', label: t('FAQ', 'الأسئلة'), icon: '❓' },
+                  { view: 'guides', label: t('Guides', 'الأدلة'), icon: '📖' },
+                  { view: 'profile', label: t('Profile', 'الملف الشخصي'), icon: '👤' },
+                  { view: 'about', label: t('About', 'عن البوابة'), icon: 'ℹ️' },
+                  { view: 'terms', label: t('Terms & Conditions', 'الشروط'), icon: '📄' },
+                  { view: 'holidays', label: t('Holidays', 'الإجازات'), icon: '🎉' },
+                  { view: 'admin', label: t('Admin Desk', 'غرفة الإدارة'), icon: '🔒' },
+                  { view: 'analytics', label: t('Analytics', 'الإحصائيات'), icon: '📈' },
+                  { view: 'admin_reports', label: t('Reports', 'التقارير'), icon: '📑' },
+                  { view: 'activity_log', label: t('Activity Log', 'سجل النشاط'), icon: '📜' },
+                ] as const).map(item => (
+                  <div key={item.view} className="sitemap-link" onClick={() => setCurrentView(item.view as typeof currentView)} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', cursor: 'pointer', borderRadius: 'var(--radius-sm)', transition: 'background 0.2s' }} onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-hover)')} onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                    <span>{item.icon}</span>
+                    <span style={{ fontWeight: 500 }}>{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* VIEW: TERMS & CONDITIONS */}
+        {currentView === 'terms' && (
+          <div>
+            <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+              <h2 style={{ textAlign: 'center', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <FileText size={24} /> {t('Terms & Conditions', 'الشروط والأحكام')}
+              </h2>
+
+              <div className="glass-card" style={{ padding: '2rem', marginBottom: '1.5rem' }}>
+                <h3 style={{ color: 'var(--accent-red)' }}>{t('1. Acceptance of Terms', '1. الموافقة على الشروط')}</h3>
+                <p style={{ lineHeight: '1.7', color: 'var(--text-secondary)', marginTop: '0.75rem' }}>
+                  {t(
+                    'By accessing and using MisrGate, you accept and agree to be bound by these Terms & Conditions. If you do not agree with any part, please discontinue use immediately.',
+                    'باستخدام بوابة مصر، فإنك توافق على الالتزام بهذه الشروط والأحكام. إذا كنت لا توافق على أي جزء منها، يرجى التوقف عن الاستخدام فوراً.'
+                  )}
+                </p>
+              </div>
+
+              <div className="glass-card" style={{ padding: '2rem', marginBottom: '1.5rem' }}>
+                <h3 style={{ color: 'var(--accent-red)' }}>{t('2. User Responsibilities', '2. مسؤوليات المستخدم')}</h3>
+                <ul style={{ lineHeight: '2', color: 'var(--text-secondary)', paddingLeft: isRtl ? '' : '1.5rem', paddingRight: isRtl ? '1.5rem' : '' }}>
+                  <li>{t('Provide accurate and up-to-date personal information', 'تقديم معلومات شخصية دقيقة ومحدثة')}</li>
+                  <li>{t('Maintain the confidentiality of your account credentials', 'الحفاظ على سرية بيانات حسابك')}</li>
+                  <li>{t('Use the portal only for lawful purposes', 'استخدام البوابة للأغراض القانونية فقط')}</li>
+                  <li>{t('Not misuse or attempt to disrupt the service', 'عدم إساءة استخدام الخدمة أو محاولة تعطيلها')}</li>
+                </ul>
+              </div>
+
+              <div className="glass-card" style={{ padding: '2rem', marginBottom: '1.5rem' }}>
+                <h3 style={{ color: 'var(--accent-red)' }}>{t('3. Data Privacy', '3. خصوصية البيانات')}</h3>
+                <p style={{ lineHeight: '1.7', color: 'var(--text-secondary)', marginTop: '0.75rem' }}>
+                  {t(
+                    'We collect and process your personal data in accordance with applicable Egyptian laws. Your data is used solely for processing government service requests and is not shared with third parties without your consent.',
+                    'نقوم بجمع ومعالجة بياناتك الشخصية وفقاً للقوانين المصرية. تُستخدم بياناتك فقط لمعالجة طلبات الخدمات الحكومية ولا تتم مشاركتها مع أطراف ثالثة دون موافقتك.'
+                  )}
+                </p>
+              </div>
+
+              <div className="glass-card" style={{ padding: '2rem', marginBottom: '1.5rem' }}>
+                <h3 style={{ color: 'var(--accent-red)' }}>{t('4. Service Availability', '4. توفر الخدمة')}</h3>
+                <p style={{ lineHeight: '1.7', color: 'var(--text-secondary)', marginTop: '0.75rem' }}>
+                  {t(
+                    'While we strive for 24/7 availability, MisrGate may occasionally be unavailable for maintenance. We are not liable for any losses arising from service interruptions.',
+                    'بينما نسعى لتوفير الخدمة على مدار الساعة، قد تكون بوابة مصر غير متاحة أحياناً للصيانة. نحن غير مسؤولين عن أي خسائر ناتجة عن انقطاع الخدمة.'
+                  )}
+                </p>
+              </div>
+
+              <div className="glass-card" style={{ padding: '2rem' }}>
+                <h3 style={{ color: 'var(--accent-red)' }}>{t('5. Contact', '5. الاتصال')}</h3>
+                <p style={{ lineHeight: '1.7', color: 'var(--text-secondary)', marginTop: '0.75rem' }}>
+                  {t(
+                    'For questions regarding these terms, please contact us through the Feedback system or call the government hotline at 15999.',
+                    'للاستفسار حول هذه الشروط، يرجى التواصل معنا عبر نظام الشكاوى أو الاتصال بالخط الساخن على 15999.'
+                  )}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* VIEW: KEYBOARD SHORTCUTS */}
+        {currentView === 'shortcuts' && (
+          <div>
+            <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+              <h2 style={{ textAlign: 'center', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <Key size={24} /> {t('Keyboard Shortcuts', 'اختصارات لوحة المفاتيح')}
+              </h2>
+              <div className="glass-card" style={{ padding: '1.5rem' }}>
+                {([
+                  { keys: 'Ctrl + Z', action: t('Undo last action', 'تراجع عن آخر إجراء') },
+                  { keys: 'Ctrl + F', action: t('Search in lists', 'بحث في القوائم') },
+                  { keys: 'Escape', action: t('Close modal / go back', 'إغلاق النافذة / الرجوع') },
+                  { keys: 'Tab', action: t('Navigate between fields', 'التنقل بين الحقول') },
+                  { keys: 'Enter', action: t('Submit form / confirm', 'إرسال النموذج / تأكيد') },
+                ]).map((s, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: i < 4 ? '1px solid var(--border-color)' : 'none', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>{s.action}</span>
+                    <kbd style={{ background: 'var(--bg-hover)', padding: '0.2rem 0.6rem', borderRadius: '4px', fontFamily: 'monospace', fontSize: '0.85rem' }}>{s.keys}</kbd>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* VIEW: FAQ SECTION */}
+        {currentView === 'faq' && (
+          <div>
+            <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+              <h2 style={{ textAlign: 'center', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <HelpCircle size={24} /> {t('Frequently Asked Questions', 'الأسئلة الشائعة')}
+              </h2>
+
+              {/* FAQ for each service */}
+              {[
+                {
+                  service: 'NATIONAL_ID' as ServiceType,
+                  title: t('National ID Cards', 'بطاقات الرقم القومي'),
+                  faqs: [
+                    { q: t('How long does it take to renew a National ID?', 'كم يستغرق تجديد بطاقة الرقم القومي؟'), a: t('Standard processing takes 7-14 business days. Expedited service is available for urgent cases.', 'المدة المعتادة من 7-14 يوم عمل. تتوفر خدمة الاستعجال للحالات الطارئة.') },
+                    { q: t('What documents are needed for a lost card replacement?', 'ما هي المستندات المطلوبة لاستخراج بدل فاقد؟'), a: t('You need a police report, original birth certificate, and two recent passport-sized photos.', 'تحتاج إلى محضر شرطة، شهادة ميلاد أصلية، وصورتين شخصيتين حديثتين.') },
+                  ],
+                },
+                {
+                  service: 'PASSPORT' as ServiceType,
+                  title: t('Egyptian Passport', 'جواز السفر المصري'),
+                  faqs: [
+                    { q: t('How long is a passport valid for?', 'ما هي مدة صلاحية جواز السفر؟'), a: t('Adult passports are valid for 7 years. Minor passports (under 18) are valid for 5 years.', 'جواز السفر للبالغين صالح لمدة 7 سنوات. للأطفال تحت 18 سنة صالح لمدة 5 سنوات.') },
+                    { q: t('Can I renew my passport online?', 'هل يمكنني تجديد جواز السفر عبر الإنترنت؟'), a: t('Yes, you can submit your renewal application through this portal and choose pickup or delivery.', 'نعم، يمكنك تقديم طلب التجديد عبر هذه البوابة واختيار الاستلام أو التوصيل.') },
+                  ],
+                },
+                {
+                  service: 'BIRTH_CERTIFICATE' as ServiceType,
+                  title: t('Civil Registry Records', 'وثائق الأحوال المدنية'),
+                  faqs: [
+                    { q: t('How can I get a certified copy of my birth certificate?', 'كيف يمكنني الحصول على شهادة ميلاد معتمدة؟'), a: t('Submit a request through the portal. Certified copies are delivered within 3-5 business days.', 'قدم طلباً عبر البوابة. يتم تسليم الشهادات المعتمدة خلال 3-5 أيام عمل.') },
+                  ],
+                },
+                {
+                  service: 'MILITARY_EXEMPTION' as ServiceType,
+                  title: t('Military & Recruitment', 'التجنيد والتعبئة'),
+                  faqs: [
+                    { q: t('Who is eligible for military exemption?', 'من يحق له الإعفاء من الخدمة العسكرية؟'), a: t('Exemption is granted for medical reasons, sole breadwinners, and those with specific family circumstances. Submit your documents for review.', 'يمنح الإعفاء للأسباب الطبية، والمعيل الوحيد، وذوي الظروف العائلية الخاصة. قدم مستنداتك للمراجعة.') },
+                  ],
+                },
+                {
+                  service: 'TAX_PAYMENT' as ServiceType,
+                  title: t('Tax Payment', 'سداد الضرائب'),
+                  faqs: [
+                    { q: t('What payment methods are accepted?', 'ما هي طرق الدفع المقبولة؟'), a: t('We accept credit/debit cards, bank transfers, and e-wallet payments through the portal.', 'نقبل بطاقات الائتمان/الخصم والتحويلات البنكية والمحافظ الإلكترونية عبر البوابة.') },
+                  ],
+                },
+                {
+                  service: 'TRAFFIC_FINE' as ServiceType,
+                  title: t('Traffic Violations', 'مخالفات المرور'),
+                  faqs: [
+                    { q: t('How can I check my traffic fines?', 'كيف يمكنني الاستعلام عن مخالفات المرور؟'), a: t('Enter your vehicle plate number in the search section on the home page. You can pay fines directly online.', 'أدخل رقم لوحة سيارتك في قسم البحث بالصفحة الرئيسية. يمكنك سداد المخالفات مباشرة عبر الإنترنت.') },
+                  ],
+                },
+                {
+                  service: 'HEALTH_INSURANCE' as ServiceType,
+                  title: t('Health Insurance', 'التأمين الصحي'),
+                  faqs: [
+                    { q: t('How do I register for health insurance?', 'كيف أسجل في التأمين الصحي؟'), a: t('Fill out the application form with your personal details and dependents information. You will receive a confirmation within 5 business days.', 'املأ نموذج الطلب ببياناتك الشخصية وبيانات المعالين. ستتلقى تأكيداً خلال 5 أيام عمل.') },
+                  ],
+                },
+                {
+                  service: 'SOCIAL_INSURANCE' as ServiceType,
+                  title: t('Social Insurance', 'التأمينات الاجتماعية'),
+                  faqs: [
+                    { q: t('Who can apply for social insurance?', 'من يمكنه التقدم للتأمينات الاجتماعية؟'), a: t('Employees, employers, and voluntary contributors can apply. Pensions and other social benefits are also handled through this service.', 'يمكن للعاملين وأصحاب العمل والمشتركين بالتطوع التقديم. يتم أيضاً التعامل مع المعاشات والمزايا الاجتماعية الأخرى عبر هذه الخدمة.') },
+                  ],
+                },
+              ].map(section => (
+                <div key={section.service} className="glass-card" style={{ padding: '1.25rem', marginBottom: '1.25rem', textAlign: isRtl ? 'right' : 'left', direction: isRtl ? 'rtl' : 'ltr' }}>
+                  <h3 style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    {getServiceLabel(section.service)}
+                  </h3>
+                  {section.faqs.map((faq, i) => (
+                    <details key={i} style={{ marginBottom: '0.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+                      <summary style={{ cursor: 'pointer', fontWeight: 500, padding: '0.5rem 0', fontSize: '0.9rem' }}>
+                        {faq.q}
+                      </summary>
+                      <p style={{ padding: '0.5rem 0 0.25rem 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                        {faq.a}
+                      </p>
+                    </details>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* VIEW: ADMIN COMPLAINTS MANAGEMENT */}
+        {currentView === 'admin_complaints' && user?.role === 'ADMIN' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+              <h2>{t('Complaints Management', 'إدارة الشكاوى')}</h2>
+              <button className="btn btn-secondary" onClick={goToAdmin}>
+                {t('← Admin Desk', '← غرفة الإدارة')}
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+              <select value={adminComplaintFilter.category} onChange={(e) => setAdminComplaintFilter({ ...adminComplaintFilter, category: e.target.value })} style={{ padding: '0.4rem', fontSize: '0.8rem' }}>
+                <option value="ALL">{t('All Categories', 'كل التصنيفات')}</option>
+                <option value="SERVICE_QUALITY">{t('Service Quality', 'جودة الخدمة')}</option>
+                <option value="TECHNICAL_ISSUE">{t('Technical Issue', 'مشكلة تقنية')}</option>
+                <option value="SUGGESTION">{t('Suggestion', 'اقتراح')}</option>
+                <option value="STAFF_CONDUCT">{t('Staff Conduct', 'سلوك الموظفين')}</option>
+                <option value="DELAY_COMPLAINT">{t('Delay Complaint', 'شكوى تأخير')}</option>
+                <option value="OTHER">{t('Other', 'أخرى')}</option>
+              </select>
+              <select value={adminComplaintFilter.status} onChange={(e) => setAdminComplaintFilter({ ...adminComplaintFilter, status: e.target.value })} style={{ padding: '0.4rem', fontSize: '0.8rem' }}>
+                <option value="ALL">{t('All Statuses', 'كل الحالات')}</option>
+                <option value="OPEN">{t('Open', 'مفتوحة')}</option>
+                <option value="UNDER_REVIEW">{t('Under Review', 'قيد المراجعة')}</option>
+                <option value="RESOLVED">{t('Resolved', 'تم الحل')}</option>
+                <option value="CLOSED">{t('Closed', 'مغلقة')}</option>
+              </select>
+              <button className="btn btn-secondary" onClick={fetchAdminComplaints} style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>
+                {t('Filter', 'تصفية')}
+              </button>
+            </div>
+
+            <div className="glass-card" style={{ textAlign: isRtl ? 'right' : 'left' }}>
+              {adminComplaints.length === 0 ? (
+                <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem' }}>
+                  {t('No complaints found.', 'لا توجد شكاوى.')}
+                </p>
+              ) : (
+                <div className="admin-table-container">
+                  <table className="admin-table" style={{ textAlign: isRtl ? 'right' : 'left' }}>
+                    <thead>
+                      <tr>
+                        <th>{t('Citizen', 'المواطن')}</th>
+                        <th>{t('Category', 'التصنيف')}</th>
+                        <th>{t('Subject', 'الموضوع')}</th>
+                        <th>{t('Status', 'الحالة')}</th>
+                        <th>{t('Date', 'التاريخ')}</th>
+                        <th>{t('Action', 'إجراء')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {adminComplaints.map(c => (
+                        <tr key={c.id}>
+                          <td>
+                            <div style={{ fontWeight: '700' }}>{c.user?.name}</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{c.user?.email}</div>
+                          </td>
+                          <td>{c.category.replace(/_/g, ' ')}</td>
+                          <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.subject}</td>
+                          <td><span className={`status-badge status-${c.status === 'RESOLVED' || c.status === 'CLOSED' ? 'COMPLETED' : c.status === 'UNDER_REVIEW' ? 'UNDER_REVIEW' : 'PENDING'}`}>{c.status}</span></td>
+                          <td>{new Date(c.createdAt).toLocaleDateString()}</td>
+                          <td>
+                            <button className="btn btn-primary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }} onClick={() => { setSelectedComplaint(c); setComplaintResponse(c.response || ''); }}>
+                              {c.status === 'RESOLVED' || c.status === 'CLOSED' ? t('View', 'عرض') : t('Respond', 'رد')}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Complaint Response Modal */}
+            {selectedComplaint && (
+              <div className="modal-overlay">
+                <div className="glass-card modal-content" style={{ textAlign: isRtl ? 'right' : 'left' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem', marginBottom: '1.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                    <h3 style={{ color: 'var(--accent-red)' }}>{t('Complaint Details', 'تفاصيل الشكوى')}</h3>
+                    <button className="btn btn-secondary" onClick={() => setSelectedComplaint(null)} style={{ padding: '0.35rem 0.6rem' }}><X size={16} /></button>
+                  </div>
+                  <div style={{ marginBottom: '1rem' }}>
+                    <p><strong>{t('From:', 'من:')}</strong> {selectedComplaint.user?.name} ({selectedComplaint.user?.email})</p>
+                    <p><strong>{t('Category:', 'التصنيف:')}</strong> {selectedComplaint.category.replace(/_/g, ' ')}</p>
+                    <p><strong>{t('Subject:', 'الموضوع:')}</strong> {selectedComplaint.subject}</p>
+                  </div>
+                  <div style={{ background: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--border-radius-md)', marginBottom: '1.5rem', border: '1px solid var(--border-color)' }}>
+                    <p style={{ fontSize: '0.9rem' }}>{selectedComplaint.message}</p>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+                      {new Date(selectedComplaint.createdAt).toLocaleString()}
+                    </div>
+                  </div>
+                  {selectedComplaint.response && (
+                    <div style={{ background: 'var(--bg-success)', padding: '1rem', borderRadius: 'var(--border-radius-md)', marginBottom: '1.5rem', border: '1px solid var(--border-success)' }}>
+                      <strong>{t('Previous Response:', 'الرد السابق:')}</strong>
+                      <p style={{ fontSize: '0.9rem', marginTop: '0.25rem' }}>{selectedComplaint.response}</p>
+                      {selectedComplaint.respondedBy && <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>{t('By:', 'بواسطة:')} {selectedComplaint.respondedBy}</div>}
+                    </div>
+                  )}
+                  {(selectedComplaint.status === 'OPEN' || selectedComplaint.status === 'UNDER_REVIEW') && (
+                    <form onSubmit={handleComplaintResponse}>
+                      <div className="form-group">
+                        <label>{t('Your Response', 'ردك')}</label>
+                        <textarea
+                          rows={3}
+                          required
+                          value={complaintResponse}
+                          onChange={(e) => setComplaintResponse(e.target.value)}
+                          placeholder={t('Write your response to the citizen...', 'اكتب ردك على المواطن...')}
+                        />
+                      </div>
+                      <button type="submit" className="btn btn-primary">
+                        {t('Submit Response', 'إرسال الرد')}
+                      </button>
+                    </form>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* VIEW: CITIZEN APPOINTMENTS */}
+        {currentView === 'appointments' && user && (
+          <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: isRtl ? 'right' : 'left' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+              <h2>{t('My Appointments', 'مواعيدي')}</h2>
+              <button className="btn btn-secondary" onClick={goToDashboard}>
+                {t('← Dashboard', '← لوحة التحكم')}
+              </button>
+            </div>
+
+            {/* Booking Form */}
+            <div className="glass-card" style={{ marginBottom: '2rem' }}>
+              <h3 style={{ marginBottom: '1rem', color: 'var(--accent-red)' }}>{t('Book New Appointment', 'حجز موعد جديد')}</h3>
+              {appointmentSuccess && (
+                <div className="success-banner"><CheckCircle size={18} /> {t('Appointment booked successfully!', 'تم حجز الموعد بنجاح!')}</div>
+              )}
+              <form onSubmit={handleBookAppointment}>
+                <div className="form-group">
+                  <label>{t('Department', 'الإدارة')}</label>
+                  <select
+                    value={appointmentForm.department}
+                    onChange={(e) => { setAppointmentForm({ ...appointmentForm, department: e.target.value }); fetchAvailableSlots(appointmentForm.date, e.target.value); }}
+                  >
+                    <option value="CIVIL_REGISTRY">{t('Civil Registry', 'الأحوال المدنية')}</option>
+                    <option value="PASSPORT_OFFICE">{t('Passport Office', 'مكتب الجوازات')}</option>
+                    <option value="TRAFFIC_DEPARTMENT">{t('Traffic Department', 'إدارة المرور')}</option>
+                    <option value="SOCIAL_INSURANCE">{t('Social Insurance', 'التأمينات الاجتماعية')}</option>
+                    <option value="HEALTH_INSURANCE">{t('Health Insurance', 'التأمين الصحي')}</option>
+                    <option value="TAX_AUTHORITY">{t('Tax Authority', 'مصلحة الضرائب')}</option>
+                    <option value="MILITARY_RECRUITMENT">{t('Military Recruitment', 'التجنيد والتعبئة')}</option>
+                    <option value="GENERAL_INQUIRY">{t('General Inquiry', 'استعلامات عامة')}</option>
+                  </select>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>{t('Date', 'التاريخ')}</label>
+                    <input
+                      type="date"
+                      required
+                      value={appointmentForm.date}
+                      onChange={(e) => { setAppointmentForm({ ...appointmentForm, date: e.target.value }); fetchAvailableSlots(e.target.value, appointmentForm.department); }}
+                      min={new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>{t('Time Slot', 'الفترة الزمنية')}</label>
+                    <select
+                      required
+                      value={appointmentForm.timeSlot}
+                      onChange={(e) => setAppointmentForm({ ...appointmentForm, timeSlot: e.target.value })}
+                    >
+                      <option value="">{t('Select a time slot...', 'اختر موعداً...')}</option>
+                      {availableSlots.map(slot => (
+                        <option key={slot} value={slot}>{slot}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <button type="submit" className="btn btn-primary" disabled={appointmentLoading}>
+                  {appointmentLoading ? <Loader2 className="spinner" size={16} /> : t('Book Appointment', 'حجز الموعد')}
+                </button>
+              </form>
+            </div>
+
+            {/* My Existing Appointments */}
+            <div className="glass-card">
+              <h3 style={{ marginBottom: '1rem', color: 'var(--accent-red)' }}>{t('My Appointments', 'مواعيدي')}</h3>
+              {appointments.length === 0 ? (
+                <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem' }}>{t('No appointments booked.', 'لا توجد مواعيد محجوزة.')}</p>
+              ) : (
+                <div>
+                  {appointments.map(a => (
+                    <div key={a.id} style={{ borderBottom: '1px solid var(--border-color)', padding: '1rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                      <div>
+                        <strong>{a.department.replace(/_/g, ' ')}</strong>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{new Date(a.date).toLocaleDateString()} — {a.timeSlot}</div>
+                        <span className={`status-badge status-${a.status === 'SCHEDULED' ? 'PENDING' : a.status === 'CONFIRMED' ? 'UNDER_REVIEW' : a.status === 'COMPLETED' || a.status === 'CANCELLED' ? 'COMPLETED' : 'REJECTED'}`}>{a.status}</span>
+                      </div>
+                      {a.status === 'SCHEDULED' && (
+                        <button className="btn btn-danger" style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }} onClick={() => handleCancelAppointment(a.id)}>
+                          {t('Cancel', 'إلغاء')}
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* VIEW: ADMIN APPOINTMENTS MANAGEMENT */}
+        {currentView === 'admin_appointments' && user?.role === 'ADMIN' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+              <h2>{t('Appointments Management', 'إدارة المواعيد')}</h2>
+              <button className="btn btn-secondary" onClick={goToAdmin}>{t('← Admin Desk', '← غرفة الإدارة')}</button>
+            </div>
+            <div className="glass-card" style={{ textAlign: isRtl ? 'right' : 'left' }}>
+              <div className="admin-table-container">
+                <table className="admin-table" style={{ textAlign: isRtl ? 'right' : 'left' }}>
+                  <thead>
+                    <tr>
+                      <th>{t('Citizen', 'المواطن')}</th>
+                      <th>{t('Department', 'الإدارة')}</th>
+                      <th>{t('Date', 'التاريخ')}</th>
+                      <th>{t('Time', 'الموعد')}</th>
+                      <th>{t('Status', 'الحالة')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {adminAppointments.map(a => (
+                      <tr key={a.id}>
+                        <td><div style={{ fontWeight: 700 }}>{a.user?.name}</div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{a.user?.nationalId}</div></td>
+                        <td>{a.department.replace(/_/g, ' ')}</td>
+                        <td>{new Date(a.date).toLocaleDateString()}</td>
+                        <td>{a.timeSlot}</td>
+                        <td><span className={`status-badge status-${a.status === 'SCHEDULED' ? 'PENDING' : a.status === 'CONFIRMED' ? 'UNDER_REVIEW' : a.status === 'COMPLETED' ? 'COMPLETED' : 'REJECTED'}`}>{a.status}</span></td>
+                      </tr>
+                    ))}
+                    {adminAppointments.length === 0 && (
+                      <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem' }}>{t('No appointments found.', 'لا توجد مواعيد.')}</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* VIEW: ACTIVITY LOG (ADMIN) */}
+        {currentView === 'activity_log' && user?.role === 'ADMIN' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+              <h2>{t('System Activity Log', 'سجل نشاط النظام')}</h2>
+              <button className="btn btn-secondary" onClick={goToAdmin}>{t('← Admin Desk', '← غرفة الإدارة')}</button>
+            </div>
+            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+              <select value={activityActionFilter} onChange={(e) => { setActivityActionFilter(e.target.value); }} style={{ padding: '0.4rem', fontSize: '0.8rem' }}>
+                <option value="">{t('All Actions', 'كل الإجراءات')}</option>
+                <option value="SUBMIT_APPLICATION">{t('Submit Application', 'تقديم طلب')}</option>
+                <option value="UPDATE_APPLICATION_STATUS">{t('Update Status', 'تحديث الحالة')}</option>
+                <option value="SYSTEM_STARTUP">{t('System', 'النظام')}</option>
+              </select>
+              <button className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }} onClick={() => fetchActivities(1)}>
+                {t('Filter', 'تصفية')}
+              </button>
+            </div>
+            <div className="glass-card" style={{ textAlign: isRtl ? 'right' : 'left' }}>
+              <div className="admin-table-container">
+                <table className="admin-table" style={{ textAlign: isRtl ? 'right' : 'left' }}>
+                  <thead>
+                    <tr>
+                      <th>{t('Time', 'الوقت')}</th>
+                      <th>{t('User', 'المستخدم')}</th>
+                      <th>{t('Action', 'الإجراء')}</th>
+                      <th>{t('Details', 'التفاصيل')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {activityEntries.map(a => (
+                      <tr key={a.id}>
+                        <td style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>{new Date(a.createdAt).toLocaleString()}</td>
+                        <td><span style={{ fontWeight: 600 }}>{a.userName}</span></td>
+                        <td><span className={`status-badge status-${a.action === 'SUBMIT_APPLICATION' ? 'PENDING' : a.action === 'UPDATE_APPLICATION_STATUS' ? 'UNDER_REVIEW' : 'COMPLETED'}`}>{a.action.replace(/_/g, ' ')}</span></td>
+                        <td style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', maxWidth: '300px' }}>{a.details}</td>
+                      </tr>
+                    ))}
+                    {activityEntries.length === 0 && (
+                      <tr><td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem' }}>{t('No activities found.', 'لا توجد أنشطة.')}</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              {activityTotalPages > 1 && (
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '1.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                  <button className="btn btn-secondary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }} disabled={activityPage <= 1} onClick={() => fetchActivities(activityPage - 1)}>
+                    {t('‹ Prev', '‹ السابق')}
+                  </button>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{t('Page', 'صفحة')} {activityPage} / {activityTotalPages}</span>
+                  <button className="btn btn-secondary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }} disabled={activityPage >= activityTotalPages} onClick={() => fetchActivities(activityPage + 1)}>
+                    {t('Next ›', 'التالي ›')}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* VIEW: ANALYTICS DASHBOARD */}
+        {currentView === 'analytics' && user?.role === 'ADMIN' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><TrendingUp size={22} /> {t('Service Analytics', 'تحليلات الخدمات')}</h2>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{t('Period:', 'الفترة:')}</span>
+                {[7, 30, 90].map(d => (
+                  <button key={d} className={`btn ${analyticsDays === d ? 'btn-primary' : 'btn-secondary'}`} onClick={() => { setAnalyticsDays(d); fetchAnalytics(d); }} style={{ padding: '0.3rem 0.7rem', fontSize: '0.8rem' }}>
+                    {d}{t('d', 'ي')}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {analyticsLoading ? (
+              <div style={{ textAlign: 'center', padding: '3rem' }}><Loader2 className="spinner" size={24} /></div>
+            ) : analyticsData ? (
+              <>
+                {/* Overview Cards */}
+                <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+                  <div className="stat-card"><div className="stat-value">{analyticsData.overview.totalApplications}</div><div className="stat-label">{t('Applications', 'الطلبات')}</div></div>
+                  <div className="stat-card"><div className="stat-value">{analyticsData.overview.totalUsers}</div><div className="stat-label">{t('Users', 'المستخدمون')}</div></div>
+                  <div className="stat-card"><div className="stat-value">{analyticsData.overview.totalComplaints}</div><div className="stat-label">{t('Complaints', 'الشكاوى')}</div></div>
+                  <div className="stat-card"><div className="stat-value">{analyticsData.overview.totalAppointments}</div><div className="stat-label">{t('Appointments', 'المواعيد')}</div></div>
+                  <div className="stat-card"><div className="stat-value">{analyticsData.overview.totalRatings}</div><div className="stat-label">{t('Ratings', 'التقييمات')}</div></div>
+                  <div className="stat-card"><div className="stat-value">{analyticsData.overview.averageRating.toFixed(1)} ★</div><div className="stat-label">{t('Avg Rating', 'متوسط التقييم')}</div></div>
+                </div>
+
+                {/* Two-column charts */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+                  {/* Apps by Service */}
+                  <div className="glass-card" style={{ padding: '1.25rem' }}>
+                    <h4 style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>{t('Applications by Service', 'الطلبات حسب الخدمة')}</h4>
+                    {Object.entries(analyticsData.appsByService).map(([key, val]) => {
+                      const total = analyticsData.overview.totalApplications || 1;
+                      const pct = (val / total) * 100;
+                      return (
+                        <div key={key} style={{ marginBottom: '0.5rem' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.2rem' }}>
+                            <span>{key.replace(/_/g, ' ')}</span>
+                            <span style={{ fontWeight: 600 }}>{val}</span>
+                          </div>
+                          <div style={{ height: '6px', background: 'var(--bg-progress-bar)', borderRadius: '3px', overflow: 'hidden' }}>
+                            <div style={{ height: '100%', width: `${pct}%`, background: 'var(--accent-red)', borderRadius: '3px', transition: 'width 0.5s ease' }}></div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Apps by Status */}
+                  <div className="glass-card" style={{ padding: '1.25rem' }}>
+                    <h4 style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>{t('Applications by Status', 'الطلبات حسب الحالة')}</h4>
+                    {Object.entries(analyticsData.appsByStatus).map(([key, val]) => {
+                      const total = analyticsData.overview.totalApplications || 1;
+                      const pct = (val / total) * 100;
+                      return (
+                        <div key={key} style={{ marginBottom: '0.5rem' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.2rem' }}>
+                            <span className={`status-badge status-${key}`} style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem' }}>{key}</span>
+                            <span style={{ fontWeight: 600 }}>{val}</span>
+                          </div>
+                          <div style={{ height: '6px', background: 'var(--bg-progress-bar)', borderRadius: '3px', overflow: 'hidden' }}>
+                            <div style={{ height: '100%', width: `${pct}%`, background: key === 'COMPLETED' ? 'var(--accent-green)' : key === 'REJECTED' ? 'var(--accent-red)' : key === 'APPROVED' ? 'var(--accent-blue)' : key === 'UNDER_REVIEW' ? 'var(--accent-gold)' : 'var(--text-muted)', borderRadius: '3px', transition: 'width 0.5s ease' }}></div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Trend chart */}
+                <div className="glass-card" style={{ padding: '1.25rem', marginBottom: '1.5rem' }}>
+                  <h4 style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>{t(`Application Trend (Last ${analyticsDays} Days)`, `اتجاه الطلبات (آخر ${analyticsDays} يوماً)`)}</h4>
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '2px', height: '120px', padding: '0.5rem 0' }}>
+                    {analyticsData.appsTrend.map((point, i) => {
+                      const maxCount = Math.max(...analyticsData.appsTrend.map(p => p.count), 1);
+                      const height = (point.count / maxCount) * 100;
+                      return (
+                        <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                          <div style={{ width: '100%', height: `${height}%`, background: 'var(--accent-red)', borderRadius: '2px 2px 0 0', minHeight: '4px', transition: 'height 0.3s ease', opacity: 0.8 }} title={`${point.date}: ${point.count}`}></div>
+                          {analyticsData.appsTrend.length <= 14 && (
+                            <span style={{ fontSize: '0.55rem', color: 'var(--text-muted)', transform: 'rotate(-45deg)', whiteSpace: 'nowrap' }}>
+                              {point.date.slice(5)}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Second row: Complaints + Appointments */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                  <div className="glass-card" style={{ padding: '1.25rem' }}>
+                    <h4 style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>{t('Complaints by Category', 'الشكاوى حسب التصنيف')}</h4>
+                    {Object.entries(analyticsData.complaintsByCategory).map(([key, val]) => (
+                      <div key={key} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', borderBottom: '1px solid var(--border-color)', fontSize: '0.85rem' }}>
+                        <span>{key.replace(/_/g, ' ')}</span>
+                        <span style={{ fontWeight: 600 }}>{val}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="glass-card" style={{ padding: '1.25rem' }}>
+                    <h4 style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>{t('Appointments by Department', 'المواعيد حسب القسم')}</h4>
+                    {Object.entries(analyticsData.appointmentsByDepartment).map(([key, val]) => (
+                      <div key={key} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', borderBottom: '1px solid var(--border-color)', fontSize: '0.85rem' }}>
+                        <span>{key.replace(/_/g, ' ')}</span>
+                        <span style={{ fontWeight: 600 }}>{val}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="glass-card" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+                {t('No analytics data available yet.', 'لا توجد بيانات تحليلات متاحة بعد.')}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* VIEW: ADMIN REPORTS */}
+        {currentView === 'admin_reports' && user?.role === 'ADMIN' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FileText size={22} /> {t('System Reports', 'تقارير النظام')}</h2>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <select value={reportPeriod} onChange={(e) => { setReportPeriod(e.target.value); fetchReport(e.target.value); }} style={{ padding: '0.4rem', fontSize: '0.8rem' }}>
+                  <option value="7">{t('Last 7 Days', 'آخر 7 أيام')}</option>
+                  <option value="30">{t('Last 30 Days', 'آخر 30 يوم')}</option>
+                  <option value="90">{t('Last 90 Days', 'آخر 90 يوم')}</option>
+                </select>
+                <button className="btn btn-secondary" onClick={() => window.print()} style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }}>
+                  <Printer size={12} /> {t('Print / PDF', 'طباعة / PDF')}
+                </button>
+                <button className="btn btn-secondary" onClick={goToAdmin}>{t('← Admin Desk', '← غرفة الإدارة')}</button>
+              </div>
+            </div>
+
+            {reportLoading ? (
+              <div style={{ textAlign: 'center', padding: '3rem' }}><Loader2 className="spinner" size={24} /></div>
+            ) : reportData ? (
+              <div className="report-container">
+                {/* Summary section */}
+                <div className="glass-card" style={{ padding: '1.25rem', marginBottom: '1.5rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', color: 'var(--text-muted)', fontSize: '0.85rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                    <span>{t('Period:', 'الفترة:')} {reportData.period}</span>
+                    <span>{t('Generated:', 'تم التوليد:')} {new Date(reportData.generatedAt).toLocaleString()}</span>
+                  </div>
+                  <div className="stats-section" style={{ direction: isRtl ? 'rtl' : 'ltr' }}>
+                    <div className="stat-card"><div className="stat-number">{reportData.totalUsers}</div><div className="stat-label">{t('Users', 'المستخدمون')}</div></div>
+                    <div className="stat-card"><div className="stat-number">{reportData.totalApplications}</div><div className="stat-label">{t('Applications', 'الطلبات')}</div></div>
+                    <div className="stat-card"><div className="stat-number">{reportData.totalComplaints}</div><div className="stat-label">{t('Complaints', 'الشكاوى')}</div></div>
+                    <div className="stat-card"><div className="stat-number">{reportData.totalAppointments}</div><div className="stat-label">{t('Appointments', 'المواعيد')}</div></div>
+                    <div className="stat-card"><div className="stat-number">{reportData.totalNotifications}</div><div className="stat-label">{t('Notifications', 'الإشعارات')}</div></div>
+                    <div className="stat-card"><div className="stat-number">{reportData.totalRatings}</div><div className="stat-label">{t('Ratings', 'التقييمات')}</div></div>
+                    <div className="stat-card"><div className="stat-number">{reportData.averageRating.toFixed(1)} ★</div><div className="stat-label">{t('Avg Rating', 'متوسط التقييم')}</div></div>
+                  </div>
+                </div>
+
+                {/* By Service */}
+                <div className="glass-card" style={{ padding: '1.25rem', marginBottom: '1rem' }}>
+                  <h3 style={{ marginBottom: '0.75rem' }}>{t('Applications by Service', 'الطلبات حسب الخدمة')}</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.5rem' }}>
+                    {Object.entries(reportData.byService).map(([key, val]) => (
+                      <div key={key} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0.5rem', background: 'var(--bg-subtle)', borderRadius: 'var(--border-radius-sm)', fontSize: '0.85rem' }}>
+                        <span>{getServiceLabel(key)}</span>
+                        <span style={{ fontWeight: 600 }}>{val}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* By Status */}
+                <div className="glass-card" style={{ padding: '1.25rem', marginBottom: '1rem' }}>
+                  <h3 style={{ marginBottom: '0.75rem' }}>{t('Applications by Status', 'الطلبات حسب الحالة')}</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '0.5rem' }}>
+                    {Object.entries(reportData.byStatus).map(([key, val]) => (
+                      <div key={key} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0.5rem', background: 'var(--bg-subtle)', borderRadius: 'var(--border-radius-sm)', fontSize: '0.85rem' }}>
+                        <span>{key}</span>
+                        <span style={{ fontWeight: 600 }}>{val}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Recent Activity */}
+                {reportData.activities.length > 0 && (
+                  <div className="glass-card" style={{ padding: '1.25rem', marginBottom: '1rem' }}>
+                    <h3 style={{ marginBottom: '0.75rem' }}>{t('Recent Activity', 'النشاط الأخير')}</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                      {reportData.activities.slice(0, 10).map(a => (
+                        <div key={a.id} style={{ fontSize: '0.82rem', display: 'flex', justifyContent: 'space-between', padding: '0.3rem 0', borderBottom: '1px solid var(--border-color)', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                          <span><strong>{a.userName}</strong> — {a.action}</span>
+                          <span style={{ color: 'var(--text-muted)' }}>{new Date(a.createdAt).toLocaleDateString()}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="glass-card" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+                {t('Select a period and generate a report.', 'اختر فترة وقم بتوليد تقرير.')}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* VIEW: ADMIN ANNOUNCEMENTS MANAGEMENT */}
+        {currentView === 'admin_announcements' && user?.role === 'ADMIN' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Megaphone size={22} /> {t('Announcements', 'الإعلانات')}</h2>
+              <button className="btn btn-secondary" onClick={goToAdmin}>{t('← Admin Desk', '← غرفة الإدارة')}</button>
+            </div>
+
+            {/* Create Announcement Form */}
+            <div className="glass-card" style={{ padding: '1.25rem', marginBottom: '1.5rem' }}>
+              <h3 style={{ marginBottom: '1rem' }}>{t('New Announcement', 'إعلان جديد')}</h3>
+              {announcementFormSuccess && <div className="success-banner" style={{ marginBottom: '1rem' }}>{announcementFormSuccess}</div>}
+              {announcementFormError && <div className="error-banner" style={{ marginBottom: '1rem' }}>{announcementFormError}</div>}
+              <form onSubmit={handleCreateAnnouncement} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <input
+                  type="text"
+                  placeholder={t('Announcement title...', 'عنوان الإعلان...')}
+                  value={announcementForm.title}
+                  onChange={(e) => setAnnouncementForm(prev => ({ ...prev, title: e.target.value }))}
+                  style={{ padding: '0.5rem', fontSize: '0.9rem' }}
+                />
+                <textarea
+                  placeholder={t('Announcement message...', 'نص الإعلان...')}
+                  value={announcementForm.message}
+                  onChange={(e) => setAnnouncementForm(prev => ({ ...prev, message: e.target.value }))}
+                  rows={3}
+                  style={{ padding: '0.5rem', fontSize: '0.9rem', resize: 'vertical' }}
+                />
+                <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>
+                  {t('Publish Announcement', 'نشر الإعلان')}
+                </button>
+              </form>
+            </div>
+
+            {/* Announcements List */}
+            <div className="glass-card" style={{ padding: '1.25rem' }}>
+              <h3 style={{ marginBottom: '1rem' }}>{t('Manage Announcements', 'إدارة الإعلانات')}</h3>
+              {adminAnnouncements.length === 0 ? (
+                <p style={{ color: 'var(--text-muted)' }}>{t('No announcements yet.', 'لا توجد إعلانات بعد.')}</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {adminAnnouncements.map(a => (
+                    <div key={a.id} className="glass-card" style={{ padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexDirection: isRtl ? 'row-reverse' : 'row', gap: '1rem' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <strong>{a.title}</strong>
+                          <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', background: a.active ? 'var(--accent-green)' : 'var(--text-muted)', color: 'var(--accent-white)' }}>
+                            {a.active ? t('Active', 'نشط') : t('Inactive', 'غير نشط')}
+                          </span>
+                        </div>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>{a.message}</p>
+                        <small style={{ color: 'var(--text-muted)' }}>{new Date(a.createdAt).toLocaleDateString()}</small>
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+                        <button className={`btn ${a.active ? 'btn-secondary' : 'btn-primary'}`} style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={() => handleToggleAnnouncement(a.id, a.active)}>
+                          {a.active ? t('Deactivate', 'إيقاف') : t('Activate', 'تفعيل')}
+                        </button>
+                        <button className="btn btn-danger" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={() => handleDeleteAnnouncement(a.id)}>
+                          <X size={12} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* VIEW: ADMIN MODERATION PANEL */}
+        {currentView === 'admin' && user?.role === 'ADMIN' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+              <h2>{t('Officer Audit Room', 'غرفة مراجعة وتوقيع المعاملات')}</h2>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <div className="export-btns" style={{ display: 'flex', gap: '0.35rem' }}>
+                  <button className="btn btn-secondary" onClick={() => downloadCSV('applications', 'applications.csv')} style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }}>
+                    <Download size={12} /> {t('CSV', 'CSV')}
+                  </button>
+                  <button className="btn btn-secondary" onClick={() => downloadCSV('complaints', 'complaints.csv')} style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }}>
+                    <Download size={12} /> {t('CMP', 'الشكاوى')}
+                  </button>
+                  <button className="btn btn-secondary" onClick={() => downloadCSV('appointments', 'appointments.csv')} style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }}>
+                    <Download size={12} /> {t('APT', 'المواعيد')}
+                  </button>
+                </div>
+                <button className="btn btn-secondary" onClick={() => fetchAdminData()}>
+                  {t('Refresh', 'تحديث')}
+                </button>
+              </div>
+            </div>
+
+            {/* Dashboard metrics cards */}
+            {adminStats && (
+              <div className="stats-section" style={{ direction: isRtl ? 'rtl' : 'ltr' }}>
+                <div className="stat-card">
+                  <div className="stat-number">{adminStats.totalApplications}</div>
+                  <div className="stat-label">{t('Total Requests', 'إجمالي الطلبات')}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-number">{adminStats.byStatus.PENDING}</div>
+                  <div className="stat-label">{t('Pending Review', 'قيد الانتظار')}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-number">{adminStats.byStatus.APPROVED + adminStats.byStatus.COMPLETED}</div>
+                  <div className="stat-label">{t('Approved & Printed', 'المعتمدة والمكتملة')}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-number">{adminStats.totalUsers}</div>
+                  <div className="stat-label">{t('Registered Citizens', 'المواطنون بالبوابة')}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-number" style={{ color: 'var(--accent-red)' }}>{adminComplaints.filter(c => c.status === 'OPEN').length}</div>
+                  <div className="stat-label">{t('Pending Complaints', 'شكاوى معلقة')}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-number" style={{ color: 'var(--accent-red)' }}>{adminAppointments.filter(a => new Date(a.date).toDateString() === new Date().toDateString()).length}</div>
+                  <div className="stat-label">{t('Appts Today', 'مواعيد اليوم')}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-number">{adminAnnouncements.length}</div>
+                  <div className="stat-label">{t('Announcements', 'الإعلانات')}</div>
+                </div>
+              </div>
+            )}
+
+            {/* Main Application Moderation Table */}
+            <div className="glass-card" style={{ textAlign: isRtl ? 'right' : 'left' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                <h3>{t('Submissions Queue', 'قائمة معاملات المواطنين المجدولة للتدقيق')}</h3>
+                
+                {/* Filter & Search section */}
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                  <div className="hero-search" style={{ margin: 0, flex: '1 1 200px', maxWidth: '300px' }}>
+                    <input
+                      type="text"
+                      placeholder={t('Search by name, code, or national ID...', 'بحث بالاسم أو الكود أو الرقم القومي...')}
+                      value={adminSearch}
+                      onChange={(e) => setAdminSearch(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') fetchAdminData(1); }}
+                      style={{ border: 'none', background: 'transparent', flex: 1, padding: '0.4rem', fontSize: '0.8rem' }}
+                    />
+                    <button className="btn btn-primary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={() => fetchAdminData(1)}>
+                      <Search size={13} />
+                    </button>
+                  </div>
+                  <select value={adminFilterService} onChange={(e) => { setAdminFilterService(e.target.value); }} style={{ padding: '0.4rem', fontSize: '0.8rem' }}>
+                    <option value="ALL">{t('All Services', 'كل الخدمات')}</option>
+                    <option value="NATIONAL_ID">{t('National ID Cards', 'بطاقات الرقم القومي')}</option>
+                    <option value="MILITARY_EXEMPTION">{t('Military / Recruitment', 'المعاملات العسكرية')}</option>
+                    <option value="BIRTH_CERTIFICATE">{t('Birth Certificates', 'شهادات الميلاد')}</option>
+                    <option value="PASSPORT">{t('Passports', 'جوازات السفر')}</option>
+                    <option value="TAX_PAYMENT">{t('Tax Payment', 'سداد الضرائب')}</option>
+                    <option value="TRAFFIC_FINE">{t('Traffic Violations', 'مخالفات المرور')}</option>
+                    <option value="HEALTH_INSURANCE">{t('Health Insurance', 'التأمين الصحي')}</option>
+                    <option value="SOCIAL_INSURANCE">{t('Social Insurance', 'التأمينات الاجتماعية')}</option>
+                  </select>
+                  <select value={adminFilterStatus} onChange={(e) => { setAdminFilterStatus(e.target.value); }} style={{ padding: '0.4rem', fontSize: '0.8rem' }}>
+                    <option value="ALL">{t('All Statuses', 'كل الحالات')}</option>
+                    <option value="PENDING">{t('Pending', 'قيد الانتظار')}</option>
+                    <option value="UNDER_REVIEW">{t('Under Review', 'تحت التدقيق')}</option>
+                    <option value="APPROVED">{t('Approved', 'معتمدة')}</option>
+                    <option value="REJECTED">{t('Rejected', 'مرفوضة')}</option>
+                    <option value="COMPLETED">{t('Completed', 'مكتملة ومطبعة')}</option>
+                  </select>
+                  <button className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }} onClick={() => fetchAdminData(1)}>
+                    {t('Filter', 'تصفية')}
+                  </button>
+                </div>
+              </div>
+
+              {adminLoading ? (
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem' }}><Loader2 className="spinner" /></div>
+              ) : adminApps.length === 0 ? (
+                <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem' }}>
+                  {t('No applications match filters.', 'لا توجد معاملات تطابق الفلاتر المحددة.')}
+                </p>
+              ) : (
+                <div className="admin-table-container">
+                  <table className="admin-table" style={{ textAlign: isRtl ? 'right' : 'left' }}>
+                    <thead>
+                      <tr>
+                        <th style={{ textAlign: isRtl ? 'right' : 'left' }}>{t('Code', 'الكود')}</th>
+                        <th style={{ textAlign: isRtl ? 'right' : 'left' }}>{t('Citizen', 'المواطن')}</th>
+                        <th style={{ textAlign: isRtl ? 'right' : 'left' }}>{t('Service', 'الخدمة المطلوبة')}</th>
+                        <th style={{ textAlign: isRtl ? 'right' : 'left' }}>{t('Date', 'التاريخ')}</th>
+                        <th style={{ textAlign: isRtl ? 'right' : 'left' }}>{t('Status', 'الحالة')}</th>
+                        <th style={{ textAlign: isRtl ? 'right' : 'left' }}>{t('Audit', 'تدقيق')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {adminApps.map((app) => (
+                          <tr key={app.id}>
+                            <td style={{ fontWeight: '700', color: 'var(--accent-red)' }}>{app.trackingCode}</td>
+                            <td>
+                              <div style={{ fontWeight: '700' }}>{app.user?.name}</div>
+                              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('National ID:', 'الرقم القومي:')} {app.user?.nationalId}</div>
+                            </td>
+                            <td>{getServiceLabel(app.serviceType)}</td>
+                            <td>{new Date(app.createdAt).toLocaleDateString()}</td>
+                            <td>
+                              <span className={`status-badge status-${app.status}`}>{app.status}</span>
+                            </td>
+                            <td>
+                              <button className="btn btn-primary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }} onClick={() => { setSelectedAppForReview(app); setAdminDecision({ status: app.status, notes: app.notes || '' }); }}>
+                                {t('Audit & Sign', 'تدقيق وتوقيع')}
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* Pagination Controls */}
+              {adminPagination.totalPages > 1 && (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginTop: '1.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                  <button
+                    className="btn btn-secondary"
+                    style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }}
+                    disabled={adminPagination.page <= 1}
+                    onClick={() => fetchAdminData(adminPagination.page - 1)}
+                  >
+                    {t('‹ Prev', '‹ السابق')}
+                  </button>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                    {t('Page', 'صفحة')} {adminPagination.page} / {adminPagination.totalPages}
+                    <span style={{ marginLeft: '0.5rem', color: 'var(--text-muted)' }}>
+                      ({adminPagination.total} {t('total', 'إجمالي')})
+                    </span>
+                  </span>
+                  <button
+                    className="btn btn-secondary"
+                    style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }}
+                    disabled={adminPagination.page >= adminPagination.totalPages}
+                    onClick={() => fetchAdminData(adminPagination.page + 1)}
+                  >
+                    {t('Next ›', 'التالي ›')}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Admin Audit Modal */}
+            {selectedAppForReview && (
+              <div className="modal-overlay">
+                <div className="glass-card modal-content" style={{ textAlign: isRtl ? 'right' : 'left' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem', marginBottom: '1.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                    <h3 style={{ color: 'var(--accent-red)' }}>{t('Audit Panel:', 'مكتب التدقيق الإداري:')} {selectedAppForReview.trackingCode}</h3>
+                    <button className="btn btn-secondary" onClick={() => setSelectedAppForReview(null)} style={{ padding: '0.35rem 0.6rem' }}><X size={16} /></button>
+                  </div>
+
+                  {/* Citizen Metadata */}
+                  <div style={{ background: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--border-radius-md)', marginBottom: '1.5rem', border: '1px solid var(--border-color)' }}>
+                    <h4 style={{ marginBottom: '0.5rem', fontSize: '0.9rem' }}>{t('Citizen Demographics', 'بيانات مقدم المعاملة')}</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.85rem' }}>
+                      <div>{t('Name:', 'الاسم:')} <span style={{ fontWeight: 'bold' }}>{selectedAppForReview.user?.name}</span></div>
+                      <div>{t('National ID:', 'الرقم القومي:')} <span style={{ fontWeight: 'bold' }}>{selectedAppForReview.user?.nationalId}</span></div>
+                      <div>{t('Email:', 'البريد الإلكتروني:')} <span style={{ color: 'var(--text-secondary)' }}>{selectedAppForReview.user?.email}</span></div>
+                      <div>{t('Phone:', 'الهاتف المحمول:')} <span style={{ color: 'var(--text-secondary)' }}>{selectedAppForReview.user?.phone}</span></div>
+                    </div>
+                  </div>
+
+                  {/* Attached Document */}
+                  {selectedAppForReview.attachmentUrl && (
+                    <div style={{ background: 'var(--bg-success)', padding: '0.75rem 1rem', borderRadius: 'var(--border-radius-md)', marginBottom: '1rem', border: '1px solid var(--border-success)', display: 'flex', alignItems: 'center', gap: '0.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                      <FileUp size={16} style={{ color: 'var(--accent-green)' }} />
+                      <span style={{ fontSize: '0.85rem' }}>{t('Attached Document:', 'المستند المرفق:')}</span>
+                      <a href={selectedAppForReview.attachmentUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.85rem', color: 'var(--accent-blue)', textDecoration: 'underline' }}>
+                        {t('View / Download', 'عرض / تحميل')}
+                      </a>
+                    </div>
+                  )}
+
+                  {/* Application Data Form Content */}
+                  <h4 style={{ marginBottom: '0.5rem', fontSize: '0.9rem' }}>{t('Form Declarations', 'البيانات والمستندات المصرح بها')}</h4>
+                  <div className="arabic-text" style={{ background: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--border-radius-md)', marginBottom: '2rem', border: '1px solid var(--border-color)', textAlign: 'right' }}>
+                    {Object.entries(selectedAppForReview.data as Record<string, string>).map(([key, val]) => (
+                      <div key={key} style={{ margin: '0.4rem 0', fontSize: '0.85rem' }}>
+                        <strong>
+                          {key === 'docType' ? 'Document Type / نوع الوثيقة' : key}: 
+                        </strong>{' '}
+                        {key === 'docType' ? getMilitaryDocLabel(val) : val}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Decision Form */}
+                  <form onSubmit={handleAdminDecision}>
+                    <h4 style={{ marginBottom: '0.5rem', fontSize: '0.9rem' }}>{t('Officer Decision', 'حفظ القرار الإداري')}</h4>
+                    
+                    <div className="form-group">
+                      <label>{t('Update Status', 'تحديث حالة المعاملة في البوابة')}</label>
+                      <select
+                        value={adminDecision.status}
+                        onChange={(e) => setAdminDecision({ ...adminDecision, status: e.target.value })}
+                      >
+                        <option value="PENDING">{t('PENDING - Awaiting Review', 'PENDING - قيد الانتظار والمراجعة الأولية')}</option>
+                        <option value="UNDER_REVIEW">{t('UNDER REVIEW - Document Audit', 'UNDER_REVIEW - قيد التدقيق وفحص المستندات')}</option>
+                        <option value="APPROVED">{t('APPROVED - Certified for Printing', 'APPROVED - معتمد وموقع للاستخراج')}</option>
+                        <option value="REJECTED">{t('REJECTED - Discard / Re-apply', 'REJECTED - مرفوض (إعادة تقديم)')}</option>
+                        <option value="COMPLETED">{t('COMPLETED - Printed & Dispatched', 'COMPLETED - مكتمل ومسلم للبريد للتوصيل')}</option>
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <label>{t('Auditor Comments / Reasoning', 'ملاحظات الضابط المراجع والمبررات إلكترونياً')}</label>
+                      <textarea
+                        rows={3}
+                        placeholder={t('Add review details or rejection reasons...', 'اكتب هنا ملاحظات الاعتماد أو أسباب الرفض لموافات المواطن بها...')}
+                        value={adminDecision.notes}
+                        onChange={(e) => setAdminDecision({ ...adminDecision, notes: e.target.value })}
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                      <button type="button" className="btn btn-secondary" onClick={() => setSelectedAppForReview(null)}>
+                        {t('Cancel', 'إلغاء')}
+                      </button>
+                      <button type="submit" className="btn btn-primary">
+                        {t('Sign & Confirm Status', 'توقيع واعتماد القرار')}
+                      </button>
+                    </div>
+                  </form>
+
+                </div>
+              </div>
+            )}
+
+          </div>
+        )}
 
       </main>
 
