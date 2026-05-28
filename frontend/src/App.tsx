@@ -3496,6 +3496,17 @@ export default function App() {
               </div>
             )}
 
+            {/* Status Color Legend */}
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '1rem', direction: isRtl ? 'rtl' : 'ltr', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+              <span style={{ fontWeight: 500 }}>{t('Status:', 'الحالة:')}</span>
+              <span className="status-badge status-PENDING">{t('Pending', 'قيد الانتظار')}</span>
+              <span className="status-badge status-UNDER_REVIEW">{t('Under Review', 'قيد المراجعة')}</span>
+              <span className="status-badge status-APPROVED">{t('Approved', 'معتمد')}</span>
+              <span className="status-badge status-COMPLETED">{t('Completed', 'مكتمل')}</span>
+              <span className="status-badge status-REJECTED">{t('Rejected', 'مرفوض')}</span>
+              <span className="status-badge status-CANCELLED">{t('Cancelled', 'ملغي')}</span>
+            </div>
+
             {/* Main Application Moderation Table */}
             <div className="glass-card" style={{ textAlign: isRtl ? 'right' : 'left' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
