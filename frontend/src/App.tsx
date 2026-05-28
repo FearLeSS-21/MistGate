@@ -47,6 +47,7 @@ import {
   Clock,
   MapPin,
   Phone,
+  Mail,
   ArrowUp,
 } from 'lucide-react';
 
@@ -2536,6 +2537,20 @@ export default function App() {
                     'للدعم الفني أو الاستفسارات، يرجى استخدام نظام الشكاوى أو زيارة أقرب مركز خدمة مواطن. يمكنكم أيضًا الاتصال بنا عبر الخط الساخن للحكومة على 15999.'
                   )}
                 </p>
+                <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                    <Phone size={16} style={{ color: 'var(--accent-red)' }} />
+                    <span>{t('Hotline: 15999', 'الخط الساخن: 15999')}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                    <Mail size={16} style={{ color: 'var(--accent-red)' }} />
+                    <span>{t('Email: support@misrgate.gov.eg', 'البريد الإلكتروني: support@misrgate.gov.eg')}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                    <MapPin size={16} style={{ color: 'var(--accent-red)' }} />
+                    <span>{t('MisrGate HQ: Cairo, Egypt', 'المقر الرئيسي: القاهرة، مصر')}</span>
+                  </div>
+                </div>
                 <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                   <button className="btn btn-outline" onClick={() => setCurrentView('terms')}>
                     <FileText size={14} /> {t('Terms', 'الشروط')}
