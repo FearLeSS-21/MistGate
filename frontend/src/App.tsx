@@ -1592,9 +1592,14 @@ export default function App() {
         {currentView === 'profile' && user && (
           <div style={{ maxWidth: '700px', margin: '0 auto', textAlign: isRtl ? 'right' : 'left' }}>
             <div className="glass-card">
-              <h3 style={{ color: 'var(--accent-red)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <User size={20} /> {t('My Profile', 'الملف الشخصي')}
-              </h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                <h3 style={{ color: 'var(--accent-red)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <User size={20} /> {t('My Profile', 'الملف الشخصي')}
+                </h3>
+                <button className="btn btn-outline" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={() => window.print()}>
+                  <Printer size={14} /> {t('Print', 'طباعة')}
+                </button>
+              </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '2rem', padding: '1rem', background: 'var(--bg-subtle)', borderRadius: 'var(--border-radius-md)' }}>
                 <div><strong>{t('Email:', 'البريد الإلكتروني:')}</strong> <span style={{ color: 'var(--text-secondary)' }}>{user.email}</span></div>
