@@ -68,7 +68,7 @@ export default function App() {
     role: 'CITIZEN'
   });
 
-  const [currentView, setCurrentView] = useState<'home' | 'faq' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log' | 'profile' | 'analytics' | 'admin_announcements' | 'admin_reports' | 'timeline' | 'service_directory' | 'about' | 'terms' | 'holidays' | 'guides'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'faq' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log' | 'profile' | 'analytics' | 'admin_announcements' | 'admin_reports' | 'timeline' | 'service_directory' | 'about' | 'terms' | 'holidays' | 'guides' | 'sitemap'>('home');
   
   // Forms & Service application states
   const [selectedService, setSelectedService] = useState<ServiceType>('NATIONAL_ID');
@@ -2488,12 +2488,15 @@ export default function App() {
                     'للدعم الفني أو الاستفسارات، يرجى استخدام نظام الشكاوى أو زيارة أقرب مركز خدمة مواطن. يمكنكم أيضًا الاتصال بنا عبر الخط الساخن للحكومة على 15999.'
                   )}
                 </p>
-                <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem' }}>
+                <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                   <button className="btn btn-outline" onClick={() => setCurrentView('terms')}>
-                    <FileText size={14} /> {t('Terms & Conditions', 'الشروط والأحكام')}
+                    <FileText size={14} /> {t('Terms', 'الشروط')}
                   </button>
                   <button className="btn btn-outline" onClick={() => setCurrentView('holidays')}>
                     <Calendar size={14} /> {t('Holidays', 'الإجازات')}
+                  </button>
+                  <button className="btn btn-outline" onClick={() => setCurrentView('sitemap')}>
+                    <Home size={14} /> {t('Sitemap', 'خريطة الموقع')}
                   </button>
                 </div>
               </div>
@@ -2536,6 +2539,44 @@ export default function App() {
                   'Islamic (Hijri) holidays are approximate and confirmed by official authorities. Government offices are closed on all listed dates.',
                   'الإجازات الهجرية تقريبية وتُؤكدها الجهات الرسمية. المكاتب الحكومية مُغلقة في جميع التواريخ المذكورة.'
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* VIEW: SITEMAP */}
+        {currentView === 'sitemap' && (
+          <div>
+            <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+              <h2 style={{ textAlign: 'center', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <Home size={24} /> {t('Site Map', 'خريطة الموقع')}
+              </h2>
+              <div className="glass-card" style={{ padding: '1.5rem' }}>
+                {([
+                  { view: 'home', label: t('Home', 'الرئيسية'), icon: '🏠' },
+                  { view: 'dashboard', label: t('Dashboard', 'لوحة التحكم'), icon: '📊' },
+                  { view: 'apply', label: t('Apply for Service', 'تقديم طلب'), icon: '📝' },
+                  { view: 'track', label: t('Track Application', 'تتبع الطلب'), icon: '🔍' },
+                  { view: 'appointments', label: t('Appointments', 'المواعيد'), icon: '📅' },
+                  { view: 'complaints', label: t('Feedback', 'الشكاوى'), icon: '💬' },
+                  { view: 'timeline', label: t('Timeline', 'النشاطات'), icon: '📋' },
+                  { view: 'service_directory', label: t('Service Directory', 'دليل الخدمات'), icon: '📍' },
+                  { view: 'faq', label: t('FAQ', 'الأسئلة'), icon: '❓' },
+                  { view: 'guides', label: t('Guides', 'الأدلة'), icon: '📖' },
+                  { view: 'profile', label: t('Profile', 'الملف الشخصي'), icon: '👤' },
+                  { view: 'about', label: t('About', 'عن البوابة'), icon: 'ℹ️' },
+                  { view: 'terms', label: t('Terms & Conditions', 'الشروط'), icon: '📄' },
+                  { view: 'holidays', label: t('Holidays', 'الإجازات'), icon: '🎉' },
+                  { view: 'admin', label: t('Admin Desk', 'غرفة الإدارة'), icon: '🔒' },
+                  { view: 'analytics', label: t('Analytics', 'الإحصائيات'), icon: '📈' },
+                  { view: 'admin_reports', label: t('Reports', 'التقارير'), icon: '📑' },
+                  { view: 'activity_log', label: t('Activity Log', 'سجل النشاط'), icon: '📜' },
+                ] as const).map(item => (
+                  <div key={item.view} className="sitemap-link" onClick={() => setCurrentView(item.view as typeof currentView)} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', cursor: 'pointer', borderRadius: 'var(--radius-sm)', transition: 'background 0.2s' }} onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-hover)')} onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                    <span>{item.icon}</span>
+                    <span style={{ fontWeight: 500 }}>{item.label}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
