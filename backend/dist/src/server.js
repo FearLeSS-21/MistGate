@@ -97,6 +97,7 @@ app.put('/api/auth/password', auth_1.authenticateJWT, auth_1.changePassword);
 app.post('/api/applications', auth_1.authenticateJWT, applications_1.createApplication);
 app.get('/api/applications/my-applications', auth_1.authenticateJWT, applications_1.getMyApplications);
 app.get('/api/applications/track/:trackingCode', applications_1.trackApplication);
+app.put('/api/applications/:id/cancel', auth_1.authenticateJWT, applications_1.cancelApplication);
 // --- Notification Routes ---
 app.get('/api/notifications', auth_1.authenticateJWT, notifications_1.getMyNotifications);
 app.put('/api/notifications/:id/read', auth_1.authenticateJWT, notifications_1.markAsRead);

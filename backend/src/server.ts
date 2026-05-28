@@ -19,6 +19,7 @@ import {
   createApplication,
   getMyApplications,
   trackApplication,
+  cancelApplication,
   adminGetApplications,
   adminUpdateStatus,
   adminGetStats,
@@ -148,6 +149,7 @@ app.put('/api/auth/password', authenticateJWT, changePassword);
 app.post('/api/applications', authenticateJWT, createApplication);
 app.get('/api/applications/my-applications', authenticateJWT, getMyApplications);
 app.get('/api/applications/track/:trackingCode', trackApplication);
+app.put('/api/applications/:id/cancel', authenticateJWT, cancelApplication);
 
 // --- Notification Routes ---
 app.get('/api/notifications', authenticateJWT, getMyNotifications);
