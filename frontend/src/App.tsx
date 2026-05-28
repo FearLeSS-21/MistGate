@@ -3437,6 +3437,18 @@ export default function App() {
                   <div className="stat-number">{adminStats.totalUsers}</div>
                   <div className="stat-label">{t('Registered Citizens', 'المواطنون بالبوابة')}</div>
                 </div>
+                <div className="stat-card">
+                  <div className="stat-number" style={{ color: 'var(--accent-red)' }}>{adminComplaints.filter(c => c.status === 'OPEN').length}</div>
+                  <div className="stat-label">{t('Pending Complaints', 'شكاوى معلقة')}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-number" style={{ color: 'var(--accent-red)' }}>{adminAppointments.filter(a => new Date(a.date).toDateString() === new Date().toDateString()).length}</div>
+                  <div className="stat-label">{t('Appts Today', 'مواعيد اليوم')}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-number">{adminAnnouncements.length}</div>
+                  <div className="stat-label">{t('Announcements', 'الإعلانات')}</div>
+                </div>
               </div>
             )}
 
