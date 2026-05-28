@@ -49,6 +49,7 @@ import {
   Phone,
   Mail,
   ArrowUp,
+  Copy,
 } from 'lucide-react';
 
 export default function App() {
@@ -1553,7 +1554,12 @@ export default function App() {
             <div className="glass-card">
               <div className="tracking-header" style={{ flexDirection: isRtl ? 'row-reverse' : 'row' }}>
                 <div>
-                  <h3 style={{ fontSize: '1.5rem', color: 'var(--accent-red)', marginBottom: '0.25rem' }}>{trackedApplication.trackingCode}</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                    <h3 style={{ fontSize: '1.5rem', color: 'var(--accent-red)', marginBottom: '0.25rem' }}>{trackedApplication.trackingCode}</h3>
+                    <button className="lang-btn" onClick={() => { navigator.clipboard.writeText(trackedApplication.trackingCode ?? ''); }} title={t('Copy code', 'نسخ الكود')} style={{ padding: '0.2rem 0.5rem' }}>
+                      <Copy size={14} />
+                    </button>
+                  </div>
                   <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
                     {t('Service Type:', 'نوع الخدمة:')} {getServiceLabel(trackedApplication.serviceType || '')}
                   </p>
@@ -1695,9 +1701,14 @@ export default function App() {
                     {t('Your request is registered. Use this tracking code to look up progress on home page:',
                        'تم تسجيل المعاملة. يرجى كتابة وحفظ كود تتبع الطلب لمتابعة تقدم المراجعة:')}
                   </p>
-                  <span style={{ fontSize: '1.5rem', fontWeight: '800', background: 'var(--bg-input)', padding: '0.4rem 1rem', borderRadius: '4px', letterSpacing: '2px', color: 'var(--accent-red)', display: 'block', margin: '0.5rem 0' }}>
-                    {formSuccess.code}
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center', margin: '0.5rem 0' }}>
+                    <span style={{ fontSize: '1.5rem', fontWeight: '800', background: 'var(--bg-input)', padding: '0.4rem 1rem', borderRadius: '4px', letterSpacing: '2px', color: 'var(--accent-red)' }}>
+                      {formSuccess.code}
+                    </span>
+                    <button className="lang-btn" onClick={() => { navigator.clipboard.writeText(formSuccess.code); }} title={t('Copy code', 'نسخ الكود')} style={{ padding: '0.3rem 0.6rem' }}>
+                      <Copy size={16} />
+                    </button>
+                  </div>
                   <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', marginTop: '1rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
                     <button className="btn btn-primary" onClick={() => { goToDashboard(); setFormSuccess(null); }}>
                       {t('Go to Workspace', 'الذهاب لوحة المعاملات')}
@@ -3630,7 +3641,12 @@ export default function App() {
               <div className="modal-overlay">
                 <div className="glass-card modal-content" style={{ textAlign: isRtl ? 'right' : 'left' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem', marginBottom: '1.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
-                    <h3 style={{ color: 'var(--accent-red)' }}>{t('Audit Panel:', 'مكتب التدقيق الإداري:')} {selectedAppForReview.trackingCode}</h3>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <h3 style={{ color: 'var(--accent-red)' }}>{t('Audit Panel:', 'مكتب التدقيق الإداري:')} {selectedAppForReview.trackingCode}</h3>
+                      <button className="lang-btn" onClick={() => { navigator.clipboard.writeText(selectedAppForReview.trackingCode); }} title={t('Copy code', 'نسخ الكود')} style={{ padding: '0.2rem 0.5rem' }}>
+                        <Copy size={14} />
+                      </button>
+                    </div>
                     <button className="btn btn-secondary" onClick={() => setSelectedAppForReview(null)} style={{ padding: '0.35rem 0.6rem' }}><X size={16} /></button>
                   </div>
 
