@@ -1488,6 +1488,7 @@ export default function App() {
                   <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem' }}><Loader2 className="spinner" /></div>
                 ) : citizenApps.length === 0 ? (
                   <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '4rem 1rem' }}>
+                    <FileText size={40} style={{ marginBottom: '1rem', opacity: 0.4 }} />
                     <p style={{ fontSize: '1rem', marginBottom: '1rem' }}>
                       {t('No documents requested yet.', 'لم تقم بتقديم طلبات استخراج وثائق بعد.')}
                     </p>
@@ -2396,7 +2397,8 @@ export default function App() {
                 <div style={{ textAlign: 'center', padding: '3rem' }}><Loader2 className="spinner" size={24} /></div>
               ) : timelineEvents.length === 0 ? (
                 <div className="glass-card" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-                  {t('No activity yet. Start by applying for a service!', 'لا توجد نشاطات بعد. ابدأ بتقديم طلب خدمة!')}
+                  <Activity size={40} style={{ marginBottom: '0.75rem', opacity: 0.4 }} />
+                  <div>{t('No activity yet. Start by applying for a service!', 'لا توجد نشاطات بعد. ابدأ بتقديم طلب خدمة!')}</div>
                 </div>
               ) : (
                 <div className="timeline-container">
@@ -3292,7 +3294,8 @@ export default function App() {
               </>
             ) : (
               <div className="glass-card" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-                {t('No analytics data available yet.', 'لا توجد بيانات تحليلات متاحة بعد.')}
+                <BarChart3 size={40} style={{ marginBottom: '0.75rem', opacity: 0.4 }} />
+                <div>{t('No analytics data available yet.', 'لا توجد بيانات تحليلات متاحة بعد.')}</div>
               </div>
             )}
           </div>
@@ -3424,7 +3427,10 @@ export default function App() {
             <div className="glass-card" style={{ padding: '1.25rem' }}>
               <h3 style={{ marginBottom: '1rem' }}>{t('Manage Announcements', 'إدارة الإعلانات')}</h3>
               {adminAnnouncements.length === 0 ? (
-                <p style={{ color: 'var(--text-muted)' }}>{t('No announcements yet.', 'لا توجد إعلانات بعد.')}</p>
+                <div style={{ textAlign: 'center', padding: '2rem' }}>
+                  <Megaphone size={40} style={{ marginBottom: '0.5rem', opacity: 0.4 }} />
+                  <p style={{ color: 'var(--text-muted)' }}>{t('No announcements yet.', 'لا توجد إعلانات بعد.')}</p>
+                </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   {adminAnnouncements.map(a => (
