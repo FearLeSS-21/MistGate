@@ -59,6 +59,13 @@ export default function App() {
     if (saved) return saved === 'dark';
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setShowScrollTop(window.scrollY > 400);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
   
   // Default mock user to bypass login/signup barrier completely
   const [user, setUser] = useState<ApiUser | null>({
@@ -3699,17 +3706,19 @@ export default function App() {
       </main>
 
       {/* Scroll to Top Button */}
-      <button
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        className="lang-btn"
-        style={{
-          position: 'fixed', bottom: '1.5rem', left: isRtl ? 'auto' : '1.5rem', right: isRtl ? '1.5rem' : 'auto',
-          width: '40px', height: '40px', borderRadius: '50%', zIndex: 999,
-        }}
-        title={t('Scroll to top', 'العودة للأعلى')}
-      >
-        <ArrowUp size={18} />
-      </button>
+      {showScrollTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="lang-btn"
+          style={{
+            position: 'fixed', bottom: '1.5rem', left: isRtl ? 'auto' : '1.5rem', right: isRtl ? '1.5rem' : 'auto',
+            width: '40px', height: '40px', borderRadius: '50%', zIndex: 999,
+          }}
+          title={t('Scroll to top', 'العودة للأعلى')}
+        >
+          <ArrowUp size={18} />
+        </button>
+      )}
 
       {/* Floating Quick Support Button */}
       {currentView !== 'complaints' && (
