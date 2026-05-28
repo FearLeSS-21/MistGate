@@ -68,7 +68,7 @@ export default function App() {
     role: 'CITIZEN'
   });
 
-  const [currentView, setCurrentView] = useState<'home' | 'faq' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log' | 'profile' | 'analytics' | 'admin_announcements' | 'admin_reports' | 'timeline' | 'service_directory' | 'about' | 'terms' | 'holidays' | 'guides' | 'sitemap'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'faq' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log' | 'profile' | 'analytics' | 'admin_announcements' | 'admin_reports' | 'timeline' | 'service_directory' | 'about' | 'terms' | 'holidays' | 'guides' | 'sitemap' | 'shortcuts'>('home');
   
   // Forms & Service application states
   const [selectedService, setSelectedService] = useState<ServiceType>('NATIONAL_ID');
@@ -2654,6 +2654,31 @@ export default function App() {
                     'للاستفسار حول هذه الشروط، يرجى التواصل معنا عبر نظام الشكاوى أو الاتصال بالخط الساخن على 15999.'
                   )}
                 </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* VIEW: KEYBOARD SHORTCUTS */}
+        {currentView === 'shortcuts' && (
+          <div>
+            <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+              <h2 style={{ textAlign: 'center', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <Key size={24} /> {t('Keyboard Shortcuts', 'اختصارات لوحة المفاتيح')}
+              </h2>
+              <div className="glass-card" style={{ padding: '1.5rem' }}>
+                {([
+                  { keys: 'Ctrl + Z', action: t('Undo last action', 'تراجع عن آخر إجراء') },
+                  { keys: 'Ctrl + F', action: t('Search in lists', 'بحث في القوائم') },
+                  { keys: 'Escape', action: t('Close modal / go back', 'إغلاق النافذة / الرجوع') },
+                  { keys: 'Tab', action: t('Navigate between fields', 'التنقل بين الحقول') },
+                  { keys: 'Enter', action: t('Submit form / confirm', 'إرسال النموذج / تأكيد') },
+                ]).map((s, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: i < 4 ? '1px solid var(--border-color)' : 'none', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>{s.action}</span>
+                    <kbd style={{ background: 'var(--bg-hover)', padding: '0.2rem 0.6rem', borderRadius: '4px', fontFamily: 'monospace', fontSize: '0.85rem' }}>{s.keys}</kbd>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
