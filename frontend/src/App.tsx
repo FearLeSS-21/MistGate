@@ -249,6 +249,7 @@ export default function App() {
   const [profileForm, setProfileForm] = useState({ name: user?.name || '', phone: user?.phone || '' });
   const [profileSuccess, setProfileSuccess] = useState('');
   const [profileError, setProfileError] = useState('');
+  const [faqFilter, setFaqFilter] = useState('ALL');
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [passwordSuccess, setPasswordSuccess] = useState('');
   const [passwordError, setPasswordError] = useState('');
@@ -2719,9 +2720,24 @@ export default function App() {
         {currentView === 'faq' && (
           <div>
             <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-              <h2 style={{ textAlign: 'center', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+              <h2 style={{ textAlign: 'center', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
                 <HelpCircle size={24} /> {t('Frequently Asked Questions', 'الأسئلة الشائعة')}
               </h2>
+
+              {/* FAQ Service Filter */}
+              <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                <select
+                  value={faqFilter}
+                  onChange={(e) => setFaqFilter(e.target.value)}
+                  style={{ padding: '0.5rem 1rem', borderRadius: 'var(--border-radius-md)', border: '1px solid var(--border-color)', background: 'var(--bg-card)', color: 'var(--text-primary)', maxWidth: '300px' }}
+                >
+                  <option value="ALL">{t('All Services', 'كل الخدمات')}</option>
+                  <option value="NATIONAL_ID">{t('National ID Cards', 'بطاقات الرقم القومي')}</option>
+                  <option value="PASSPORT">{t('Egyptian Passport', 'جواز السفر المصري')}</option>
+                  <option value="BIRTH_CERTIFICATE">{t('Civil Registry Records', 'وثائق الأحوال المدنية')}</option>
+                  <option value="MILITARY_EXEMPTION">{t('Military & Recruitment', 'التجنيد والتعبئة')}</option>
+                </select>
+              </div>
 
               {/* FAQ for each service */}
               {[
@@ -2783,7 +2799,7 @@ export default function App() {
                     { q: t('Who can apply for social insurance?', 'من يمكنه التقدم للتأمينات الاجتماعية؟'), a: t('Employees, employers, and voluntary contributors can apply. Pensions and other social benefits are also handled through this service.', 'يمكن للعاملين وأصحاب العمل والمشتركين بالتطوع التقديم. يتم أيضاً التعامل مع المعاشات والمزايا الاجتماعية الأخرى عبر هذه الخدمة.') },
                   ],
                 },
-              ].map(section => (
+              ].filter(section => faqFilter === 'ALL' || section.service === faqFilter).map(section => (
                 <div key={section.service} className="glass-card" style={{ padding: '1.25rem', marginBottom: '1.25rem', textAlign: isRtl ? 'right' : 'left', direction: isRtl ? 'rtl' : 'ltr' }}>
                   <h3 style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     {getServiceLabel(section.service)}
