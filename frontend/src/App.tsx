@@ -1477,7 +1477,12 @@ export default function App() {
 
               {/* Right Workspace Panel */}
               <div className="glass-card" style={{ minHeight: '400px', textAlign: isRtl ? 'right' : 'left' }}>
-                <h3 style={{ marginBottom: '1.5rem' }}>{t('Your Applications History', 'سجل طلباتي ومعاملاتي')}</h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                  <h3 style={{ margin: 0 }}>{t('Your Applications History', 'سجل طلباتي ومعاملاتي')}</h3>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                    ({citizenApps.length} {t('records', 'سجل')})
+                  </span>
+                </div>
 
                 {citizenAppsLoading ? (
                   <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem' }}><Loader2 className="spinner" /></div>
@@ -3521,7 +3526,12 @@ export default function App() {
             {/* Main Application Moderation Table */}
             <div className="glass-card" style={{ textAlign: isRtl ? 'right' : 'left' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
-                <h3>{t('Submissions Queue', 'قائمة معاملات المواطنين المجدولة للتدقيق')}</h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <h3>{t('Submissions Queue', 'قائمة معاملات المواطنين المجدولة للتدقيق')}</h3>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                    ({adminPagination.total} {t('total', 'إجمالي')})
+                  </span>
+                </div>
                 
                 {/* Filter & Search section */}
                 <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
