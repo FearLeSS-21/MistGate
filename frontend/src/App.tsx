@@ -68,7 +68,7 @@ export default function App() {
     role: 'CITIZEN'
   });
 
-  const [currentView, setCurrentView] = useState<'home' | 'faq' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log' | 'profile' | 'analytics' | 'admin_announcements' | 'admin_reports' | 'timeline' | 'service_directory'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'faq' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log' | 'profile' | 'analytics' | 'admin_announcements' | 'admin_reports' | 'timeline' | 'service_directory' | 'about'>('home');
   
   // Forms & Service application states
   const [selectedService, setSelectedService] = useState<ServiceType>('NATIONAL_ID');
@@ -980,6 +980,10 @@ export default function App() {
             <span className={`nav-link ${currentView === 'faq' ? 'active' : ''}`} onClick={() => setCurrentView('faq')}>
               <HelpCircle size={15} />
               {t('FAQ', 'الأسئلة')}
+            </span>
+            <span className={`nav-link ${currentView === 'about' ? 'active' : ''}`} onClick={() => setCurrentView('about')}>
+              <Globe size={15} />
+              {t('About', 'عن البوابة')}
             </span>
             {user?.role === 'ADMIN' && (
               <span className={`nav-link ${currentView === 'admin_announcements' ? 'active' : ''}`} onClick={() => { setCurrentView('admin_announcements'); fetchAdminAnnouncements(); }}>
@@ -2369,6 +2373,80 @@ export default function App() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* VIEW: ABOUT US */}
+        {currentView === 'about' && (
+          <div>
+            <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+              <h2 style={{ textAlign: 'center', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <Globe size={24} /> {t('About MisrGate', 'عن بوابة مصر')}
+              </h2>
+
+              <div className="glass-card" style={{ padding: '2rem', marginBottom: '1.5rem' }}>
+                <h3 style={{ color: 'var(--accent-red)', marginBottom: '1rem' }}>
+                  {t('Our Mission', 'رسالتنا')}
+                </h3>
+                <p style={{ lineHeight: '1.7', color: 'var(--text-secondary)' }}>
+                  {t(
+                    'MisrGate is the official Egyptian e-government services portal, designed to provide citizens with secure, fast, and transparent access to government services. Our mission is to digitize and streamline administrative processes, reducing paperwork and saving time for every Egyptian citizen.',
+                    'بوابة مصر هي البوابة الرسمية للخدمات الحكومية الإلكترونية، صُممت لتوفير وصول آمن وسريع وشفاف للمواطنين إلى الخدمات الحكومية. رسالتنا هي رقمنة وتبسيط الإجراءات الإدارية، وتقليل الأوراق الروتينية وتوفير الوقت لكل مواطن مصري.'
+                  )}
+                </p>
+              </div>
+
+              <div className="glass-card" style={{ padding: '2rem', marginBottom: '1.5rem' }}>
+                <h3 style={{ color: 'var(--accent-red)', marginBottom: '1rem' }}>
+                  {t('Key Features', 'المميزات الرئيسية')}
+                </h3>
+                <ul style={{ lineHeight: '2', color: 'var(--text-secondary)', paddingLeft: isRtl ? '' : '1.5rem', paddingRight: isRtl ? '1.5rem' : '' }}>
+                  <li>{t('8 integrated government services on one platform', '8 خدمات حكومية متكاملة على منصة واحدة')}</li>
+                  <li>{t('Real-time application tracking with unique tracking codes', 'تتبع فوري للمعاملات بأكواد تتبع فريدة')}</li>
+                  <li>{t('Secure document upload and management', 'رفع وإدارة آمنة للوثائق')}</li>
+                  <li>{t('Online appointment booking across departments', 'حجز مواعيد إلكتروني عبر الإدارات')}</li>
+                  <li>{t('Bilingual interface (English / Arabic) with full RTL support', 'واجهة ثنائية اللغة (إنجليزية / عربية) مع دعم كامل للكتابة من اليمين')}</li>
+                  <li>{t('Real-time notifications on application status changes', 'إشعارات فورية عند تغيير حالة المعاملة')}</li>
+                  <li>{t('Citizen feedback and complaints system', 'نظام لشكاوى واقتراحات المواطنين')}</li>
+                  <li>{t('Comprehensive admin desk for review and management', 'غرفة إدارة متكاملة للمراجعة والإدارة')}</li>
+                </ul>
+              </div>
+
+              <div className="glass-card" style={{ padding: '2rem', marginBottom: '1.5rem' }}>
+                <h3 style={{ color: 'var(--accent-red)', marginBottom: '1rem' }}>
+                  {t('Available Services', 'الخدمات المتاحة')}
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  {[
+                    t('National ID Card Renewal', 'تجديد بطاقة الرقم القومي'),
+                    t('Military & Recruitment Documents', 'الأوراق العسكرية'),
+                    t('Civil Registry Certificates', 'وثائق الأحوال المدنية'),
+                    t('Passport Services', 'خدمات جواز السفر'),
+                    t('Tax Payment (ETA)', 'سداد الضرائب'),
+                    t('Traffic Violations', 'مخالفات المرور'),
+                    t('Health Insurance', 'التأمين الصحي'),
+                    t('Social Insurance', 'التأمينات الاجتماعية'),
+                  ].map((s, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem', background: 'var(--bg-card)', borderRadius: 'var(--radius-sm)' }}>
+                      <span style={{ color: 'var(--accent-green)' }}>✓</span>
+                      <span style={{ fontSize: '0.85rem' }}>{s}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="glass-card" style={{ padding: '2rem' }}>
+                <h3 style={{ color: 'var(--accent-red)', marginBottom: '1rem' }}>
+                  {t('Contact & Support', 'الاتصال والدعم')}
+                </h3>
+                <p style={{ lineHeight: '1.7', color: 'var(--text-secondary)' }}>
+                  {t(
+                    'For technical support or inquiries, please use the Feedback system or visit your nearest Citizen Service Center. You can also reach us through the official government hotline at 15999.',
+                    'للدعم الفني أو الاستفسارات، يرجى استخدام نظام الشكاوى أو زيارة أقرب مركز خدمة مواطن. يمكنكم أيضًا الاتصال بنا عبر الخط الساخن للحكومة على 15999.'
+                  )}
+                </p>
+              </div>
             </div>
           </div>
         )}
