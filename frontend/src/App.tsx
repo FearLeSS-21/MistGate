@@ -35,8 +35,6 @@ import {
   TrendingUp,
   BarChart3,
   MessageCircle,
-  Send,
-  Bot,
   Moon,
   Sun,
   Download,
@@ -237,13 +235,6 @@ export default function App() {
   const [reportLoading, setReportLoading] = useState(false);
   const [reportPeriod, setReportPeriod] = useState('7');
 
-  // Chatbot states
-  const [chatOpen, setChatOpen] = useState(false);
-  const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'bot'; text: string }[]>([
-    { role: 'bot', text: 'Hello! I am the MisrGate AI Assistant. Ask me about services, applications, appointments, users, or anything about the portal!' },
-  ]);
-  const [chatInput, setChatInput] = useState('');
-  const [chatLoading, setChatLoading] = useState(false);
 
   // Activity log states
   const [activityEntries, setActivityEntries] = useState<ActivityEntry[]>([]);
@@ -732,30 +723,6 @@ export default function App() {
       a.href = url; a.download = filename;
       a.click(); URL.revokeObjectURL(url);
     } catch { alert('Export failed.'); }
-  };
-
-  // Chatbot Handler
-  const handleChatSend = async () => {
-    const msg = chatInput.trim();
-    if (!msg || chatLoading) return;
-    setChatInput('');
-    setChatMessages(prev => [...prev, { role: 'user', text: msg }]);
-    setChatLoading(true);
-    try {
-      const res = await fetch('http://localhost:5000/api/chatbot', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: msg }),
-      });
-      const data = await res.json();
-      if (data.reply) {
-        setChatMessages(prev => [...prev, { role: 'bot', text: data.reply }]);
-      }
-    } catch {
-      setChatMessages(prev => [...prev, { role: 'bot', text: 'Sorry, I am having trouble connecting. Please try again later.' }]);
-    } finally {
-      setChatLoading(false);
-    }
   };
 
   // Quick Tracker Search
