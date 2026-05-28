@@ -3499,19 +3499,19 @@ export default function App() {
             {adminStats && (
               <div className="stats-section" style={{ direction: isRtl ? 'rtl' : 'ltr' }}>
                 <div className="stat-card">
-                  <div className="stat-number">{adminStats.totalApplications}</div>
+                  <div className="stat-number">{adminStats.totalApplications || 0}</div>
                   <div className="stat-label">{t('Total Requests', 'إجمالي الطلبات')}</div>
                 </div>
                 <div className="stat-card">
-                  <div className="stat-number">{adminStats.byStatus.PENDING}</div>
+                  <div className="stat-number">{adminStats.byStatus.PENDING || 0}</div>
                   <div className="stat-label">{t('Pending Review', 'قيد الانتظار')}</div>
                 </div>
                 <div className="stat-card">
-                  <div className="stat-number">{adminStats.byStatus.APPROVED + adminStats.byStatus.COMPLETED}</div>
+                  <div className="stat-number">{(adminStats.byStatus.APPROVED || 0) + (adminStats.byStatus.COMPLETED || 0)}</div>
                   <div className="stat-label">{t('Approved & Printed', 'المعتمدة والمكتملة')}</div>
                 </div>
                 <div className="stat-card">
-                  <div className="stat-number">{adminStats.totalUsers}</div>
+                  <div className="stat-number">{adminStats.totalUsers || 0}</div>
                   <div className="stat-label">{t('Registered Citizens', 'المواطنون بالبوابة')}</div>
                 </div>
                 <div className="stat-card">
