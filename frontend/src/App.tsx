@@ -456,15 +456,23 @@ export default function App() {
   };
 
   const handleMarkAsRead = async (id: string) => {
-    await api.markNotificationAsRead(id);
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-    setUnreadCount(prev => Math.max(0, prev - 1));
+    try {
+      await api.markNotificationAsRead(id);
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleMarkAllAsRead = async () => {
-    await api.markAllNotificationsAsRead();
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    setUnreadCount(0);
+    try {
+      await api.markAllNotificationsAsRead();
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setUnreadCount(0);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const fetchCitizenComplaints = async () => {
