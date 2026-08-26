@@ -152,10 +152,13 @@ export interface ActivityEntry {
 class ApiService {
   private getHeaders(): HeadersInit {
     const token = localStorage.getItem('misrgate_token');
-    return {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      Authorization: token ? `Bearer ${token}` : '',
     };
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+    return headers;
   }
 
   setToken(token: string) {

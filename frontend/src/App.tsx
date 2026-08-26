@@ -50,6 +50,7 @@ import {
   ArrowUp,
   Copy,
   Menu,
+  LogOut,
   Send,
 } from 'lucide-react';
 
@@ -84,17 +85,13 @@ export default function App() {
     return () => { if (ratingTimeoutRef.current) clearTimeout(ratingTimeoutRef.current); };
   }, []);
 
-  // Default mock user to bypass login/signup barrier completely
-  const [user, setUser] = useState<ApiUser | null>({
-    id: 'demo-citizen-12345',
-    email: 'zeyad@gmail.com',
-    name: 'Zeyad Ahmed Ali',
-    nationalId: '30305240102456',
-    phone: '01123456789',
-    role: 'CITIZEN'
-  });
+  const [user, setUser] = useState<ApiUser | null>(null);
+  const [sessionLoading, setSessionLoading] = useState(() => Boolean(api.getToken()));
+  const [authForm, setAuthForm] = useState({ email: '', password: '', name: '', nationalId: '', phone: '' });
+  const [authError, setAuthError] = useState('');
+  const [authBusy, setAuthBusy] = useState(false);
 
-  const [currentView, setCurrentView] = useState<'home' | 'faq' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log' | 'profile' | 'analytics' | 'admin_announcements' | 'admin_reports' | 'timeline' | 'service_directory' | 'about' | 'terms' | 'holidays' | 'guides' | 'sitemap' | 'shortcuts' | 'contact'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'faq' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log' | 'profile' | 'analytics' | 'admin_announcements' | 'admin_reports' | 'timeline' | 'service_directory' | 'about' | 'terms' | 'holidays' | 'guides' | 'sitemap' | 'shortcuts' | 'contact' | 'login' | 'register'>('home');
   const [navOpen, setNavOpen] = useState(false);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   
@@ -536,12 +533,21 @@ export default function App() {
   };
 
   const goToDashboard = () => {
+    if (!user) {
+      setCurrentView('login');
+      setNavOpen(false);
+      return;
+    }
     setCurrentView('dashboard');
     void fetchCitizenData();
     void fetchNotifications();
   };
 
   const goToAdmin = () => {
+    if (user?.role !== 'ADMIN') {
+      setCurrentView('login');
+      return;
+    }
     setCurrentView('admin');
     void fetchAdminData();
     void fetchAdminComplaints();
@@ -665,6 +671,21 @@ export default function App() {
     void fetchAnnouncements();
   }, []);
 
+  useEffect(() => {
+    const token = api.getToken();
+    if (!token) {
+      setSessionLoading(false);
+      return;
+    }
+    api.getProfile()
+      .then((data) => setUser(data.user))
+      .catch(() => {
+        api.clearToken();
+        setUser(null);
+      })
+      .finally(() => setSessionLoading(false));
+  }, []);
+
   // Listen for system theme changes
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
@@ -678,6 +699,70 @@ export default function App() {
   }, []);
 
   // Toggle Language Handler
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    setAuthBusy(true);
+    try {
+      const data = await api.login({ email: authForm.email.trim(), password: authForm.password });
+      api.setToken(data.token);
+      setUser(data.user);
+      setAuthForm({ email: '', password: '', name: '', nationalId: '', phone: '' });
+      const now = new Date().toLocaleString();
+      localStorage.setItem('misrgate_last_login', now);
+      setLastLogin(now);
+      if (data.user.role === 'ADMIN') {
+        setCurrentView('admin');
+        void fetchAdminData();
+        void fetchAdminComplaints();
+        void fetchAdminAppointments();
+      } else {
+        setCurrentView('dashboard');
+        void fetchCitizenData();
+        void fetchNotifications();
+      }
+    } catch (err: unknown) {
+      setAuthError(err instanceof Error ? err.message : t('Sign in failed.', 'فشل تسجيل الدخول.'));
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    setAuthBusy(true);
+    try {
+      const data = await api.register({
+        email: authForm.email.trim(),
+        password: authForm.password,
+        name: authForm.name.trim(),
+        nationalId: authForm.nationalId.trim(),
+        phone: authForm.phone.trim(),
+      });
+      api.setToken(data.token);
+      setUser(data.user);
+      setAuthForm({ email: '', password: '', name: '', nationalId: '', phone: '' });
+      setCurrentView('dashboard');
+      void fetchCitizenData();
+      void fetchNotifications();
+    } catch (err: unknown) {
+      setAuthError(err instanceof Error ? err.message : t('Registration failed.', 'فشل إنشاء الحساب.'));
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await api.logout();
+    } catch {
+      api.clearToken();
+    }
+    setUser(null);
+    setCurrentView('home');
+  };
+
   const toggleLanguage = () => {
     const next = lang === 'en' ? 'ar' : 'en';
     setLang(next);
@@ -685,17 +770,17 @@ export default function App() {
     document.dir = next === 'ar' ? 'rtl' : 'ltr';
   };
 
-  // Role Switcher Handler (For Demo/Evaluation Convenience)
-  const toggleRole = () => {
-    if (!user) return;
-    const newRole = user.role === 'CITIZEN' ? 'ADMIN' : 'CITIZEN';
-    setUser({ ...user, role: newRole });
-    if (newRole === 'ADMIN') {
-      goToAdmin();
-    } else {
-      goToDashboard();
+  useEffect(() => {
+    if (sessionLoading) return;
+    const citizenViews = ['dashboard', 'apply', 'complaints', 'appointments', 'profile', 'timeline'];
+    const adminViews = ['admin', 'admin_complaints', 'admin_appointments', 'ratings', 'activity_log', 'analytics', 'admin_announcements', 'admin_reports'];
+    if (citizenViews.includes(currentView) && !user) {
+      setCurrentView('login');
     }
-  };
+    if (adminViews.includes(currentView) && user?.role !== 'ADMIN') {
+      setCurrentView(user ? 'dashboard' : 'login');
+    }
+  }, [currentView, user, sessionLoading]);
 
   // Profile handlers
   const handleProfileUpdate = async (e: React.FormEvent) => {
@@ -728,8 +813,11 @@ export default function App() {
     }
     try {
       await api.changePassword({ currentPassword: passwordForm.currentPassword, newPassword: passwordForm.newPassword });
-      setPasswordSuccess(t('Password changed successfully!', 'تم تغيير كلمة المرور بنجاح!'));
+      api.clearToken();
+      setUser(null);
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setCurrentView('login');
+      setToast({ type: 'success', text: t('Password changed. Please sign in again.', 'تم تغيير كلمة المرور. سجّل الدخول مرة أخرى.') });
     } catch (err: unknown) {
       setPasswordError(err instanceof Error ? err.message : t('Failed to change password.', 'فشل تغيير كلمة المرور.'));
     }
@@ -875,6 +963,11 @@ export default function App() {
 
   // Apply button Click Handler
   const handleApplyClick = (serviceType: ServiceType) => {
+    if (!user) {
+      setCurrentView('login');
+      setToast({ type: 'error', text: t('Sign in to apply for a service.', 'سجل الدخول لتقديم طلب.') });
+      return;
+    }
     setSelectedService(serviceType);
     setFormSuccess(null);
     setFormError(null);
@@ -946,21 +1039,6 @@ export default function App() {
   return (
     <div className={`app-container ${isRtl ? 'arabic-layout' : ''} ${darkMode ? 'dark-mode' : ''}`}>
       <a href="#main-content" className="skip-link">{t('Skip to content', 'تخطي إلى المحتوى')}</a>
-
-      {/* Developer Role Switcher (Simulated Login Bypass) */}
-      <div className="dev-banner">
-        <span>
-          🛡️ <strong>{t('DEVELOPER BYPASS ACTIVE (Login/Signup Bypassed)', 'وضع التطوير نشط (تم تخطي جدار تسجيل الدخول)')}</strong>
-        </span>
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-          <span>
-            {t('Logged in as:', 'مُسجل الدخول كـ:')} <strong>{user?.name}</strong> ({user?.role === 'ADMIN' ? t('Admin / مسؤول', 'مسؤول') : t('Citizen / مواطن', 'مواطن')})
-          </span>
-          <button onClick={toggleRole} className="dev-toggle-btn">
-            {user?.role === 'CITIZEN' ? t('Switch to Admin Desk', 'التحويل لحساب المسؤول') : t('Switch to Citizen View', 'التحويل لحساب المواطن')}
-          </button>
-        </div>
-      </div>
 
       {/* 1. Header & Navigation */}
       <header className="navbar">
@@ -1129,6 +1207,23 @@ export default function App() {
               </span>
             )}
 
+            {user ? (
+              <button type="button" onClick={() => void handleLogout()} className="lang-btn" title={t('Sign out', 'تسجيل الخروج')}>
+                <LogOut size={14} />
+                <span>{t('Sign out', 'خروج')}</span>
+              </button>
+            ) : (
+              <>
+                <span className={`nav-link ${currentView === 'login' ? 'active' : ''}`} onClick={() => { setCurrentView('login'); setAuthError(''); }}>
+                  <Lock size={15} />
+                  {t('Sign in', 'دخول')}
+                </span>
+                <button type="button" className="btn btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }} onClick={() => { setCurrentView('register'); setAuthError(''); }}>
+                  {t('Create account', 'إنشاء حساب')}
+                </button>
+              </>
+            )}
+
             {/* Dark Mode Toggle */}
             <button onClick={() => setDarkMode(!darkMode)} className="lang-btn" style={{ fontSize: '0.75rem' }} title={t('Toggle dark mode', 'تبديل الوضع المظلم')}>
               {darkMode ? <Sun size={14} /> : <Moon size={14} />}
@@ -1149,7 +1244,64 @@ export default function App() {
 
       {/* 2. Main Page Router */}
       <main id="main-content" className="content-wrapper">
-        
+        {(currentView === 'login' || currentView === 'register') && (
+          <div>
+            <div style={{ maxWidth: '28rem', margin: '0 auto' }}>
+              <h2 className="page-heading">
+                <Lock size={22} /> {currentView === 'login' ? t('Sign in', 'تسجيل الدخول') : t('Create account', 'إنشاء حساب')}
+              </h2>
+              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
+                {currentView === 'login'
+                  ? t('Use your MisrGate email and password.', 'استخدم بريدك وكلمة المرور في بوابة مصر.')
+                  : t('Passwords need 8+ characters, one uppercase letter, and one number.', 'كلمة المرور: 8 أحرف على الأقل، حرف كبير ورقم.')}
+              </p>
+              <div className="glass-card">
+                {authError && <div className="error-banner"><AlertCircle size={16} /> {authError}</div>}
+                <form onSubmit={currentView === 'login' ? handleLogin : handleRegister}>
+                  {currentView === 'register' && (
+                    <>
+                      <div className="form-group">
+                        <label htmlFor="auth-name">{t('Full name', 'الاسم الكامل')}</label>
+                        <input id="auth-name" required minLength={2} value={authForm.name} onChange={(e) => setAuthForm({ ...authForm, name: e.target.value })} autoComplete="name" />
+                      </div>
+                      <div className="form-group">
+                        <label htmlFor="auth-nid">{t('National ID', 'الرقم القومي')}</label>
+                        <input id="auth-nid" required minLength={14} maxLength={14} inputMode="numeric" value={authForm.nationalId} onChange={(e) => setAuthForm({ ...authForm, nationalId: e.target.value })} autoComplete="off" />
+                      </div>
+                      <div className="form-group">
+                        <label htmlFor="auth-phone">{t('Phone', 'رقم الهاتف')}</label>
+                        <input id="auth-phone" required minLength={10} value={authForm.phone} onChange={(e) => setAuthForm({ ...authForm, phone: e.target.value })} autoComplete="tel" />
+                      </div>
+                    </>
+                  )}
+                  <div className="form-group">
+                    <label htmlFor="auth-email">{t('Email', 'البريد الإلكتروني')}</label>
+                    <input id="auth-email" type="email" required value={authForm.email} onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })} autoComplete="email" />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="auth-password">{t('Password', 'كلمة المرور')}</label>
+                    <input id="auth-password" type="password" required minLength={currentView === 'register' ? 8 : 1} value={authForm.password} onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })} autoComplete={currentView === 'login' ? 'current-password' : 'new-password'} />
+                  </div>
+                  <button type="submit" className="btn btn-primary" disabled={authBusy || sessionLoading}>
+                    {authBusy ? <Loader2 className="spinner" size={16} /> : currentView === 'login' ? t('Sign in', 'دخول') : t('Create account', 'إنشاء الحساب')}
+                  </button>
+                </form>
+                <p style={{ marginTop: '1rem', fontSize: '0.9rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
+                  {currentView === 'login' ? (
+                    <button type="button" className="nav-link" style={{ display: 'inline' }} onClick={() => { setCurrentView('register'); setAuthError(''); }}>
+                      {t('Need an account? Register', 'ليس لديك حساب؟ سجّل الآن')}
+                    </button>
+                  ) : (
+                    <button type="button" className="nav-link" style={{ display: 'inline' }} onClick={() => { setCurrentView('login'); setAuthError(''); }}>
+                      {t('Already registered? Sign in', 'لديك حساب؟ سجّل الدخول')}
+                    </button>
+                  )}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* VIEW: HOME / LANDING */}
         {currentView === 'home' && (
           <div>
