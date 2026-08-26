@@ -18,9 +18,9 @@ async function main() {
   console.log('[Seed] Cleaned database tables.');
 
   // Hash passwords
-  const adminPasswordHash = await bcrypt.hash('Admin@2026!', 10);
-  const citizen1PasswordHash = await bcrypt.hash('Citizen@2026!', 10);
-  const citizen2PasswordHash = await bcrypt.hash('Citizen@2026!', 10);
+  const adminPasswordHash = await bcrypt.hash('Admin@2026!', 12);
+  const citizen1PasswordHash = await bcrypt.hash('Citizen@2026!', 12);
+  const citizen2PasswordHash = await bcrypt.hash('Citizen@2026!', 12);
 
   // 1. Create Admin
   const admin = await prisma.user.create({
@@ -33,7 +33,7 @@ async function main() {
       role: 'ADMIN',
     },
   });
-  console.log('[Seed] Created Admin User: admin@misrgate.gov.eg (password: Admin@2026!)');
+  console.log('[Seed] Created Admin User: admin@misrgate.gov.eg');
 
   // 2. Create Citizen 1 (Zeyad)
   const citizen1 = await prisma.user.create({
@@ -58,7 +58,7 @@ async function main() {
       role: 'CITIZEN',
     },
   });
-  console.log('[Seed] Created Citizen Users: zeyad@gmail.com, nour.hassan@gmail.com (password: Citizen@2026!)');
+  console.log('[Seed] Created Citizen Users: zeyad@gmail.com, nour.hassan@gmail.com');
 
   // 4. Create Applications for Citizen 1 (Zeyad)
   const nationalIdData = {

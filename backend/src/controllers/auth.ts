@@ -5,6 +5,7 @@ import { z } from 'zod';
 import prisma from '../utils/db';
 import { logActivity } from '../utils/activity';
 import { brandedEmailHtml, sendMail } from '../utils/email';
+import { escapeHtml } from '../utils/html';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
@@ -67,12 +68,7 @@ export const register = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'National ID is already registered.' });
     }
 
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(validatedData.password, 10);
-
-    // Default first user as Admin, otherwise Citizen (for ease of testing)
-    const totalUsers = await prisma.user.count();
-    const role = totalUsers === 0 ? 'ADMIN' : 'CITIZEN';
+    const hashedPassword = await bcrypt.hash(validatedData.password, 12);
 
     // Create user in DB
     const user = await prisma.user.create({
@@ -82,15 +78,14 @@ export const register = async (req: Request, res: Response) => {
         name: validatedData.name,
         nationalId: validatedData.nationalId,
         phone: validatedData.phone,
-        role: role,
+        role: 'CITIZEN',
       },
     });
 
-    // Create JWT Token
     const token = jwt.sign(
-      { id: user.id, email: user.email, name: user.name, role: user.role, nationalId: user.nationalId },
+      { id: user.id },
       JWT_SECRET,
-      { expiresIn: '24h' }
+      { expiresIn: '8h', algorithm: 'HS256' }
     );
 
     await logActivity({
@@ -100,12 +95,13 @@ export const register = async (req: Request, res: Response) => {
       details: `New user registered: ${user.email} (${user.role})`,
     });
 
+    const safeName = escapeHtml(user.name);
     void sendMail({
       to: user.email,
       subject: 'Welcome to MisrGate / أهلاً بك في بوابة مصر',
       html: brandedEmailHtml({
         title: 'Welcome to MisrGate',
-        body: `<p>Hello ${user.name},</p><p>Your citizen account is ready. You can apply for documents, book appointments, and track requests from the portal.</p><p>مرحباً ${user.name}، حسابك جاهز لاستخدام خدمات بوابة مصر.</p>`,
+        body: `<p>Hello ${safeName},</p><p>Your citizen account is ready. You can apply for documents, book appointments, and track requests from the portal.</p><p>مرحباً ${safeName}، حسابك جاهز لاستخدام خدمات بوابة مصر.</p>`,
       }),
       text: `Hello ${user.name}, your MisrGate account is ready.`,
     }).catch((err) => console.error('[Email] Welcome mail failed:', err));
@@ -119,6 +115,7 @@ export const register = async (req: Request, res: Response) => {
         name: user.name,
         role: user.role,
         nationalId: user.nationalId,
+        phone: user.phone,
       },
     });
   } catch (error) {
@@ -148,11 +145,10 @@ export const login = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid email or password.' });
     }
 
-    // Create JWT Token
     const token = jwt.sign(
-      { id: user.id, email: user.email, name: user.name, role: user.role, nationalId: user.nationalId },
+      { id: user.id },
       JWT_SECRET,
-      { expiresIn: '24h' }
+      { expiresIn: '8h', algorithm: 'HS256' }
     );
 
     await logActivity({
@@ -171,6 +167,7 @@ export const login = async (req: Request, res: Response) => {
         name: user.name,
         role: user.role,
         nationalId: user.nationalId,
+        phone: user.phone,
       },
     });
   } catch (error) {
@@ -189,8 +186,10 @@ export const logout = async (req: AuthenticatedRequest, res: Response) => {
     return res.status(401).json({ error: 'Authorization header is missing.' });
   }
 
-  const token = authHeader.split(' ')[1];
-  tokenBlacklist.add(token);
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.slice('Bearer '.length).trim() : '';
+  if (token) {
+    tokenBlacklist.add(token);
+  }
 
   return res.json({ message: 'Logged out successfully.' });
 };
@@ -199,24 +198,39 @@ export const logout = async (req: AuthenticatedRequest, res: Response) => {
 export const authenticateJWT = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
 
-  if (authHeader) {
-    const token = authHeader.split(' ')[1];
-
-    if (isTokenBlacklisted(token)) {
-      return res.status(401).json({ error: 'Token has been invalidated.' });
-    }
-
-    jwt.verify(token, JWT_SECRET, (err, decoded) => {
-      if (err) {
-        return res.status(403).json({ error: 'Invalid or expired token.' });
-      }
-
-      req.user = decoded as AuthenticatedRequest['user'];
-      next();
-    });
-  } else {
+  if (!authHeader?.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Authorization header is missing.' });
   }
+
+  const token = authHeader.slice('Bearer '.length).trim();
+  if (!token) {
+    return res.status(401).json({ error: 'Authorization header is missing.' });
+  }
+
+  if (isTokenBlacklisted(token)) {
+    return res.status(401).json({ error: 'Token has been invalidated.' });
+  }
+
+  jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] }, (err, decoded) => {
+    if (err || !decoded || typeof decoded !== 'object' || !('id' in decoded) || typeof decoded.id !== 'string') {
+      return res.status(403).json({ error: 'Invalid or expired token.' });
+    }
+
+    const userId = decoded.id;
+    void prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, name: true, role: true, nationalId: true },
+    }).then((user) => {
+      if (!user) {
+        return res.status(401).json({ error: 'Account no longer exists.' });
+      }
+      req.user = user;
+      next();
+    }).catch((lookupError) => {
+      console.error('Auth lookup error:', lookupError);
+      return res.status(500).json({ error: 'Authentication failed.' });
+    });
+  });
 };
 
 // Middleware: Require Admin Role
@@ -308,11 +322,17 @@ export const changePassword = async (req: AuthenticatedRequest, res: Response) =
       return res.status(400).json({ error: 'Current password is incorrect.' });
     }
 
-    const hashedPassword = await bcrypt.hash(validatedData.newPassword, 10);
+    const hashedPassword = await bcrypt.hash(validatedData.newPassword, 12);
     await prisma.user.update({
       where: { id: req.user.id },
       data: { password: hashedPassword },
     });
+
+    const authHeader = req.headers.authorization;
+    const currentToken = authHeader?.startsWith('Bearer ') ? authHeader.slice('Bearer '.length).trim() : '';
+    if (currentToken) {
+      tokenBlacklist.add(currentToken);
+    }
 
     await logActivity({
       userId: user.id,
