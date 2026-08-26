@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import prisma from '../utils/db';
 import { logActivity } from '../utils/activity';
+import { brandedEmailHtml, sendMail } from '../utils/email';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
@@ -98,6 +99,16 @@ export const register = async (req: Request, res: Response) => {
       action: 'USER_REGISTER',
       details: `New user registered: ${user.email} (${user.role})`,
     });
+
+    void sendMail({
+      to: user.email,
+      subject: 'Welcome to MisrGate / أهلاً بك في بوابة مصر',
+      html: brandedEmailHtml({
+        title: 'Welcome to MisrGate',
+        body: `<p>Hello ${user.name},</p><p>Your citizen account is ready. You can apply for documents, book appointments, and track requests from the portal.</p><p>مرحباً ${user.name}، حسابك جاهز لاستخدام خدمات بوابة مصر.</p>`,
+      }),
+      text: `Hello ${user.name}, your MisrGate account is ready.`,
+    }).catch((err) => console.error('[Email] Welcome mail failed:', err));
 
     return res.status(201).json({
       message: 'User registered successfully',

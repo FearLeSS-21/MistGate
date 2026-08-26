@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { api } from './services/api';
 import type { User as ApiUser, Application, ServiceType, Notification, Complaint, Appointment, ActivityEntry, Announcement, Report, TimelineEvent } from './services/api';
 import './App.css';
+import { GovPortalTabs } from './components/GovPortalTabs';
 import {
   Home,
   LayoutDashboard,
@@ -48,6 +49,8 @@ import {
   Mail,
   ArrowUp,
   Copy,
+  Menu,
+  Send,
 } from 'lucide-react';
 
 export default function App() {
@@ -91,7 +94,9 @@ export default function App() {
     role: 'CITIZEN'
   });
 
-  const [currentView, setCurrentView] = useState<'home' | 'faq' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log' | 'profile' | 'analytics' | 'admin_announcements' | 'admin_reports' | 'timeline' | 'service_directory' | 'about' | 'terms' | 'holidays' | 'guides' | 'sitemap' | 'shortcuts'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'faq' | 'dashboard' | 'apply' | 'track' | 'admin' | 'complaints' | 'admin_complaints' | 'appointments' | 'admin_appointments' | 'ratings' | 'activity_log' | 'profile' | 'analytics' | 'admin_announcements' | 'admin_reports' | 'timeline' | 'service_directory' | 'about' | 'terms' | 'holidays' | 'guides' | 'sitemap' | 'shortcuts' | 'contact'>('home');
+  const [navOpen, setNavOpen] = useState(false);
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   
   // Forms & Service application states
   const [selectedService, setSelectedService] = useState<ServiceType>('NATIONAL_ID');
@@ -271,6 +276,10 @@ export default function App() {
   const [passwordError, setPasswordError] = useState('');
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [profileSaving, setProfileSaving] = useState(false);
+  const [contactForm, setContactForm] = useState({ name: '', email: '', subject: '', message: '', website: '' });
+  const [contactSending, setContactSending] = useState(false);
+  const [contactSuccess, setContactSuccess] = useState('');
+  const [contactError, setContactError] = useState('');
 
   // Modal active state
   const [activeApplicationDetails, setActiveApplicationDetails] = useState<Application | null>(null);
@@ -290,6 +299,16 @@ export default function App() {
   // Translation helper function
   const t = (enText: string, arText: string) => {
     return lang === 'en' ? enText : arText;
+  };
+
+  const dateLocale = lang === 'ar' ? 'ar-EG' : 'en-GB';
+  const formatDate = (value: string | Date) => new Date(value).toLocaleDateString(dateLocale);
+  const formatDateTime = (value: string | Date) => new Date(value).toLocaleString(dateLocale);
+
+  const goTo = (view: typeof currentView) => {
+    setCurrentView(view);
+    setNavOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const getErrorMessage = (err: unknown, fallback: string) =>
@@ -623,7 +642,23 @@ export default function App() {
   // Persist dark mode preference
   useEffect(() => {
     localStorage.setItem('misrgate_theme', darkMode ? 'dark' : 'light');
+    document.documentElement.classList.toggle('dark-mode', darkMode);
   }, [darkMode]);
+
+  useEffect(() => {
+    document.documentElement.lang = lang === 'ar' ? 'ar' : 'en';
+    document.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  }, [lang]);
+
+  useEffect(() => {
+    setNavOpen(false);
+  }, [currentView]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const id = window.setTimeout(() => setToast(null), 5000);
+    return () => window.clearTimeout(id);
+  }, [toast]);
 
   useEffect(() => {
     void fetchFavorites();
@@ -697,6 +732,25 @@ export default function App() {
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (err: unknown) {
       setPasswordError(err instanceof Error ? err.message : t('Failed to change password.', 'فشل تغيير كلمة المرور.'));
+    }
+  };
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setContactError('');
+    setContactSuccess('');
+    setContactSending(true);
+    try {
+      const res = await api.sendContact({ ...contactForm, locale: lang });
+      setContactSuccess(res.message || t('Message sent successfully.', 'تم إرسال الرسالة بنجاح.'));
+      setToast({ type: 'success', text: t('Message sent. Check your inbox for a confirmation.', 'تم الإرسال. راجع بريدك لتأكيد الاستلام.') });
+      setContactForm({ name: '', email: '', subject: '', message: '', website: '' });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : t('Failed to send message.', 'فشل إرسال الرسالة.');
+      setContactError(msg);
+      setToast({ type: 'error', text: msg });
+    } finally {
+      setContactSending(false);
     }
   };
 
@@ -867,11 +921,32 @@ export default function App() {
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'PENDING': return t('Pending', 'قيد الانتظار');
+      case 'UNDER_REVIEW': return t('Under Review', 'قيد المراجعة');
+      case 'APPROVED': return t('Approved', 'معتمد');
+      case 'REJECTED': return t('Rejected', 'مرفوض');
+      case 'COMPLETED': return t('Completed', 'مكتمل');
+      case 'OPEN': return t('Open', 'مفتوح');
+      case 'RESOLVED': return t('Resolved', 'تم الحل');
+      case 'CLOSED': return t('Closed', 'مغلق');
+      case 'SCHEDULED': return t('Scheduled', 'مجدول');
+      case 'CONFIRMED': return t('Confirmed', 'مؤكد');
+      case 'CANCELLED': return t('Cancelled', 'ملغي');
+      case 'NO_SHOW': return t('No show', 'لم يحضر');
+      case 'CITIZEN': return t('Citizen', 'مواطن');
+      case 'ADMIN': return t('Admin', 'مسؤول');
+      default: return status.replace(/_/g, ' ');
+    }
+  };
+
   const isRtl = lang === 'ar';
 
   return (
     <div className={`app-container ${isRtl ? 'arabic-layout' : ''} ${darkMode ? 'dark-mode' : ''}`}>
-      
+      <a href="#main-content" className="skip-link">{t('Skip to content', 'تخطي إلى المحتوى')}</a>
+
       {/* Developer Role Switcher (Simulated Login Bypass) */}
       <div className="dev-banner">
         <span>
@@ -890,14 +965,24 @@ export default function App() {
       {/* 1. Header & Navigation */}
       <header className="navbar">
         <div className="navbar-content" style={{ flexDirection: isRtl ? 'row-reverse' : 'row' }}>
-          <a href="#" className="logo-section" onClick={() => { setCurrentView('home'); setFormSuccess(null); }}>
-            <div className="logo-symbol">🇪🇬</div>
+          <a href="#home" className="logo-section" onClick={(e) => { e.preventDefault(); goTo('home'); setFormSuccess(null); }}>
+            <div className="logo-symbol" aria-hidden>🇪🇬</div>
             <div className="logo-text" style={{ alignItems: isRtl ? 'flex-end' : 'flex-start' }}>
               <span>{t('MisrGate', 'بوابة مصر')}</span>
               <span className="logo-sub">{t('Digital Services Platform', 'منصة الخدمات الرقمية')}</span>
             </div>
           </a>
-          <nav className="nav-links" style={{ flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+          <button
+            type="button"
+            className="lang-btn nav-menu-toggle"
+            onClick={() => setNavOpen((open) => !open)}
+            aria-expanded={navOpen}
+            aria-controls="primary-nav"
+            title={t('Menu', 'القائمة')}
+          >
+            {navOpen ? <X size={16} /> : <Menu size={16} />}
+          </button>
+          <nav id="primary-nav" className={`nav-links${navOpen ? ' open' : ''}`} style={{ flexDirection: isRtl ? 'row-reverse' : 'row' }}>
             <span className={`nav-link ${currentView === 'home' ? 'active' : ''}`} onClick={() => setCurrentView('home')} title={t('Home page', 'الصفحة الرئيسية')}>
               <Home size={15} />
               {t('Home', 'الرئيسية')}
@@ -975,9 +1060,13 @@ export default function App() {
               <BookOpen size={15} />
               {t('Guides', 'الأدلة')}
             </span>
-            <span className={`nav-link ${currentView === 'about' ? 'active' : ''}`} onClick={() => setCurrentView('about')} title={t('About MisrGate', 'عن بوابة مصر')}>
+            <span className={`nav-link ${currentView === 'about' ? 'active' : ''}`} onClick={() => goTo('about')} title={t('About MisrGate', 'عن بوابة مصر')}>
               <Globe size={15} />
               {t('About', 'عن البوابة')}
+            </span>
+            <span className={`nav-link ${currentView === 'contact' ? 'active' : ''}`} onClick={() => { goTo('contact'); setContactSuccess(''); setContactError(''); }} title={t('Contact support', 'اتصل بنا')}>
+              <Mail size={15} />
+              {t('Contact', 'اتصل بنا')}
             </span>
             {user?.role === 'ADMIN' && (
               <span className={`nav-link ${currentView === 'admin_announcements' ? 'active' : ''}`} onClick={() => { setCurrentView('admin_announcements'); fetchAdminAnnouncements(); }} title={t('Manage announcements', 'إدارة الإعلانات')}>
@@ -1059,7 +1148,7 @@ export default function App() {
       </header>
 
       {/* 2. Main Page Router */}
-      <main className="content-wrapper">
+      <main id="main-content" className="content-wrapper">
         
         {/* VIEW: HOME / LANDING */}
         {currentView === 'home' && (
@@ -1144,7 +1233,7 @@ export default function App() {
                   <button
                     className="favorite-star"
                     onClick={(e) => { e.stopPropagation(); handleToggleFavorite('NATIONAL_ID'); }}
-                    title={favorites.includes('NATIONAL_ID') ? 'Remove from favorites' : 'Add to favorites'}
+                    title={favorites.includes('NATIONAL_ID') ? t('Remove from favorites', 'إزالة من المفضلة') : t('Add to favorites', 'إضافة إلى المفضلة')}
                     style={{ color: favorites.includes('NATIONAL_ID') ? 'var(--accent-gold)' : 'var(--text-secondary)', marginLeft: '0.5rem' }}
                   >
                     <Star size={16} fill={favorites.includes('NATIONAL_ID') ? 'var(--accent-gold)' : 'transparent'} />
@@ -1164,7 +1253,7 @@ export default function App() {
                 <div className="service-icon" style={{ alignSelf: isRtl ? 'flex-end' : 'flex-start' }}><Shield size={20} /></div>
                 <h3>
                   {t('Military & Recruitment', 'التجنيد والتعبئة')}
-                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('MILITARY_EXEMPTION'); }} title={favorites.includes('MILITARY_EXEMPTION') ? 'Remove from favorites' : 'Add to favorites'} style={{ color: favorites.includes('MILITARY_EXEMPTION') ? 'var(--accent-gold)' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
+                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('MILITARY_EXEMPTION'); }} title={favorites.includes('MILITARY_EXEMPTION') ? t('Remove from favorites', 'إزالة من المفضلة') : t('Add to favorites', 'إضافة إلى المفضلة')} style={{ color: favorites.includes('MILITARY_EXEMPTION') ? 'var(--accent-gold)' : 'var(--text-secondary)', marginInlineStart: '0.5rem' }}>
                     <Star size={16} fill={favorites.includes('MILITARY_EXEMPTION') ? 'var(--accent-gold)' : 'transparent'} />
                   </button>
                 </h3>
@@ -1182,7 +1271,7 @@ export default function App() {
                 <div className="service-icon" style={{ alignSelf: isRtl ? 'flex-end' : 'flex-start' }}><Bookmark size={20} /></div>
                 <h3>
                   {t('Civil Registry Records', 'وثائق الأحوال المدنية')}
-                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('BIRTH_CERTIFICATE'); }} title={favorites.includes('BIRTH_CERTIFICATE') ? 'Remove from favorites' : 'Add to favorites'} style={{ color: favorites.includes('BIRTH_CERTIFICATE') ? 'var(--accent-gold)' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
+                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('BIRTH_CERTIFICATE'); }} title={favorites.includes('BIRTH_CERTIFICATE') ? t('Remove from favorites', 'إزالة من المفضلة') : t('Add to favorites', 'إضافة إلى المفضلة')} style={{ color: favorites.includes('BIRTH_CERTIFICATE') ? 'var(--accent-gold)' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
                     <Star size={16} fill={favorites.includes('BIRTH_CERTIFICATE') ? 'var(--accent-gold)' : 'transparent'} />
                   </button>
                 </h3>
@@ -1200,7 +1289,7 @@ export default function App() {
                 <div className="service-icon" style={{ alignSelf: isRtl ? 'flex-end' : 'flex-start' }}><BookOpen size={20} /></div>
                 <h3>
                   {t('Egyptian Passport', 'جواز السفر المصري')}
-                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('PASSPORT'); }} title={favorites.includes('PASSPORT') ? 'Remove from favorites' : 'Add to favorites'} style={{ color: favorites.includes('PASSPORT') ? 'var(--accent-gold)' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
+                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('PASSPORT'); }} title={favorites.includes('PASSPORT') ? t('Remove from favorites', 'إزالة من المفضلة') : t('Add to favorites', 'إضافة إلى المفضلة')} style={{ color: favorites.includes('PASSPORT') ? 'var(--accent-gold)' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
                     <Star size={16} fill={favorites.includes('PASSPORT') ? 'var(--accent-gold)' : 'transparent'} />
                   </button>
                 </h3>
@@ -1218,7 +1307,7 @@ export default function App() {
                 <div className="service-icon" style={{ alignSelf: isRtl ? 'flex-end' : 'flex-start' }}><Receipt size={20} /></div>
                 <h3>
                   {t('Tax Payment', 'سداد الضرائب')}
-                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('TAX_PAYMENT'); }} title={favorites.includes('TAX_PAYMENT') ? 'Remove from favorites' : 'Add to favorites'} style={{ color: favorites.includes('TAX_PAYMENT') ? 'var(--accent-gold)' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
+                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('TAX_PAYMENT'); }} title={favorites.includes('TAX_PAYMENT') ? t('Remove from favorites', 'إزالة من المفضلة') : t('Add to favorites', 'إضافة إلى المفضلة')} style={{ color: favorites.includes('TAX_PAYMENT') ? 'var(--accent-gold)' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
                     <Star size={16} fill={favorites.includes('TAX_PAYMENT') ? 'var(--accent-gold)' : 'transparent'} />
                   </button>
                 </h3>
@@ -1236,7 +1325,7 @@ export default function App() {
                 <div className="service-icon" style={{ alignSelf: isRtl ? 'flex-end' : 'flex-start' }}><Car size={20} /></div>
                 <h3>
                   {t('Traffic Violations', 'مخالفات المرور')}
-                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('TRAFFIC_FINE'); }} title={favorites.includes('TRAFFIC_FINE') ? 'Remove from favorites' : 'Add to favorites'} style={{ color: favorites.includes('TRAFFIC_FINE') ? 'var(--accent-gold)' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
+                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('TRAFFIC_FINE'); }} title={favorites.includes('TRAFFIC_FINE') ? t('Remove from favorites', 'إزالة من المفضلة') : t('Add to favorites', 'إضافة إلى المفضلة')} style={{ color: favorites.includes('TRAFFIC_FINE') ? 'var(--accent-gold)' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
                     <Star size={16} fill={favorites.includes('TRAFFIC_FINE') ? 'var(--accent-gold)' : 'transparent'} />
                   </button>
                 </h3>
@@ -1254,7 +1343,7 @@ export default function App() {
                 <div className="service-icon" style={{ alignSelf: isRtl ? 'flex-end' : 'flex-start' }}><HeartPulse size={20} /></div>
                 <h3>
                   {t('Health Insurance', 'التأمين الصحي')}
-                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('HEALTH_INSURANCE'); }} title={favorites.includes('HEALTH_INSURANCE') ? 'Remove from favorites' : 'Add to favorites'} style={{ color: favorites.includes('HEALTH_INSURANCE') ? 'var(--accent-gold)' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
+                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('HEALTH_INSURANCE'); }} title={favorites.includes('HEALTH_INSURANCE') ? t('Remove from favorites', 'إزالة من المفضلة') : t('Add to favorites', 'إضافة إلى المفضلة')} style={{ color: favorites.includes('HEALTH_INSURANCE') ? 'var(--accent-gold)' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
                     <Star size={16} fill={favorites.includes('HEALTH_INSURANCE') ? 'var(--accent-gold)' : 'transparent'} />
                   </button>
                 </h3>
@@ -1272,7 +1361,7 @@ export default function App() {
                 <div className="service-icon" style={{ alignSelf: isRtl ? 'flex-end' : 'flex-start' }}><Briefcase size={20} /></div>
                 <h3>
                   {t('Social Insurance', 'التأمينات الاجتماعية')}
-                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('SOCIAL_INSURANCE'); }} title={favorites.includes('SOCIAL_INSURANCE') ? 'Remove from favorites' : 'Add to favorites'} style={{ color: favorites.includes('SOCIAL_INSURANCE') ? 'var(--accent-gold)' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
+                  <button className="favorite-star" onClick={(e) => { e.stopPropagation(); handleToggleFavorite('SOCIAL_INSURANCE'); }} title={favorites.includes('SOCIAL_INSURANCE') ? t('Remove from favorites', 'إزالة من المفضلة') : t('Add to favorites', 'إضافة إلى المفضلة')} style={{ color: favorites.includes('SOCIAL_INSURANCE') ? 'var(--accent-gold)' : 'var(--text-secondary)', marginLeft: '0.5rem' }}>
                     <Star size={16} fill={favorites.includes('SOCIAL_INSURANCE') ? 'var(--accent-gold)' : 'transparent'} />
                   </button>
                 </h3>
@@ -1286,6 +1375,11 @@ export default function App() {
               </div>
 
             </div>
+
+            <h2 className="page-heading" style={{ marginTop: '2.5rem' }}>
+              {t('Official government portals', 'البوابات الحكومية الرسمية')}
+            </h2>
+            <GovPortalTabs lang={lang} isRtl={isRtl} />
 
             {/* What's new — bottom info card */}
             <div
@@ -1479,9 +1573,9 @@ export default function App() {
                           <tr key={app.id}>
                             <td style={{ fontWeight: '700', color: 'var(--accent-red)' }}>{app.trackingCode}</td>
                             <td>{getServiceLabel(app.serviceType)}</td>
-                            <td>{new Date(app.createdAt).toLocaleDateString()}</td>
+                            <td>{formatDate(app.createdAt)}</td>
                             <td>
-                              <span className={`status-badge status-${app.status}`}>{app.status}</span>
+                              <span className={`status-badge status-${app.status}`}>{getStatusLabel(app.status)}</span>
                             </td>
                             <td>
                               <div style={{ display: 'flex', gap: '0.35rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
@@ -1516,8 +1610,8 @@ export default function App() {
         {currentView === 'track' && trackedApplication && (
           <div style={{ maxWidth: '700px', margin: '0 auto', textAlign: isRtl ? 'right' : 'left' }}>
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
-              <button className="btn btn-secondary" onClick={() => { setCurrentView('home'); setTrackedApplication(null); }}>
-                {isRtl ? '← العودة للرئيسية' : '← Return Home'}
+              <button className="btn btn-secondary" onClick={() => { goTo('home'); setTrackedApplication(null); }}>
+                {t('Return home', 'العودة للرئيسية')}
               </button>
               <button className="btn btn-outline" onClick={() => window.print()}>
                 <Printer size={14} /> {t('Print', 'طباعة')}
@@ -1537,7 +1631,7 @@ export default function App() {
                   </p>
                 </div>
                 <span className={`status-badge status-${trackedApplication.status}`} style={{ fontSize: '0.85rem' }}>
-                  {trackedApplication.status}
+                  {getStatusLabel(trackedApplication.status || '')}
                 </span>
               </div>
 
@@ -1589,7 +1683,7 @@ export default function App() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '2rem', padding: '1rem', background: 'var(--bg-subtle)', borderRadius: 'var(--border-radius-md)' }}>
                 <div><strong>{t('Email:', 'البريد الإلكتروني:')}</strong> <span style={{ color: 'var(--text-secondary)' }}>{user.email}</span></div>
                 <div><strong>{t('National ID:', 'الرقم القومي:')}</strong> <span style={{ color: 'var(--text-secondary)' }}>{user.nationalId}</span></div>
-                <div><strong>{t('Role:', 'الدور:')}</strong> <span className={`status-badge status-${user.role === 'ADMIN' ? 'APPROVED' : 'PENDING'}`}>{user.role}</span></div>
+                <div><strong>{t('Role:', 'الدور:')}</strong> <span className={`status-badge status-${user.role === 'ADMIN' ? 'APPROVED' : 'PENDING'}`}>{getStatusLabel(user.role)}</span></div>
                 <div><strong>{t('Last Login:', 'آخر تسجيل دخول:')}</strong> <span style={{ color: 'var(--text-secondary)' }}>{lastLogin}</span></div>
               </div>
 
@@ -2331,7 +2425,7 @@ export default function App() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
                         <strong>{c.subject}</strong>
                         <span className={`status-badge status-${c.status === 'RESOLVED' || c.status === 'CLOSED' ? 'COMPLETED' : c.status === 'UNDER_REVIEW' ? 'UNDER_REVIEW' : 'PENDING'}`}>
-                          {c.status}
+                          {getStatusLabel(c.status)}
                         </span>
                       </div>
                       <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>{c.message}</p>
@@ -2541,13 +2635,16 @@ export default function App() {
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
                     <Mail size={16} style={{ color: 'var(--accent-red)' }} />
-                    <span>{t('Email: support@misrgate.gov.eg', 'البريد الإلكتروني: support@misrgate.gov.eg')}</span>
+                    <span>{t('Email: Zeyad.wael.ali.2003@gmail.com', 'البريد الإلكتروني: Zeyad.wael.ali.2003@gmail.com')}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexDirection: isRtl ? 'row-reverse' : 'row' }}>
                     <MapPin size={16} style={{ color: 'var(--accent-red)' }} />
                     <span>{t('MisrGate HQ: Cairo, Egypt', 'المقر الرئيسي: القاهرة، مصر')}</span>
                   </div>
                 </div>
+                <button className="btn btn-primary" style={{ marginTop: '1.25rem' }} onClick={() => goTo('contact')}>
+                  <Send size={14} /> {t('Write to us', 'راسلنا')}
+                </button>
                 <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                   <button className="btn btn-outline" onClick={() => setCurrentView('terms')}>
                     <FileText size={14} /> {t('Terms', 'الشروط')}
@@ -2625,6 +2722,7 @@ export default function App() {
                   { view: 'guides', label: t('Guides', 'الأدلة'), icon: '📖' },
                   { view: 'profile', label: t('Profile', 'الملف الشخصي'), icon: '👤' },
                   { view: 'about', label: t('About', 'عن البوابة'), icon: 'ℹ️' },
+                  { view: 'contact', label: t('Contact', 'اتصل بنا'), icon: '✉️' },
                   { view: 'terms', label: t('Terms & Conditions', 'الشروط'), icon: '📄' },
                   { view: 'holidays', label: t('Holidays', 'الإجازات'), icon: '🎉' },
                   { view: 'admin', label: t('Admin Desk', 'غرفة الإدارة'), icon: '🔒' },
@@ -2723,6 +2821,54 @@ export default function App() {
                     <kbd style={{ background: 'var(--bg-hover)', padding: '0.2rem 0.6rem', borderRadius: '4px', fontFamily: 'monospace', fontSize: '0.85rem' }}>{s.keys}</kbd>
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* VIEW: CONTACT */}
+        {currentView === 'contact' && (
+          <div>
+            <div style={{ maxWidth: '720px', margin: '0 auto' }}>
+              <h2 className="page-heading">
+                <Mail size={22} /> {t('Contact MisrGate', 'اتصل ببوابة مصر')}
+              </h2>
+              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '1.75rem', maxWidth: '42rem', marginInline: 'auto' }}>
+                {t(
+                  'Send a message to the portal team. You will receive a confirmation at the address you enter, and the team inbox is Zeyad.wael.ali.2003@gmail.com.',
+                  'أرسل رسالة لفريق البوابة. ستصلك رسالة تأكيد على البريد الذي تدخله، وصندوق الفريق هو Zeyad.wael.ali.2003@gmail.com.'
+                )}
+              </p>
+              <div className="glass-card">
+                {contactSuccess && <div className="success-banner"><CheckCircle size={16} /> {contactSuccess}</div>}
+                {contactError && <div className="error-banner"><AlertCircle size={16} /> {contactError}</div>}
+                <form onSubmit={handleContactSubmit}>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="contact-name">{t('Full name', 'الاسم الكامل')}</label>
+                      <input id="contact-name" required value={contactForm.name} onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })} />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="contact-email">{t('Email', 'البريد الإلكتروني')}</label>
+                      <input id="contact-email" type="email" required value={contactForm.email} onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })} />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="contact-subject">{t('Subject', 'الموضوع')}</label>
+                    <input id="contact-subject" required value={contactForm.subject} onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })} />
+                  </div>
+                  <div className="form-group" aria-hidden="true" style={{ position: 'absolute', left: '-9999px' }}>
+                    <label htmlFor="contact-website">{t('Website', 'الموقع')}</label>
+                    <input id="contact-website" tabIndex={-1} autoComplete="off" value={contactForm.website} onChange={(e) => setContactForm({ ...contactForm, website: e.target.value })} />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="contact-message">{t('Message', 'الرسالة')}</label>
+                    <textarea id="contact-message" rows={6} required minLength={10} value={contactForm.message} onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })} />
+                  </div>
+                  <button type="submit" className="btn btn-primary" disabled={contactSending}>
+                    {contactSending ? <Loader2 className="spinner" size={16} /> : <><Send size={15} /> {t('Send message', 'إرسال الرسالة')}</>}
+                  </button>
+                </form>
               </div>
             </div>
           </div>
@@ -2891,7 +3037,7 @@ export default function App() {
                           </td>
                           <td>{c.category.replace(/_/g, ' ')}</td>
                           <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.subject}</td>
-                          <td><span className={`status-badge status-${c.status === 'RESOLVED' || c.status === 'CLOSED' ? 'COMPLETED' : c.status === 'UNDER_REVIEW' ? 'UNDER_REVIEW' : 'PENDING'}`}>{c.status}</span></td>
+                          <td><span className={`status-badge status-${c.status === 'RESOLVED' || c.status === 'CLOSED' ? 'COMPLETED' : c.status === 'UNDER_REVIEW' ? 'UNDER_REVIEW' : 'PENDING'}`}>{getStatusLabel(c.status)}</span></td>
                           <td>{new Date(c.createdAt).toLocaleDateString()}</td>
                           <td>
                             <button className="btn btn-primary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }} onClick={() => { setSelectedComplaint(c); setComplaintResponse(c.response || ''); }}>
@@ -3031,7 +3177,7 @@ export default function App() {
                       <div>
                         <strong>{a.department.replace(/_/g, ' ')}</strong>
                         <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{new Date(a.date).toLocaleDateString()} — {a.timeSlot}</div>
-                        <span className={`status-badge status-${a.status === 'SCHEDULED' ? 'PENDING' : a.status === 'CONFIRMED' ? 'UNDER_REVIEW' : a.status === 'COMPLETED' || a.status === 'CANCELLED' ? 'COMPLETED' : 'REJECTED'}`}>{a.status}</span>
+                        <span className={`status-badge status-${a.status === 'SCHEDULED' ? 'PENDING' : a.status === 'CONFIRMED' ? 'UNDER_REVIEW' : a.status === 'COMPLETED' || a.status === 'CANCELLED' ? 'COMPLETED' : 'REJECTED'}`}>{getStatusLabel(a.status)}</span>
                       </div>
                       {a.status === 'SCHEDULED' && (
                         <button className="btn btn-danger" style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }} onClick={() => { if (window.confirm(t('Cancel this appointment?', 'إلغاء هذا الموعد؟'))) handleCancelAppointment(a.id); }}>
@@ -3072,7 +3218,7 @@ export default function App() {
                         <td>{a.department.replace(/_/g, ' ')}</td>
                         <td>{new Date(a.date).toLocaleDateString()}</td>
                         <td>{a.timeSlot}</td>
-                        <td><span className={`status-badge status-${a.status === 'SCHEDULED' ? 'PENDING' : a.status === 'CONFIRMED' ? 'UNDER_REVIEW' : a.status === 'COMPLETED' ? 'COMPLETED' : 'REJECTED'}`}>{a.status}</span></td>
+                        <td><span className={`status-badge status-${a.status === 'SCHEDULED' ? 'PENDING' : a.status === 'CONFIRMED' ? 'UNDER_REVIEW' : a.status === 'COMPLETED' ? 'COMPLETED' : 'REJECTED'}`}>{getStatusLabel(a.status)}</span></td>
                       </tr>
                     ))}
                     {adminAppointments.length === 0 && (
@@ -3574,9 +3720,9 @@ export default function App() {
                               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('National ID:', 'الرقم القومي:')} {app.user?.nationalId}</div>
                             </td>
                             <td>{getServiceLabel(app.serviceType)}</td>
-                            <td>{new Date(app.createdAt).toLocaleDateString()}</td>
+                            <td>{formatDate(app.createdAt)}</td>
                             <td>
-                              <span className={`status-badge status-${app.status}`}>{app.status}</span>
+                              <span className={`status-badge status-${app.status}`}>{getStatusLabel(app.status)}</span>
                             </td>
                             <td>
                               <button className="btn btn-primary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }} onClick={() => { setSelectedAppForReview(app); setAdminDecision({ status: app.status, notes: app.notes || '' }); }}>
@@ -3715,6 +3861,48 @@ export default function App() {
 
       </main>
 
+      <footer className="footer">
+        <div className="footer-inner">
+          <div className="footer-brand">
+            <strong style={{ color: 'var(--text-primary)', fontSize: '1.05rem' }}>{t('MisrGate', 'بوابة مصر')}</strong>
+            <p>{t('Secure digital services for Egyptian documents, appointments, and citizen requests.', 'خدمات رقمية آمنة للمستندات والمواعيد وطلبات المواطنين في مصر.')}</p>
+          </div>
+          <div className="footer-col">
+            <h4>{t('Services', 'الخدمات')}</h4>
+            <button type="button" onClick={() => goTo('home')}>{t('Home', 'الرئيسية')}</button>
+            <button type="button" onClick={() => goTo('service_directory')}>{t('Directory', 'الدليل')}</button>
+            <button type="button" onClick={() => goTo('guides')}>{t('Guides', 'الأدلة')}</button>
+            <button type="button" onClick={() => goTo('faq')}>{t('FAQ', 'الأسئلة')}</button>
+          </div>
+          <div className="footer-col">
+            <h4>{t('Portal', 'البوابة')}</h4>
+            <button type="button" onClick={() => goTo('about')}>{t('About', 'عن البوابة')}</button>
+            <button type="button" onClick={() => goTo('contact')}>{t('Contact', 'اتصل بنا')}</button>
+            <button type="button" onClick={() => goTo('terms')}>{t('Terms', 'الشروط')}</button>
+            <button type="button" onClick={() => goTo('holidays')}>{t('Holidays', 'الإجازات')}</button>
+          </div>
+          <div className="footer-col">
+            <h4>{t('Support', 'الدعم')}</h4>
+            <a href="tel:15999">15999</a>
+            <a href="mailto:Zeyad.wael.ali.2003@gmail.com">Zeyad.wael.ali.2003@gmail.com</a>
+            <button type="button" onClick={() => goTo('sitemap')}>{t('Sitemap', 'خريطة الموقع')}</button>
+            <button type="button" onClick={() => goTo('shortcuts')}>{t('Shortcuts', 'الاختصارات')}</button>
+          </div>
+        </div>
+        <div className="footer-copy">
+          <span>© {new Date().getFullYear()} MisrGate · {t('Arab Republic of Egypt', 'جمهورية مصر العربية')}</span>
+          <span>{t('Arabic & English · Dark & light', 'العربية والإنجليزية · الوضع الداكن والفاتح')}</span>
+        </div>
+      </footer>
+
+      {toast && (
+        <div className={`toast toast-${toast.type}`} role="status">
+          {toast.type === 'success' ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
+          <span>{toast.text}</span>
+          <button type="button" className="lang-btn" style={{ padding: '0.15rem 0.4rem', marginInlineStart: 'auto' }} onClick={() => setToast(null)} aria-label={t('Dismiss', 'إغلاق')}><X size={12} /></button>
+        </div>
+      )}
+
       {/* Scroll to Top Button */}
       {showScrollTop && (
         <button
@@ -3738,7 +3926,7 @@ export default function App() {
           style={{
             position: 'fixed', bottom: '1.5rem', right: isRtl ? 'auto' : '1.5rem', left: isRtl ? '1.5rem' : 'auto',
             width: '50px', height: '50px', borderRadius: '50%', border: 'none',
-            background: 'var(--accent-red)', color: '#fff', cursor: 'pointer',
+            background: 'var(--accent-red)', color: 'var(--text-on-accent)', cursor: 'pointer',
             boxShadow: '0 4px 15px rgba(0,0,0,0.3)', zIndex: 999,
             display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem',
           }}

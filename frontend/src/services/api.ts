@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 export interface User {
   id: string;
@@ -201,6 +201,29 @@ class ApiService {
       method: 'POST',
       body: JSON.stringify(body),
     });
+  }
+
+  async sendContact(body: {
+    name: string;
+    email: string;
+    subject: string;
+    message: string;
+    locale?: 'en' | 'ar';
+    website?: string;
+  }): Promise<{ message: string }> {
+    const contactUrl = import.meta.env.DEV
+      ? `${API_BASE_URL}/contact`
+      : (import.meta.env.VITE_API_BASE_URL ? `${import.meta.env.VITE_API_BASE_URL}/contact` : '/api/contact');
+    const response = await fetch(contactUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error((data as { error?: string }).error || 'Failed to send message.');
+    }
+    return data as { message: string };
   }
 
   async login(body: { email: string; password: string }): Promise<{ token: string; user: User }> {

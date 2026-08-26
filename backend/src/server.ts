@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -62,6 +63,7 @@ import { getMyFavorites, toggleFavorite } from './controllers/favorites';
 import { getMyTimeline } from './controllers/timeline';
 import { getActiveAnnouncements, adminGetAnnouncements, adminCreateAnnouncement, adminUpdateAnnouncement, adminDeleteAnnouncement } from './controllers/announcements';
 import { adminGetReport } from './controllers/reports';
+import { submitContact } from './controllers/contact';
 
 // Initialize dotenv configuration
 dotenv.config();
@@ -187,6 +189,7 @@ app.get('/api/admin/activities/recent', authenticateJWT, requireAdmin, adminGetR
 
 // --- Chatbot Route (Demo) ---
 app.post('/api/chatbot', chat);
+app.post('/api/contact', submitContact);
 
 // --- Admin Analytics Routes ---
 app.get('/api/admin/analytics', authenticateJWT, requireAdmin, adminGetAnalytics);
