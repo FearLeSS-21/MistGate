@@ -19,15 +19,11 @@ const demoResponses: Record<string, string> = {
   'appointment': 'You can book appointments at Civil Registry, Passport Office, Traffic Department, Social Insurance, Health Insurance, Tax Authority, or Military Recruitment. Available time slots are 30-minute windows from 9:00 AM.',
   'cancel appointment': 'To cancel an appointment, go to the Appointments section and click "Cancel" on any scheduled appointment. Only future appointments can be cancelled.',
   'complaint': 'To submit feedback or a complaint, go to the Feedback section. Categories include Service Quality, Technical Issue, Suggestion, Staff Conduct, and Delay Complaint.',
-  'user': 'Current registered users:\n- Zeyad Ahmed Ali (Citizen)\n- Nour Hassan Fahmy (Citizen)\n- General Khaled Mahmoud (Administrator)',
-  'zeyad': 'Zeyad Ahmed Ali is a citizen user with email zeyad@gmail.com. He has submitted applications for National ID (MG-1024-5896) and Military Exemption (MG-3054-9981).',
-  'nour': 'Nour Hassan Fahmy is a citizen user with email nour.hassan@gmail.com. She has a completed Birth Certificate application (MG-9082-1144) and submitted a service quality complaint.',
-  'admin': 'General Khaled Mahmoud is the system administrator (admin@misrgate.gov.eg). He manages all applications, complaints, appointments, and user activity oversight.',
   'status': 'Application statuses: PENDING (awaiting review), UNDER_REVIEW (document audit), APPROVED (certified), REJECTED (discarded), COMPLETED (printed & dispatched).',
-  'tracking': 'Tracking codes follow the format MG-XXXX-XXXX (e.g., MG-1024-5896). You can track any application publicly from the home page without logging in.',
+  'tracking': 'Tracking codes follow the format MG-XXXX-XXXX. You can track any application from the home page with the code you received.',
   'hello': 'Hello! I am MisrGate AI Assistant. I can help you with services, applications, appointments, and more. Type a question to get started!',
-  'hi': 'Hi there! Welcome to MisrGate. Ask me anything about government services, applications, or user accounts.',
-  'help': 'I can answer questions about:\n\u2022 8 government services (National ID, Passport, Tax, etc.)\n\u2022 Application tracking and statuses\n\u2022 Appointment booking\n\u2022 Complaints and feedback\n\u2022 User accounts\n\nJust type your question in natural language!',
+  'hi': 'Hi there! Welcome to MisrGate. Ask me anything about government services, applications, or appointments.',
+  'help': 'I can answer questions about:\n\u2022 8 government services (National ID, Passport, Tax, etc.)\n\u2022 Application tracking and statuses\n\u2022 Appointment booking\n\u2022 Complaints and feedback\n\nJust type your question in natural language!',
 };
 
 function findBestResponse(message: string): string {
@@ -50,7 +46,7 @@ function findBestResponse(message: string): string {
     return demoResponses[matchedKeys[0]];
   }
 
-  return 'I\'m not sure I understand. I can help with services, tracking, appointments, complaints, and user info. Try typing "help" to see what I can do!';
+  return 'I\'m not sure I understand. I can help with services, tracking, appointments, and complaints. Try typing "help" to see what I can do!';
 }
 
 export const chat = async (req: Request, res: Response) => {

@@ -1,8 +1,9 @@
+import path from 'path';
 import { Response } from 'express';
 import { AuthenticatedRequest } from './auth';
 
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
-const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/gif', 'application/pdf']);
+const ALLOWED_EXT = new Set(['.jpg', '.jpeg', '.png', '.gif', '.pdf']);
 
 export const uploadFile = async (req: AuthenticatedRequest, res: Response) => {
   if (!req.user) return res.status(401).json({ error: 'Unauthorized.' });
@@ -13,16 +14,14 @@ export const uploadFile = async (req: AuthenticatedRequest, res: Response) => {
       return res.status(400).json({ error: 'No file provided.' });
     }
 
-    if (!ALLOWED_TYPES.includes(file.mimetype)) {
+    const ext = path.extname(file.filename).toLowerCase();
+    if (!ALLOWED_TYPES.has(file.mimetype) || !ALLOWED_EXT.has(ext)) {
       return res.status(400).json({ error: 'Invalid file type. Allowed: JPEG, PNG, GIF, PDF.' });
     }
 
-    const url = `/uploads/${file.filename}`;
-
     return res.json({
       message: 'File uploaded successfully.',
-      url,
-      originalName: file.originalname,
+      url: `/uploads/${file.filename}`,
       size: file.size,
     });
   } catch (error) {

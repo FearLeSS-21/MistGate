@@ -5,6 +5,8 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import multer from 'multer';
 import path from 'path';
+import crypto from 'crypto';
+import fs from 'fs';
 import dotenv from 'dotenv';
 import {
   register,
@@ -70,11 +72,19 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const uploadDir = path.join(__dirname, '../../uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 // Security Middlewares
+app.set('trust proxy', 1);
+
 app.use(helmet({
-  contentSecurityPolicy: false, // Disabled for API (frontend handles its own)
+  contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+  frameguard: { action: 'deny' },
 }));
 
 const allowedOrigins = process.env.CORS_ORIGINS
@@ -82,7 +92,13 @@ const allowedOrigins = process.env.CORS_ORIGINS
   : ['http://localhost:5173', 'http://localhost:3000'];
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+    callback(null, false);
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -105,30 +121,64 @@ const apiLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const contactLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 8,
+  message: { error: 'Too many messages. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const chatLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 40,
+  message: { error: 'Too many chatbot requests. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 app.use('/api/', apiLimiter);
 app.use('/api/auth/', authLimiter);
+app.use('/api/contact', contactLimiter);
+app.use('/api/chatbot', chatLimiter);
 
 app.use(express.json({ limit: '10kb' }));
 
 // Multer config for file uploads
+const ALLOWED_UPLOAD_EXT = new Set(['.jpg', '.jpeg', '.png', '.gif', '.pdf']);
+const ALLOWED_UPLOAD_MIME = new Set(['image/jpeg', 'image/png', 'image/gif', 'application/pdf']);
+
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
-    cb(null, path.join(__dirname, '../../uploads'));
+    cb(null, uploadDir);
   },
   filename: (_req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, uniqueSuffix + ext);
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, `${crypto.randomBytes(16).toString('hex')}${ALLOWED_UPLOAD_EXT.has(ext) ? ext : ''}`);
   },
 });
 
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: { fileSize: 5 * 1024 * 1024, files: 1, fields: 8 },
+  fileFilter: (_req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (!ALLOWED_UPLOAD_MIME.has(file.mimetype) || !ALLOWED_UPLOAD_EXT.has(ext)) {
+      cb(new Error('Invalid file type. Allowed: JPEG, PNG, GIF, PDF.'));
+      return;
+    }
+    cb(null, true);
+  },
 });
 
 // Serve uploaded files statically
-app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
+app.use('/uploads', express.static(path.join(__dirname, '../../uploads'), {
+  setHeaders: (res) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Content-Disposition', 'inline');
+  },
+}));
 
 // Public Welcome Route
 app.get('/', (req, res) => {
@@ -208,7 +258,14 @@ app.put('/api/admin/applications/:id/status', authenticateJWT, requireAdmin, adm
 app.get('/api/admin/stats', authenticateJWT, requireAdmin, adminGetStats);
 
 // --- File Upload Route ---
-app.post('/api/upload', authenticateJWT, upload.single('file'), uploadFile);
+app.post('/api/upload', authenticateJWT, (req, res, next) => {
+  upload.single('file')(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ error: err.message || 'Upload failed.' });
+    }
+    next();
+  });
+}, uploadFile);
 
 // --- Timeline Route ---
 app.get('/api/timeline', authenticateJWT, getMyTimeline);
