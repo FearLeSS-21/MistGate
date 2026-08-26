@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { brandedEmailHtml, CONTACT_TO, sendMail } from '../utils/email';
+import { escapeHtml, escapeHtmlMultiline } from '../utils/html';
 
 const contactSchema = z.object({
   name: z.string().min(2, 'Name is required').max(120),
@@ -23,13 +24,16 @@ export const submitContact = async (req: Request, res: Response) => {
     const adminTitle = locale === 'ar' ? `رسالة اتصال: ${data.subject}` : `Contact: ${data.subject}`;
     const confirmTitle = locale === 'ar' ? 'تم استلام رسالتك — بوابة مصر' : 'We received your message — MisrGate';
 
+    const safeName = escapeHtml(data.name);
+    const safeEmail = escapeHtml(data.email);
+    const safeSubject = escapeHtml(data.subject);
     const adminBody = `
-      <p><strong>${data.name}</strong> &lt;${data.email}&gt;</p>
-      <p>${data.message.replace(/\n/g, '<br/>')}</p>
+      <p><strong>${safeName}</strong> &lt;${safeEmail}&gt;</p>
+      <p>${escapeHtmlMultiline(data.message)}</p>
     `;
     const confirmBody = locale === 'ar'
-      ? `<p>مرحباً ${data.name}،</p><p>استلمنا رسالتك بخصوص «${data.subject}». سنرد في أقرب وقت.</p>`
-      : `<p>Hello ${data.name},</p><p>We received your message about “${data.subject}”. A specialist will reply as soon as possible.</p>`;
+      ? `<p>مرحباً ${safeName}،</p><p>استلمنا رسالتك بخصوص «${safeSubject}». سنرد في أقرب وقت.</p>`
+      : `<p>Hello ${safeName},</p><p>We received your message about “${safeSubject}”. A specialist will reply as soon as possible.</p>`;
 
     const adminResult = await sendMail({
       to: CONTACT_TO,

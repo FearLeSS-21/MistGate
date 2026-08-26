@@ -1,5 +1,6 @@
 import prisma from './db';
 import { brandedEmailHtml, sendMail } from './email';
+import { escapeHtml } from './html';
 
 export async function createNotification(params: {
   userId: string;
@@ -24,7 +25,10 @@ export async function createNotification(params: {
       select: { email: true, name: true },
     });
     if (user?.email) {
-      const body = `<p>${params.message}</p>${params.link ? `<p><a href="${params.link}">Open in MisrGate</a></p>` : ''}`;
+      const safeLink = params.link && params.link.startsWith('/') && !params.link.startsWith('//')
+        ? `<p><a href="${escapeHtml(params.link)}">Open in MisrGate</a></p>`
+        : '';
+      const body = `<p>${escapeHtml(params.message)}</p>${safeLink}`;
       await sendMail({
         to: user.email,
         subject: `MisrGate · ${params.title}`,

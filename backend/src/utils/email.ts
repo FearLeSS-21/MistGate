@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { escapeHtml } from './html';
 
 const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
 const SMTP_PORT = Number(process.env.SMTP_PORT || 587);
@@ -50,7 +51,7 @@ export function brandedEmailHtml(opts: {
         <tr><td style="height:3px;background:linear-gradient(to ${opts.locale === 'ar' ? 'left' : 'right'}, #111 0 33%, #f4f4f4 33% 66%, #c8102e 66% 100%);font-size:0;line-height:0;">&nbsp;</td></tr>
         <tr>
           <td style="padding:28px 24px;text-align:${align};">
-            <h1 style="margin:0 0 12px;font-size:20px;color:#c8102e;">${opts.title}</h1>
+            <h1 style="margin:0 0 12px;font-size:20px;color:#c8102e;">${escapeHtml(opts.title)}</h1>
             <div style="font-size:15px;line-height:1.65;color:#3d5166;">${opts.body}</div>
           </td>
         </tr>
