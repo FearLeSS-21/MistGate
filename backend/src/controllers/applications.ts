@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
+import crypto from 'crypto';
 import prisma from '../utils/db';
 import { AuthenticatedRequest } from './auth';
 import { createNotification } from '../utils/notifications';
@@ -84,16 +85,16 @@ const socialInsuranceDataSchema = z.object({
 
 // Helper: Generate Unique Tracking Code
 async function generateUniqueTrackingCode(): Promise<string> {
-  const chars = '0123456789';
+  const digits = '0123456789';
   let isUnique = false;
   let code = '';
-  
+
   while (!isUnique) {
     let segment1 = '';
     let segment2 = '';
     for (let i = 0; i < 4; i++) {
-      segment1 += chars.charAt(Math.floor(Math.random() * chars.length));
-      segment2 += chars.charAt(Math.floor(Math.random() * chars.length));
+      segment1 += digits.charAt(crypto.randomInt(digits.length));
+      segment2 += digits.charAt(crypto.randomInt(digits.length));
     }
     code = `MG-${segment1}-${segment2}`;
 
@@ -107,12 +108,15 @@ async function generateUniqueTrackingCode(): Promise<string> {
   return code;
 }
 
+const SAFE_ATTACHMENT = /^\/uploads\/[a-f0-9]{32}\.(jpg|jpeg|png|gif|pdf)$/i;
+const TRACKING_CODE = /^MG-\d{4}-\d{4}$/;
+
 // 1. Citizen: Submit New Application
 export const createApplication = async (req: AuthenticatedRequest, res: Response) => {
   if (!req.user) return res.status(401).json({ error: 'Unauthorized.' });
 
   try {
-    const { serviceType, data, attachmentUrl } = req.body;
+    const { serviceType, data, attachmentUrl: attachmentUrlRaw } = req.body;
 
     if (!serviceType) {
       return res.status(400).json({ error: 'serviceType is required.' });
@@ -148,6 +152,9 @@ export const createApplication = async (req: AuthenticatedRequest, res: Response
     }
 
     const trackingCode = await generateUniqueTrackingCode();
+    const attachmentUrl = typeof attachmentUrlRaw === 'string' && SAFE_ATTACHMENT.test(attachmentUrlRaw)
+      ? attachmentUrlRaw
+      : null;
 
     // Create the Application record
     const application = await prisma.application.create({
@@ -155,7 +162,7 @@ export const createApplication = async (req: AuthenticatedRequest, res: Response
         trackingCode,
         serviceType: serviceType as ServiceType,
         data: JSON.stringify(parsedData),
-        attachmentUrl: attachmentUrl || null,
+        attachmentUrl,
         userId: req.user.id,
       },
     });
@@ -221,7 +228,7 @@ export const trackApplication = async (req: Request, res: Response) => {
   try {
     const { trackingCode } = req.params;
 
-    if (!trackingCode) {
+    if (!trackingCode || !TRACKING_CODE.test(trackingCode)) {
       return res.status(400).json({ error: 'Tracking code is required.' });
     }
 

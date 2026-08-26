@@ -51,8 +51,18 @@ export const submitRating = async (req: AuthenticatedRequest, res: Response) => 
 };
 
 export const getApplicationRating = async (req: AuthenticatedRequest, res: Response) => {
+  if (!req.user) return res.status(401).json({ error: 'Unauthorized.' });
+
   try {
     const { applicationId } = req.params;
+
+    const application = await prisma.application.findUnique({ where: { id: applicationId } });
+    if (!application) {
+      return res.status(404).json({ error: 'Application not found.' });
+    }
+    if (application.userId !== req.user.id && req.user.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Access denied.' });
+    }
 
     const rating = await prisma.serviceRating.findUnique({
       where: { applicationId },
