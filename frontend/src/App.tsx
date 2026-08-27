@@ -1042,25 +1042,15 @@ export default function App() {
 
       {/* 1. Header & Navigation */}
       <header className="navbar">
-        <div className="navbar-content" style={{ flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+        <div className="navbar-content">
           <a href="#home" className="logo-section" onClick={(e) => { e.preventDefault(); goTo('home'); setFormSuccess(null); }}>
             <div className="logo-symbol" aria-hidden>🇪🇬</div>
-            <div className="logo-text" style={{ alignItems: isRtl ? 'flex-end' : 'flex-start' }}>
+            <div className="logo-text">
               <span>{t('MisrGate', 'بوابة مصر')}</span>
               <span className="logo-sub">{t('Digital Services Platform', 'منصة الخدمات الرقمية')}</span>
             </div>
           </a>
-          <button
-            type="button"
-            className="lang-btn nav-menu-toggle"
-            onClick={() => setNavOpen((open) => !open)}
-            aria-expanded={navOpen}
-            aria-controls="primary-nav"
-            title={t('Menu', 'القائمة')}
-          >
-            {navOpen ? <X size={16} /> : <Menu size={16} />}
-          </button>
-          <nav id="primary-nav" className={`nav-links${navOpen ? ' open' : ''}`} style={{ flexDirection: isRtl ? 'row-reverse' : 'row' }}>
+          <nav id="primary-nav" className={`nav-links${navOpen ? ' open' : ''}`}>
             <span className={`nav-link ${currentView === 'home' ? 'active' : ''}`} onClick={() => setCurrentView('home')} title={t('Home page', 'الصفحة الرئيسية')}>
               <Home size={15} />
               {t('Home', 'الرئيسية')}
@@ -1152,8 +1142,15 @@ export default function App() {
                 {t('Announcements', 'الإعلانات')}
               </span>
             )}
+            {user && (
+              <span className={`nav-link ${currentView === 'profile' ? 'active' : ''}`} onClick={() => { setCurrentView('profile'); setProfileForm({ name: user.name, phone: user.phone }); setProfileSuccess(''); setPasswordSuccess(''); }} title={t('View profile', 'الملف الشخصي')}>
+                <User size={15} />
+                {t('Profile', 'الملف الشخصي')}
+              </span>
+            )}
+          </nav>
 
-            {/* Notification Bell */}
+          <div className="nav-tools">
             {user && (
               <div className="notification-bell-wrapper">
                 <button className="notification-bell" onClick={(e) => { e.stopPropagation(); setShowNotifications(!showNotifications); void fetchNotifications(); }}>
@@ -1199,14 +1196,6 @@ export default function App() {
               </div>
             )}
 
-            {/* Profile Link */}
-            {user && (
-              <span className={`nav-link ${currentView === 'profile' ? 'active' : ''}`} onClick={() => { setCurrentView('profile'); setProfileForm({ name: user.name, phone: user.phone }); setProfileSuccess(''); setPasswordSuccess(''); }} title={t('View profile', 'الملف الشخصي')}>
-                <User size={15} />
-                {t('Profile', 'الملف الشخصي')}
-              </span>
-            )}
-
             {user ? (
               <button type="button" onClick={() => void handleLogout()} className="lang-btn" title={t('Sign out', 'تسجيل الخروج')}>
                 <LogOut size={14} />
@@ -1218,27 +1207,32 @@ export default function App() {
                   <Lock size={15} />
                   {t('Sign in', 'دخول')}
                 </span>
-                <button type="button" className="btn btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }} onClick={() => { setCurrentView('register'); setAuthError(''); }}>
+                <button type="button" className="btn btn-primary nav-cta" onClick={() => { setCurrentView('register'); setAuthError(''); }}>
                   {t('Create account', 'إنشاء حساب')}
                 </button>
               </>
             )}
 
-            {/* Dark Mode Toggle */}
-            <button onClick={() => setDarkMode(!darkMode)} className="lang-btn" style={{ fontSize: '0.75rem' }} title={t('Toggle dark mode', 'تبديل الوضع المظلم')}>
+            <button onClick={() => setDarkMode(!darkMode)} className="lang-btn" title={t('Toggle dark mode', 'تبديل الوضع المظلم')}>
               {darkMode ? <Sun size={14} /> : <Moon size={14} />}
             </button>
-
-            {/* Font Size Controls */}
-            <button className="lang-btn" onClick={() => adjustFont(-10)} style={{ fontSize: '0.7rem' }} title={t('Decrease font size', 'تصغير الخط')}>A-</button>
-            <button className="lang-btn" onClick={() => adjustFont(10)} style={{ fontSize: '0.85rem' }} title={t('Increase font size', 'تكبير الخط')}>A+</button>
-
-            {/* Language Switcher Pill */}
+            <button className="lang-btn" onClick={() => adjustFont(-10)} title={t('Decrease font size', 'تصغير الخط')}>A-</button>
+            <button className="lang-btn" onClick={() => adjustFont(10)} title={t('Increase font size', 'تكبير الخط')}>A+</button>
             <button onClick={toggleLanguage} className="lang-btn" title={t('Switch language', 'تغيير اللغة')}>
               <Globe size={14} />
               <span>{lang === 'en' ? 'العربية' : 'English'}</span>
             </button>
-          </nav>
+            <button
+              type="button"
+              className="lang-btn nav-menu-toggle"
+              onClick={() => setNavOpen((open) => !open)}
+              aria-expanded={navOpen}
+              aria-controls="primary-nav"
+              title={t('Menu', 'القائمة')}
+            >
+              {navOpen ? <X size={16} /> : <Menu size={16} />}
+            </button>
+          </div>
         </div>
       </header>
 
