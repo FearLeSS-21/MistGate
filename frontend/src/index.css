@@ -165,6 +165,13 @@ html.dark-mode,
   padding: 0;
 }
 
+html, body, #root, .app-container {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+}
+
 html, body {
   background-color: var(--bg-light);
   color: var(--text-primary);
@@ -304,33 +311,12 @@ html.dark-mode .dev-banner,
 .navbar {
   background: var(--bg-navbar);
   backdrop-filter: blur(16px);
-  border-bottom: none;
+  border-bottom: 1px solid var(--border-color);
   position: sticky;
   top: 0;
   z-index: 100;
   box-shadow: var(--nav-shadow);
   transition: var(--transition-smooth);
-}
-
-.navbar::after {
-  content: '';
-  display: block;
-  height: 3px;
-  background: linear-gradient(
-    to right,
-    #111111 0 33.33%,
-    #f4f4f4 33.33% 66.66%,
-    var(--flag-red) 66.66% 100%
-  );
-}
-
-[dir="rtl"] .navbar::after {
-  background: linear-gradient(
-    to left,
-    #111111 0 33.33%,
-    #f4f4f4 33.33% 66.66%,
-    var(--flag-red) 66.66% 100%
-  );
 }
 
 .navbar-content {
